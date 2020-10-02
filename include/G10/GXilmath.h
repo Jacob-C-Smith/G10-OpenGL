@@ -1,13 +1,14 @@
 #pragma once
+
 #define _USE_MATH_DEFINES // For some (utterly stupid) reason, macros for numerical constants are not automatically defined... 
 #include <math.h>
 
-float toDegrees(float radians)
+static inline float toDegrees(float radians) // converts radians to degrees
 {
-	return (float) radians * (180 / M_PI);
+	return (float) radians * (360 / M_PI);
 }
 
-float toRadians(float degrees)
+static inline float toRadians(float degrees) // converts degrees to radians
 {
-	return (float) degrees * (M_PI / 180);
+	return (float) degrees * (M_PI / 360);
 }

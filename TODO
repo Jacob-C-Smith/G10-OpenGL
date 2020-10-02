@@ -2,6 +2,7 @@
 
 - ❌ Write an onexit for the engine, so that any abnormal terminations won't corrupt OpenGL.
 - ✅ Write a JSON parser to read scenes and entities from the game.
+- ❌ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
 - ❌ parse arrays in JSON parser.
 - ✅ Develop an expandable schematic for entities and scenes.
 - ✅ Use JSON parser to read entities for the game engine.

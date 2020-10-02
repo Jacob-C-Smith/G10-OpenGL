@@ -6,6 +6,7 @@ GXtexture_t* loadPNGImage(const char path[])
 	SDL_Surface* image;
 	size_t       allocateSize;
 	u8*          data;
+
 	// Initialized data
 	GXtexture_t* ret = malloc(sizeof(GXtexture_t));
 	SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
@@ -24,6 +25,7 @@ GXtexture_t* loadPNGImage(const char path[])
 	allocateSize = (size_t)image->w * (size_t)image->h * (size_t)image->format->BytesPerPixel;
 	ret->width   = image->w;
 	ret->height  = image->h;
+
 	// Allocate space for the pixel data
 	data         = malloc(allocateSize);
 
@@ -50,5 +52,6 @@ GXtexture_t* loadPNGImage(const char path[])
 	free(data);
 	SDL_FreeSurface(image);
 	SDL_FreeRW(r);
+
 	return ret;
 }

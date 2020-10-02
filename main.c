@@ -29,14 +29,18 @@
 
 int main(int argc, const char* argv[])
 {
-	// Uninitialized data
+	// Uninitialized SDL data
 	SDL_Window*   window;
 	SDL_Event     event;
 	SDL_GLContext glContext;
+	
+	// Uninitialized G10 data
 	GXscene_t*    scene;
+
 	// Initialized Data
 	u8            running = 1;
 	float         d       = 0.f;
+
 	// SDL + GLAD Initialization Junk
 	{
 		// Initialize SDL
@@ -79,22 +83,25 @@ int main(int argc, const char* argv[])
 			return -1;
 		}
 	}
-	// GX Initialization Junk
+
+	// G10 Initialization Junk
 	{
 		// Create the scene
 		scene = createScene();
 		// Create the camera
-		scene->camera = createCamera((GXvec3_t) { 0.f, 4.f, -1.f }, (GXvec3_t) {0.f,0.f,0.f}, (GXvec3_t) {0.f,1.f,0.f},toRadians(45.f),0.1f,100.f,1280.f/720.f);
+		scene->camera = createCamera((GXvec3_t) { 0.f, 4.f, -1.f }, (GXvec3_t) {0.f,0.f,0.f}, (GXvec3_t) {0.f,1.f,0.f},toRadians(90.f),0.1f,100.f,1280.f/720.f);
 		// Create the projection matrix
 		computeProjectionMatrix(scene->camera);
 		// Load and append a test file
 		GXentity_t* cube = loadEntity("gameassets/cube/.json");
-		cube->rotation = (GXvec3_t){0.f, 0.f, 45.f };
+		cube->rotation = (GXvec3_t){ 0.f, 0.f, 0.f };
 		appendEntity(scene, cube);
 	}
+
 	// OpenGL Commands
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
 	while (running)
 	{
 		while (SDL_PollEvent(&event)) {
@@ -108,6 +115,17 @@ int main(int argc, const char* argv[])
 				case SDLK_ESCAPE:
 					running = 0;
 					break;
+				case SDLK_x:
+					getEntity(scene, "cube")->rotation.x += 0.5f;
+					break;
+				case SDLK_y:
+					getEntity(scene, "cube")->rotation.y += 0.5f;
+					break;
+				case SDLK_z:
+					getEntity(scene, "cube")->rotation.z += 0.5f;
+					break;
+				case SDLK_d:
+					printf("X: %g\nY: %g\nZ: %g\n", getEntity(scene, "cube")->rotation.x, getEntity(scene, "cube")->rotation.y, getEntity(scene, "cube")->rotation.z);
 				default:
 					break;
 				}
@@ -119,7 +137,7 @@ int main(int argc, const char* argv[])
 			}
 		}
 
-		glClearColor(0.8f, 0.8f, 0.8f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		drawScene(scene);

@@ -2,11 +2,14 @@
 
 GXscene_t* createScene()
 {
-	// Create a random ID and set head to zero
 	GXscene_t* ret = malloc(sizeof(GXscene_t));
+
 	if (ret == 0)
 		return (void*)0;
+	
+	// Set head to 0
 	ret->head = 0;
+
 	return ret;
 }
 
@@ -47,14 +50,15 @@ GXscene_t* loadScene(const char path[])
 
 int appendEntity(GXscene_t* scene, GXentity_t* entity)
 {
-
 	GXentity_t* i = scene->head;
+
 	// Check if the head is null
 	if (i == 0)
 	{
 		scene->head = entity;
 		return 0;
 	}
+
 	// Search for the end of the LL
 	while (i->next)
 		i = i->next;
@@ -69,9 +73,11 @@ int drawScene(GXscene_t* scene)
 {
 	// Create a pointer to the head of the list
 	GXentity_t* i = scene->head;
+
 	// Is the scene real?
 	if (i == 0)
 		return -1;
+	
 	// Iterate through list until we hit nullptr
 	while (i)
 	{
@@ -80,14 +86,18 @@ int drawScene(GXscene_t* scene)
 		{
 			// Use it
 			useShader(i->shader);
+	
 			// Compute a new view matrix because it has almost certainly changed
 			computeViewMatrix(scene->camera);
+			
 			// Set some uniforms for the shader
 			glUniformMatrix4fv(glGetUniformLocation(i->shader->shaderProgramID, "V"), 1, GL_FALSE, (const GLfloat*)&scene->camera->view);
 			glUniformMatrix4fv(glGetUniformLocation(i->shader->shaderProgramID, "P"), 1, GL_FALSE, (const GLfloat*)&scene->camera->projection);
 		}
+		
 		// Actually draw the entity
 		drawEntity(i);
+		
 		// Rinse and repeat
 		i = i->next;
 	}
@@ -99,9 +109,11 @@ GXentity_t* getEntity(GXscene_t* scene, const char name[])
 {
 	// Create a pointer to the head of the list
 	GXentity_t* i = scene->head;
+
 	// Sanity check
 	if (i == 0)
 		return (void*)0;
+	
 	// Iterate through list until we hit the entity we want, or zero
 	while (i)
 	{
@@ -109,6 +121,7 @@ GXentity_t* getEntity(GXscene_t* scene, const char name[])
 			return i; // If able to locate the entity in question, return a pointer
 		i = i->next;
 	}
+	
 	// Unable to locate entity
 	return (void*) 0;
 }
@@ -117,9 +130,11 @@ int removeEntity(GXscene_t* scene, const char name[])
 {
 	// Create a pointer to the head of the list
 	GXentity_t* i = scene->head;
+	
 	// Quick sanity check
 	if (i == 0)
 		return -1;
+	
 	// Destroy the named entity
 	while (i->next)
 	{
@@ -136,6 +151,7 @@ int removeEntity(GXscene_t* scene, const char name[])
 		}
 		i = i->next;
 	}
+
 	return 0;
 }
 
@@ -143,6 +159,7 @@ int destroyScene(GXscene_t* scene)
 {
 	// Set sceneID to zero;
 	GXentity_t* i = scene->head;
+	
 	// Destroy all assets in the scene
 	while (i)
 	{
@@ -150,5 +167,6 @@ int destroyScene(GXscene_t* scene)
 		i = i->next;
 		destroyEntity(j);
 	}
+
 	return 0;
 }

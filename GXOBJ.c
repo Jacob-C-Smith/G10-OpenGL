@@ -6,6 +6,7 @@ GXmesh_t* loadOBJMesh(const char path[])
 	int       i;
 	char*     data;
 	char*     backup;
+
 	// Temporaries
 	point2_t* tempTextureCoordinates;
 	point3_t* tempVertexNormals;
@@ -150,7 +151,7 @@ GXmesh_t* loadOBJMesh(const char path[])
 			int3_t vt = { 0,0,0 };
 			int3_t vn = { 0,0,0 };
 
-			sscanf(data, "f %i/%i/%i %i/%i/%i %i/%i/%i", &v.x, &vt.x, &vn.x, &v.y, &vt.y, &vn.y, &v.z, &vt.z, &vn.z);
+			sscanf(data, "f %lu/%lu/%lu %lu/%lu/%lu %lu/%lu/%lu", &v.x, &vt.x, &vn.x, &v.y, &vt.y, &vn.y, &v.z, &vt.z, &vn.z);
 			
 			// Arrays start at 1 in OBJ file format, so dec every int
 			v.x--, v.y--, v.z--;

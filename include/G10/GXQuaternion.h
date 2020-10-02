@@ -4,6 +4,7 @@
 
 #include <G10/GXdebug.h>
 #include <G10/GXLinear.h>
+#include <G10/GXilmath.h>
 
 // Dimensions for quaternion
 struct quaternion_s
@@ -24,7 +25,7 @@ inline quaternion_t makeQuaternion               ()
 // Creates a quaternion from a vector in euler angles
 inline quaternion_t makeQuaternionFromEulerAngle (GXvec3_t v)
 {
-	float sx = sinf(v.x), sy = sinf(v.y), sz = sinf(v.z), cx = cosf(v.x), cy = cosf(v.y), cz = cosf(v.z);
+	float sx = sinf(toRadians(v.x)), sy = sinf(toRadians(v.y)), sz = sinf(toRadians(v.z)), cx = cosf(toRadians(v.x)), cy = cosf(toRadians(v.y)), cz = cosf(toRadians(v.z));
 
 	return (quaternion_t) {
 		(cz * cx * cy + sz * sx * sy),

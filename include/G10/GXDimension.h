@@ -27,8 +27,8 @@ typedef struct point4_s point4_t;
 
 // 3D int point
 struct int3_s {
-	int x;
-	int y;
-	int z;
+	unsigned long x;
+	unsigned long y;
+	unsigned long z;
 };
 typedef struct int3_s int3_t;

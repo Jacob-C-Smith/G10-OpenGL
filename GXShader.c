@@ -84,6 +84,7 @@ int useShader(GXshader_t* shader)
 {
 	if(shader)
 		glUseProgram(shader->shaderProgramID);
+
 	return 0;
 }
 
@@ -101,6 +102,7 @@ int unloadShader(GXshader_t* shader)
 {
 	// Deallocate associated data
 	glDeleteProgram(shader->shaderProgramID);
+	shader->shaderProgramID = 0;
 	free(shader);
 
 	return 0;

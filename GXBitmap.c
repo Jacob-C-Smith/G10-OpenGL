@@ -5,13 +5,16 @@ GXtexture_t* loadBMPImage(const char path[])
 	// Uninitialized data
 	int          i;
 	u8*          data;
+
 	// Initialized data
 	GXtexture_t* ret = malloc(sizeof(GXtexture_t));
 	FILE*        f   = fopen(path, "rb");
 
+	// Check allocated memory
 	if (ret == 0)
 		return (void*)0;
 
+	// Check if file is valid
 	if (f == NULL)
 	{
 		printf("Failed to load file %s\n", path);
@@ -26,10 +29,11 @@ GXtexture_t* loadBMPImage(const char path[])
 	// Allocate data and read file into memory
 	data = malloc(i);
 
+	// Check if data is valid
 	if (data == 0)
 		return (void*)0;
 
-
+	// Read to data
 	fread(data, 1, i, f);
 
 	// We no longer need the file

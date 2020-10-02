@@ -1,7 +1,7 @@
 #pragma once
 #include <G10/GXDebug.h>
 
-// These are a few typedefs used throughout the engine
+// Here are a few useful typedefs used throughout the engine
 
 typedef unsigned char      u8;
 typedef signed   char      s8;
