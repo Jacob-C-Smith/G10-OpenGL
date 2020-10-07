@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <G10/GXDebug.h>
 #include <G10/GXtypedef.h>
@@ -15,12 +16,18 @@ enum GXJSONValue_e
 	GXJSONprimative = 3  // Any other value
 };
 
+union GXJSONContent_u {
+	void*  nWhere;
+	void** aWhere;
+};
+typedef union GXJSONContent_u GXJSONContent_t;
+
 //Container for the 
 struct JSONValue_s
 {
-	char*              name;  // The key
-	enum GXJSONValue_e type;  // The type
-	void*              where; // Where the value appears, if type is array, then where is double pointer to text in array
+	char*              name;    // The key
+	enum GXJSONValue_e type;    // The type
+	GXJSONContent_t    content; // Where the value appears, if type is array, then where is double pointer to text in array
 };
 typedef struct JSONValue_s JSONValue_t;
 

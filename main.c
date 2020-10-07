@@ -86,6 +86,7 @@ int main(int argc, const char* argv[])
 
 	// G10 Initialization Junk
 	{
+		/*
 		// Create the scene
 		scene = createScene();
 		
@@ -96,6 +97,9 @@ int main(int argc, const char* argv[])
 		computeProjectionMatrix(scene->camera);
 
 		// Load and append a test file
+		*/
+
+		scene = loadScene("gameassets/scene.json");
 		appendEntity(scene, loadEntity("gameassets/cube/.json"));
 	}
 
@@ -103,7 +107,6 @@ int main(int argc, const char* argv[])
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	GXentity_t* cube = getEntity(scene, "cube");
-	cube->transform = createTransform((GXvec3_t){ 0,0,0 }, (GXvec3_t) { 0,0,0 }, (GXvec3_t) { 1,1,1 });
 	while (running)
 	{
 		while (SDL_PollEvent(&event)) {

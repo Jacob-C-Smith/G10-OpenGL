@@ -4,6 +4,9 @@
 #include <G10/GXtypedef.h>
 #include <G10/GXEntity.h>
 #include <G10/GXCamera.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 // Contains information about a scene
 struct GXscene_s {

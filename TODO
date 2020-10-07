@@ -1,17 +1,24 @@
 ﻿TODO File, place TODOs here
 
-- ❌ Write an onexit for the engine, so that any abnormal terminations won't corrupt OpenGL.
+=== Framework goals ===
 - ✅ Write a JSON parser to read scenes and entities from the game.
-- ❌ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
-- ❌ parse arrays in JSON parser.
+- ✅ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
+- ✅ parse arrays in JSON parser.
 - ✅ Develop an expandable schematic for entities and scenes.
 - ✅ Use JSON parser to read entities for the game engine.
-- ❌ Use JSON parser to read scenes for the game engine.
+- ✅ Use JSON parser to read scenes for the game engine.
+- ✅ switchScene() function.
+
+=== Renderer goals ===
 - ❌ Some amount of lighting.
-- ❌ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
 - ❌ Implement normals.
+
+=== Physics goals ===
+- ❌ Collision detection, box, sphere, (cylinder???).
+- ❌ Rigidbody physics.
+
+=== General goals
+- ❌ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
 - ❌ Implement threading.
-- ❌ Rigidbody physics?.
 - ❌ Export this whole project into a DLL file so that other developers can use it.
 - ❌ Figure out a better way of handling input.
-- ❌ switchScene() function.

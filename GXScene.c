@@ -22,9 +22,9 @@ GXscene_t* loadScene(const char path[])
 	// Uninitialized data
 	int i;
 	char* data;
-
 	// Initialized data
-	GXscene_t* ret = malloc(sizeof(GXscene_t));
+	GXscene_t* ret = createScene();
+	GXsize_t l = 0;
 	if (ret == 0)
 		return (void*)0;
 
@@ -44,6 +44,72 @@ GXscene_t* loadScene(const char path[])
 
 	// We no longer need the file
 	fclose(f);
+
+	l = strlen(data);
+
+	int rootTokenCount = GXParseJSON(data, l, 0, (void*)0);
+	JSONValue_t* rootContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+	GXParseJSON(data, l, rootTokenCount, rootContents);
+
+	for (size_t j = 0; j < rootTokenCount; j++)
+	{
+		if (strcmp("comment", rootContents[j].name) == 0)
+		#ifdef debugmode
+			// Print out comment
+			printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
+		#endif
+		if (strcmp("camera", rootContents[j].name) == 0)
+		{
+			GXvec3_t where = { 0,0,0 };
+			GXvec3_t target = { 0,0,0 };
+			GXvec3_t up = { 0,0,0 };
+			float    fov = 0.f;
+			float    near = 0.f;
+			float    far = 0.f;
+			float    aspectRatio = 0.f;
+
+			char* relativePath = 0;
+
+			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
+			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+			
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("where", subContents[k].name) == 0)
+					where = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
+			
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("target", subContents[k].name) == 0)
+					target = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
+			
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("up", subContents[k].name) == 0)
+					up = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
+			
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("fov", subContents[k].name) == 0)
+					fov = atof(subContents[k].content.nWhere);
+
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("near", subContents[k].name) == 0)
+					near = atof(subContents[k].content.nWhere);
+
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("far", subContents[k].name) == 0)
+					far = atof(subContents[k].content.nWhere);
+
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("aspectRatio", subContents[k].name) == 0)
+					aspectRatio = atof(subContents[k].content.nWhere);
+
+			ret->camera = createCamera(where, target, up, fov, near, far, aspectRatio);
+			computeProjectionMatrix(ret->camera);
+
+			//free(subContents);
+		}
+	}
+	// Finish up
+	//free(rootContents);
 
 	return ret;
 }

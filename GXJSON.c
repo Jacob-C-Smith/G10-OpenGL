@@ -14,8 +14,19 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 			if (text[i] == ':')        // Any time we hit a ':', we have come across a key/value pair; We increment ret.
 				ret++;
 			else if (text[i] == '{')   // Any time we hit a '{', we have come across an object, and need to skip over it. 
-				while (text[i] != '}')
+			{
+				GXsize_t bDepth = 1;
+				while (bDepth)
+				{
 					i++;
+					if (text[i] == '{')
+						bDepth++;
+					else if (text[i] == '}')
+						bDepth--;
+					else if (text[i] == '\"')
+						while (text[++i] != '\"');
+				}
+			}
 			else if (text[i] == '\"')  // Any time we hit a '\"', we have come across a string, and we should just skip it.
 				while (text[++i] != '\"');
 			i++;
@@ -23,7 +34,7 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 		
 		return ret;                    // Return the total number of key/value pairs we have found.
 	}
-
+	text;
 	while (*++text)
 	{
 		if (*text == '\"')                                  // We've found a key
@@ -38,26 +49,100 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 
 			if (*text == '\"')                              // Parse out a string
 			{
-				where[currentWhere].where = ++text;
+				where[currentWhere].content.nWhere = ++text;
 				where[currentWhere].type  = GXJSONstring;
 				while (*++text != '\"');
 				*text = 0;
 			}
 			else if (*text == '{')                          // Parse out an object
 			{
-				where[currentWhere].where = text;
+				where[currentWhere].content.nWhere = text;
 				where[currentWhere].type = GXJSONobject;
-				while (*++text != '}');
-				
+				text++;
+				GXsize_t bDepth = 1;
+				while (bDepth)
+				{
+					text++;
+					if (*text == '{')
+						bDepth++;
+					else if (*text == '}')
+						bDepth--;
+					else if (*text == '\"')
+						while (*++text != '\"');
+				}
 			}
 			else if (*text == '[')                          // Parse out an array
 			{
-				//TODO: parse out array
+				where[currentWhere].type = GXJSONarray;
+				GXsize_t c = 0;
+				GXsize_t bDepth = 1;
+				GXsize_t cDepth = 0;
+				GXsize_t aEntries = 0;
+				while (bDepth)
+				{
+					c++;
+					if (text[c] == '[')
+						bDepth++;
+					else if (text[c] == ']')
+						bDepth--;
+					else if (text[c] == '{')
+						cDepth++;
+					else if (text[c] == '}')
+						cDepth--;
+					else if (text[c] == ',')
+						((bDepth == 1) && (cDepth == 0)) ? aEntries++ : aEntries;
+					else if (text[c] == '\"')
+						while (text[++c] != '\"');
+				}
+				if (aEntries)
+					aEntries++;
+				where[currentWhere].content.aWhere = malloc(sizeof(aEntries)*aEntries);
+				text++;
+				bDepth = 1, cDepth = 1, c = 0;
+				while (bDepth)
+				{
+					text++;
+					if (*text == '\"')
+					{
+						where[currentWhere].content.aWhere[c] = text;
+					}
+					else if (*text == '{')
+					{
+						where[currentWhere].content.aWhere[c] = text;
+						while (cDepth)
+						{
+							text++;
+							if (*text == '{')
+								cDepth++;
+							else if (*text == '}')
+								cDepth--;
+							else if (*text == '\"')
+								while (*++text != '\"');
+						}
+						*++text = '\0';
+						c++;
+						cDepth = 1;
+					}
+					else if (*text == '[')
+					{
+						where[currentWhere].content.aWhere = text;
+					}
+					else if (*text >= '0' && *text <= '9')
+					{
+						where[currentWhere].content.aWhere[c] = text;
+						while ((*++text >= '0' && *text <= '9') || *text == '.' || *text == '-');
+						c++;
+						*text = '\0';
+					}
+					if (*text == ']')
+						bDepth--;
+				}
+
 			}
-			else if (*text > '0' && *text < '9')            // Parse out a primative
+			else if (*text >= '0' && *text <= '9')            // Parse out a primative
 			{
-				where[currentWhere].where = text;
-				where[currentWhere].type = GXJSONprimative; 
+				where[currentWhere].content.nWhere = text;
+				where[currentWhere].type = GXJSONprimative;
 				while (*++text >= '0' && *text <= '9');
 				
 			}

@@ -83,33 +83,33 @@ GXentity_t* loadEntity(const char path[])
 		if (strcmp("comment", rootContents[j].name) == 0)
 		#ifdef debugmode
 			// Print out comment
-			printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].where);
+			printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
 		#endif
 		if (strcmp("name", rootContents[j].name) == 0)
 		{
 			// Set name
-			size_t len = strlen(rootContents[j].where);
+			size_t len = strlen(rootContents[j].content.nWhere);
 			ret->name = malloc(len);
-			strncpy(ret->name, rootContents[j].where, len);
+			strncpy(ret->name, rootContents[j].content.nWhere, len);
 			ret->name[len] = 0;
 		}
 		if (strcmp("flags", rootContents[j].name) == 0)
 			// Set flags
-			ret->flags = atoi(rootContents[j].where);
+			ret->flags = atoi(rootContents[j].content.nWhere);
 		if (strcmp("mesh", rootContents[j].name) == 0)
 		{
 			char* relativePath = 0;
-			size_t len = strlen(rootContents[j].where), subTokenCount = GXParseJSON(rootContents[j].where, len, 0, 0);
+			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
-			GXParseJSON(rootContents[j].where, len, subTokenCount, subContents);
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
 			// Find relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("relativePath", subContents[k].name) == 0)
-					relativePath = subContents[k].where;
+					relativePath = subContents[k].content.nWhere;
 			// Find format
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("format", subContents[k].name) == 0)
-					if (strcmp("OBJ", subContents[k].where) == 0)
+					if (strcmp("OBJ", subContents[k].content.nWhere) == 0)
 						if (relativePath)
 							//Use appropriate loader
 							ret->mesh = loadOBJMesh(relativePath);
@@ -117,7 +117,7 @@ GXentity_t* loadEntity(const char path[])
 						#ifdef debugmode
 							printf("No relative path in asset file %s\n", path);
 						#endif
-					else if (strcmp("PLY", subContents[k].where) == 0)
+					else if (strcmp("PLY", subContents[k].content.nWhere) == 0)
 						if (relativePath)
 							//Use appropriate loader
 							ret->mesh = loadPLYMesh(relativePath);
@@ -130,17 +130,17 @@ GXentity_t* loadEntity(const char path[])
 		if (strcmp("texture", rootContents[j].name) == 0)
 		{
 			char* relativePath = 0;
-			size_t len = strlen(rootContents[j].where), subTokenCount = GXParseJSON(rootContents[j].where, len, 0, 0);
+			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
-			GXParseJSON(rootContents[j].where, len, subTokenCount, subContents);
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
 			// Find relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("relativePath", subContents[k].name) == 0)
-					relativePath = subContents[k].where;
+					relativePath = subContents[k].content.nWhere;
 			// Find format
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("format", subContents[k].name) == 0)
-					if (strcmp("BMP", subContents[k].where) == 0)
+					if (strcmp("BMP", subContents[k].content.nWhere) == 0)
 						if (relativePath)
 							// Use appropriate loader
 							ret->UV = loadBMPImage(relativePath);
@@ -148,7 +148,7 @@ GXentity_t* loadEntity(const char path[])
 						#ifdef debugmode
 							printf("No relative path in asset file %s\n", path);
 						#endif
-					else if (strcmp("PNG", subContents[k].where) == 0)
+					else if (strcmp("PNG", subContents[k].content.nWhere) == 0)
 						if (relativePath)
 							// Use appropriate loader
 							ret->UV = loadPNGImage((const char*)relativePath);
@@ -156,7 +156,7 @@ GXentity_t* loadEntity(const char path[])
 						#ifdef debugmode
 							printf("No relative path in asset file %s\n", path);
 						#endif
-					else if (strcmp("JPG", subContents[k].where) == 0)
+					else if (strcmp("JPG", subContents[k].content.nWhere) == 0)
 						if (relativePath)
 							// Use appropriate loader
 							ret->UV = loadJPGImage((const char*)relativePath);
@@ -171,17 +171,17 @@ GXentity_t* loadEntity(const char path[])
 			char* vertexShaderRelativePath = 0;
 			char* fragmentShaderRelativePath = 0;
 
-			size_t len = strlen(rootContents[j].where), subTokenCount = GXParseJSON(rootContents[j].where, len, 0, 0);
+			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
-			GXParseJSON(rootContents[j].where, len, subTokenCount, subContents);
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
 			// Find vertex shader relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("vertexShaderRelativePath", subContents[k].name) == 0)
-					vertexShaderRelativePath = subContents[k].where;
+					vertexShaderRelativePath = subContents[k].content.nWhere;
 			// Find fragment shader relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("fragmentShaderRelativePath", subContents[k].name) == 0)
-					fragmentShaderRelativePath = subContents[k].where;
+					fragmentShaderRelativePath = subContents[k].content.nWhere;
 
 			if (vertexShaderRelativePath && fragmentShaderRelativePath)
 				// Load the shader
@@ -189,8 +189,39 @@ GXentity_t* loadEntity(const char path[])
 
 			free(subContents);
 		}
+		if (strcmp("transform", rootContents[j].name) == 0)
+		{
+			GXvec3_t location = {0,0,0};
+			GXvec3_t rotation = {0,0,0};
+			GXvec3_t scale    = {0,0,0};
+
+			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
+			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+			
+			// Find location
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("location", subContents[k].name) == 0)
+					location = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
+			
+			// Find rotation
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("rotation", subContents[k].name) == 0)
+					rotation = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
+
+			// Find scale
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("scale", subContents[k].name) == 0)
+					scale = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
+			
+			// Process transform
+			ret->transform = createTransform(location, rotation, scale);
+
+			free(subContents);
+		}
 	}
 	// Finish up
+	free(rootContents);
 	ret->next = 0;
 
 	return ret;
