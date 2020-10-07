@@ -96,7 +96,7 @@ GXmesh_t* loadOBJMesh(const char path[])
 	geometricVertices      = malloc(sizeof(point3_t) * vcount);
 	textureCoordinates     = malloc(sizeof(point2_t) * vtcount);
 	vertexNormals          = malloc(sizeof(point3_t) * vncount);
-	
+
 	ret->faces.v  = malloc(sizeof(int3_t) * fcount);
 	ret->faces.vt = malloc(sizeof(int3_t) * fcount);
 	ret->faces.vn = malloc(sizeof(int3_t) * fcount);
@@ -124,7 +124,7 @@ GXmesh_t* loadOBJMesh(const char path[])
 			// Parse out texture coordinates
 			if (data[1] == 't')
 			{
-				sscanf(data, "vt %f %f", &tempTextureCoordinates[vtcount].u, &tempTextureCoordinates[vtcount].v);
+				sscanf(data, "vt %g %g", &tempTextureCoordinates[vtcount].u, &tempTextureCoordinates[vtcount].v);
 				vtcount++;
 				while (*data != '\n')
 					data++;
@@ -132,14 +132,14 @@ GXmesh_t* loadOBJMesh(const char path[])
 			// Parse out normals
 			else if (data[1] == 'n')
 			{
-				sscanf(data, "vn %f %f %f", &tempVertexNormals[vncount].x, &tempVertexNormals[vncount].y, &tempVertexNormals[vncount].z);
+				sscanf(data, "vn %g %g %g", &tempVertexNormals[vncount].x, &tempVertexNormals[vncount].y, &tempVertexNormals[vncount].z);
 				vncount++;
 				while (*data != '\n')
 					data++;
 			}
 			// Parse out geometric vertices
 			else {
-				sscanf(data, "v %f %f %f", &geometricVertices[vcount].x, &geometricVertices[vcount].y, &geometricVertices[vcount].z);
+				sscanf(data, "v %g %g %g", &geometricVertices[vcount].x, &geometricVertices[vcount].y, &geometricVertices[vcount].z);
 				vcount++;
 				while (*data != '\n')
 					data++;
@@ -152,21 +152,21 @@ GXmesh_t* loadOBJMesh(const char path[])
 			int3_t vn = { 0,0,0 };
 
 			sscanf(data, "f %lu/%lu/%lu %lu/%lu/%lu %lu/%lu/%lu", &v.x, &vt.x, &vn.x, &v.y, &vt.y, &vn.y, &v.z, &vt.z, &vn.z);
-			
+
 			// Arrays start at 1 in OBJ file format, so dec every int
 			v.x--, v.y--, v.z--;
 			vt.x--, vt.y--, vt.z--;
 			vn.x--, vn.y--, vn.z--;
-			
+
 			// Assign to faces
 			ret->faces.v[fcount]  = v;
 			ret->faces.vt[fcount] = vt;
 			ret->faces.vn[fcount] = vn;
 
 			// Set the specific texture coordinate at v to the arbitrary texture coordinate at vt
-			textureCoordinates[v.x] = tempTextureCoordinates[vt.x];
-			textureCoordinates[v.y] = tempTextureCoordinates[vt.y];
-			textureCoordinates[v.z] = tempTextureCoordinates[vt.z];
+			textureCoordinates[vt.x] = tempTextureCoordinates[vt.x];
+			textureCoordinates[vt.y] = tempTextureCoordinates[vt.y];
+			textureCoordinates[vt.z] = tempTextureCoordinates[vt.z];
 
 			// TODO: Uncomment before implementing normals
 			// vertexNormals[v.x]      = tempVertexNormals[vn.x];
@@ -178,6 +178,9 @@ GXmesh_t* loadOBJMesh(const char path[])
 			while (*data != '\n')
 				data++;
 		}
+		else if (*data == 's')
+			while (*data != '\n')
+				data++;
 		data++;
 	}
 
@@ -188,7 +191,7 @@ GXmesh_t* loadOBJMesh(const char path[])
 	glGenBuffers(1, &ret->textureBuffer);
 
 	glBindVertexArray(ret->vertexArray);
-	
+
 	// Populate and enable the vertex buffer, element buffer, and UV coordinates
 	glBindBuffer(GL_ARRAY_BUFFER, ret->vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(point3_t) * ret->geometricVerticesCount, geometricVertices, GL_STATIC_DRAW);

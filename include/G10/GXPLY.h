@@ -5,9 +5,13 @@
 #include <stdlib.h>
 
 #include <G10/GXdebug.h>
-
 #include <G10/GXtypedef.h>
-#include <G10/GXmesh.h>
+#include <G10/GXMesh.h>
+
+#define GXPLY_Geometric 0x1
+#define GXPLY_Texture   0x2
+#define GXPLY_Normal    0x4
+#define GXPLY_Color     0x8
 
 struct GXPLYlist_s {
 	size_t a;
@@ -27,6 +31,7 @@ struct GXPLYelement_s
 {
 	size_t           nCount;
 	size_t           nProperties;
+	size_t           sStride;
 	GXPLYproperty_t* properties;
 
 	char* name;
@@ -36,6 +41,7 @@ typedef struct GXPLYelement_s GXPLYelement_t;
 struct GXPLYfile_s {
 	GXsize_t        nElements;
 	GXPLYelement_t* elements;
+	GXsize_t        flags;
 };
 typedef struct GXPLYfile_s GXPLYfile_t;
 

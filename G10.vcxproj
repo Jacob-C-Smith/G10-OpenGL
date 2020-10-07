@@ -162,6 +162,7 @@
     <ClCompile Include="GXScene.c" />
     <ClCompile Include="GXShader.c" />
     <ClCompile Include="GXTexture.c" />
+    <ClCompile Include="GXTransform.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +183,7 @@
     <ClInclude Include="include\G10\GXScene.h" />
     <ClInclude Include="include\G10\GXShader.h" />
     <ClInclude Include="include\G10\GXTexture.h" />
+    <ClInclude Include="include\G10\GXTransform.h" />
     <ClInclude Include="include\G10\GXtypedef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

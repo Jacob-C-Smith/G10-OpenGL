@@ -1,9 +1,10 @@
 ﻿#pragma once	
 
-#include <G10/GXDebug.h>
-#include <G10/GXtypedef.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <G10/GXDebug.h>
+#include <G10/GXtypedef.h>
 
 // Enumeration for the types of JSON objects
 enum GXJSONValue_e

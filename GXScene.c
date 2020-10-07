@@ -82,7 +82,7 @@ int drawScene(GXscene_t* scene)
 	while (i)
 	{
 		// Check for a shader
-		if (i->shader)
+		if (i->flags & GXE_rShader)
 		{
 			// Use it
 			useShader(i->shader);

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <G10/GXDebug.h>
 
 // Here are a few useful typedefs used throughout the engine

@@ -7,7 +7,6 @@
 #include <glad/glad.h>
 
 #include <G10/GXDebug.h>
-
 #include <G10/GXtypedef.h>
 #include <G10/GXDimension.h>
 

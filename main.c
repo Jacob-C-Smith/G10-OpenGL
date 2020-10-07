@@ -88,20 +88,22 @@ int main(int argc, const char* argv[])
 	{
 		// Create the scene
 		scene = createScene();
+		
 		// Create the camera
 		scene->camera = createCamera((GXvec3_t) { 0.f, 4.f, -1.f }, (GXvec3_t) {0.f,0.f,0.f}, (GXvec3_t) {0.f,1.f,0.f},toRadians(90.f),0.1f,100.f,1280.f/720.f);
+		
 		// Create the projection matrix
 		computeProjectionMatrix(scene->camera);
+
 		// Load and append a test file
-		GXentity_t* cube = loadEntity("gameassets/cube/.json");
-		cube->rotation = (GXvec3_t){ 0.f, 0.f, 0.f };
-		appendEntity(scene, cube);
+		appendEntity(scene, loadEntity("gameassets/cube/.json"));
 	}
 
 	// OpenGL Commands
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-
+	GXentity_t* cube = getEntity(scene, "cube");
+	cube->transform = createTransform((GXvec3_t){ 0,0,0 }, (GXvec3_t) { 0,0,0 }, (GXvec3_t) { 1,1,1 });
 	while (running)
 	{
 		while (SDL_PollEvent(&event)) {
@@ -111,25 +113,8 @@ int main(int argc, const char* argv[])
 				running = 0;
 				break;
 			case SDL_KEYDOWN:
-				switch (event.key.keysym.sym) {
-				case SDLK_ESCAPE:
+				if (event.key.keysym.sym == SDLK_ESCAPE)
 					running = 0;
-					break;
-				case SDLK_x:
-					getEntity(scene, "cube")->rotation.x += 0.5f;
-					break;
-				case SDLK_y:
-					getEntity(scene, "cube")->rotation.y += 0.5f;
-					break;
-				case SDLK_z:
-					getEntity(scene, "cube")->rotation.z += 0.5f;
-					break;
-				case SDLK_d:
-					printf("X: %g\nY: %g\nZ: %g\n", getEntity(scene, "cube")->rotation.x, getEntity(scene, "cube")->rotation.y, getEntity(scene, "cube")->rotation.z);
-				default:
-					break;
-				}
-				break;
 			case SDL_MOUSEMOTION:
 				break;
 			default:

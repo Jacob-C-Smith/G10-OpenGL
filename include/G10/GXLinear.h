@@ -1,6 +1,8 @@
 #pragma once
-#include <G10/GXDebug.h>
+
 #include <math.h>
+
+#include <G10/GXDebug.h>
 
 // 3D vector
 struct GXvec3_s {
@@ -112,13 +114,13 @@ static inline GXmat4_t translationScaleMat(GXvec3_t translation, GXvec3_t scale)
 }
 
 // Computes a rotation matrix from a rotation vector
-static inline GXmat4_t rotationMatrixFromVec(GXvec3_t v)
+static inline GXmat4_t rotationMatrixFromVec(GXvec3_t rotation)
 {
 	return (GXmat4_t) {
-		cosf(v.x) + powf(v.x, 2) * (1 - cosf(v.x))   , v.x* v.y* (1 - cosf(v.y)) - v.z * sinf(v.y)  , v.x* v.z* (1 - cosf(v.z)) + v.y * sinf(v.z), 0,
-		v.y * v.x * (1 - cosf(v.x)) + v.z * sinf(v.x), cosf(v.y) + powf(v.y, 2) * (1 - cosf(v.y))   , v.y* v.z* (1 - cosf(v.z)) - v.x * sinf(v.z), 0,
-		v.y * v.x * (1 - cosf(v.x)) + v.z * sinf(v.x), v.y * v.x * (1 - cosf(v.x)) + v.z * sinf(v.x), cosf(v.x) + powf(v.x, 2) * (1 - cosf(v.x)) , 0,
-		0, 0, 0, 1
+		cosf(rotation.x) + powf(rotation.x, 2) * (1 - cosf(rotation.x))                 , rotation.x* rotation.y* (1 - cosf(rotation.y)) - rotation.z * sinf(rotation.y)  , rotation.x* rotation.z* (1 - cosf(rotation.z)) + rotation.y * sinf(rotation.z), 0,
+		rotation.y * rotation.x * (1 - cosf(rotation.x)) + rotation.z * sinf(rotation.x), cosf(rotation.y) + powf(rotation.y, 2) * (1 - cosf(rotation.y))                 , rotation.y* rotation.z* (1 - cosf(rotation.z)) - rotation.x * sinf(rotation.z), 0,
+		rotation.y * rotation.x * (1 - cosf(rotation.x)) + rotation.z * sinf(rotation.x), rotation.y * rotation.x * (1 - cosf(rotation.x)) + rotation.z * sinf(rotation.x), cosf(rotation.x) + powf(rotation.x, 2) * (1 - cosf(rotation.x))               , 0,
+		0                                                                               , 0                                                                               , 0                                                                             , 1
 	};
 }
 

@@ -7,7 +7,6 @@
 #include <glad/glad.h>
 
 #include <G10/GXDebug.h>
-
 #include <G10/GXtypedef.h>
 
 // Contains information about a texture

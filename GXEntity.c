@@ -10,20 +10,15 @@ GXentity_t* createEntity(GXsize_t flags)
 		return (void*)0;
 
 	// Set flags
-	ret->flags    = flags;
+	ret->flags     = flags;
 
 	// Initialize to nullptr
-	ret->mesh     = (void*)0;
-	ret->name     = (void*)0;
-	ret->next     = (void*)0;
-	ret->shader   = (void*)0;
-	ret->UV       = (void*)0;
-
-	// Initialize to null
-	ret->location = (GXvec3_t){ 0,0,0 };
-	ret->rotation = (GXvec3_t){ 0,0,0 };
-	ret->scale    = (GXvec3_t){ 1,1,1 };
-	ret->model    = identityMat4();
+	ret->mesh      = (void*)0;
+	ret->name      = (void*)0;
+	ret->next      = (void*)0;
+	ret->shader    = (void*)0;
+	ret->UV        = (void*)0;
+	ret->transform = (void*)0;
 
 	return ret;
 }
@@ -31,22 +26,23 @@ GXentity_t* createEntity(GXsize_t flags)
 int drawEntity(GXentity_t* entity)
 {
 	// Check if its drawable
-	if (!(entity->flags & GXE_drawable))
+	if (!(entity->flags & GXE_rDrawable))
+		return -1;
+
+	// Check if we have a mesh to draw
+	if (!(entity->flags & GXE_rMesh))
 		return -1;
 
 	// Check if we have a texture and if we are permitted to use it
-	if (entity->UV && entity->flags & GXE_texture) {
+	if (entity->UV && entity->flags & GXE_rTexture) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, entity->UV->textureID);
 		assignTexture(entity->shader, "texture1");
 	}
 
 	// Set the model matrix up for the shader
-	GXmat4_t m = translationScaleMat(entity->location, entity->scale);
-	GXmat4_t n = rotationMatrixFromQuaternion(makeQuaternionFromEulerAngle(entity->rotation));
-	m = mat4xmat4(n, m);
-	glUniformMatrix4fv(glGetUniformLocation(entity->shader->shaderProgramID, "M"), 1, GL_FALSE, &m);
-
+	GXmat4_t m = mat4xmat4(rotationMatrixFromQuaternion(makeQuaternionFromEulerAngle(entity->transform->rotation)), translationScaleMat(entity->transform->location, entity->transform->scale));
+	setShaderMat4(entity->shader, "M", &m);
 	// Draw the entity
 	glBindVertexArray(entity->mesh->vertexArray);
 	glDrawElements(GL_TRIANGLES, entity->mesh->facesCount * 3, GL_UNSIGNED_INT, 0);
@@ -215,6 +211,8 @@ int assignTexture(GXshader_t* shader, const char uniform[])
 
 int destroyEntity(GXentity_t* entity)
 {
+	entity->flags = 0;
+
 	// Check to see if items are set before we unload them
 	if (entity->name != (void*)0)
 		entity->name = (void*)0;
@@ -228,7 +226,8 @@ int destroyEntity(GXentity_t* entity)
 	if (entity->UV != (void*)0)
 		unloadTexture(entity->UV);
 	
-	entity->flags = 0;
+	if (entity->transform != (void*)0)
+		unloadTransform(entity->transform);
 
 	// Free the entity
 	free(entity);

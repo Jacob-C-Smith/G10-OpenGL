@@ -1,4 +1,5 @@
 #pragma once
+
 #include <G10/GXDebug.h>
 
 // 2D point

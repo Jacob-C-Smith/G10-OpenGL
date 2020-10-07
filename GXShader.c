@@ -90,12 +90,17 @@ int useShader(GXshader_t* shader)
 
 void setShaderInt(GXshader_t* shader, const char name[], int value)
 {
-
+	glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
 void setShaderFloat(GXshader_t* shader, const char name[], float value)
 {
+	glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
+}
 
+void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)
+{
+	glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, m);
 }
 
 int unloadShader(GXshader_t* shader)

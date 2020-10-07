@@ -5,7 +5,7 @@
 
 static inline float toDegrees(float radians) // converts radians to degrees
 {
-	return (float) radians * (360 / M_PI);
+	return (float) radians * (360 / M_PI);   // For another (utterly stupid) reson, OpenGL cuts your angle in half, so we double the numerator
 }
 
 static inline float toRadians(float degrees) // converts degrees to radians
