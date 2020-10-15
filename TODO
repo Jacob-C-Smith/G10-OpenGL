@@ -10,7 +10,7 @@
 - ✅ switchScene() function.
 
 === Renderer goals ===
-- ❌ Some amount of lighting.
+- ❌ Some amount of lighting, diffuse specular ambient
 - ❌ Implement normals.
 
 === Physics goals ===

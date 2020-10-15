@@ -96,15 +96,19 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 				}
 				if (aEntries)
 					aEntries++;
-				where[currentWhere].content.aWhere = malloc(sizeof(aEntries)*aEntries);
+				where[currentWhere].content.aWhere = malloc(sizeof(void*)*aEntries);
 				text++;
 				bDepth = 1, cDepth = 1, c = 0;
 				while (bDepth)
 				{
-					text++;
 					if (*text == '\"')
 					{
-						where[currentWhere].content.aWhere[c] = text;
+						where[currentWhere].content.aWhere[c] = ++text;
+						while (*++text != '\"');
+						*text = '\0';
+						text++;
+						c++;
+						cDepth = 1;
 					}
 					else if (*text == '{')
 					{
@@ -127,7 +131,7 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 					{
 						where[currentWhere].content.aWhere = text;
 					}
-					else if (*text >= '0' && *text <= '9')
+					else if ((*text >= '0' && *text <= '9') || *text == '-')
 					{
 						where[currentWhere].content.aWhere[c] = text;
 						while ((*++text >= '0' && *text <= '9') || *text == '.' || *text == '-');
@@ -135,15 +139,18 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 						*text = '\0';
 					}
 					if (*text == ']')
+					{
 						bDepth--;
+					}
+					text++;
 				}
 
 			}
-			else if (*text >= '0' && *text <= '9')            // Parse out a primative
+			else if ((*text >= '0' && *text <= '9') || *text == '.' || *text == '-')            // Parse out a primative
 			{
 				where[currentWhere].content.nWhere = text;
 				where[currentWhere].type = GXJSONprimative;
-				while (*++text >= '0' && *text <= '9');
+				while ((*++text >= '0' && *text <= '9')|| *text == '.');
 				
 			}
 			currentWhere++;                                 // Increment the token index

@@ -30,6 +30,15 @@ struct GXmat4_s {
 };
 typedef struct GXmat4_s GXmat4_t;
 
+static inline GXvec3_t addVec3(GXvec3_t a, GXvec3_t b)
+{
+	return (GXvec3_t) {
+		a.x + b.x,
+		a.y + b.y,
+		a.z + b.z
+	};
+}
+
 // Computes the cross product of 2 3D vectors
 static inline GXvec3_t crossProductVec3           (GXvec3_t a, GXvec3_t b)
 {

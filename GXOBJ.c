@@ -16,7 +16,7 @@ GXmesh_t* loadOBJMesh(const char path[])
 	point3_t* vertexNormals;
 
 	// Initialized data
-	GXmesh_t* ret    = malloc(sizeof(GXmesh_t));
+	GXmesh_t* ret     = malloc(sizeof(GXmesh_t));
 	FILE*     f       = fopen(path, "r");
 	GXsize_t  a       = 0;
 	GXsize_t  vcount  = 0;
@@ -164,9 +164,9 @@ GXmesh_t* loadOBJMesh(const char path[])
 			ret->faces.vn[fcount] = vn;
 
 			// Set the specific texture coordinate at v to the arbitrary texture coordinate at vt
-			textureCoordinates[vt.x] = tempTextureCoordinates[vt.x];
-			textureCoordinates[vt.y] = tempTextureCoordinates[vt.y];
-			textureCoordinates[vt.z] = tempTextureCoordinates[vt.z];
+			textureCoordinates[ret->faces.v[fcount].x] = tempTextureCoordinates[vt.x];
+			textureCoordinates[ret->faces.v[fcount].y] = tempTextureCoordinates[vt.y];
+			textureCoordinates[ret->faces.v[fcount].z] = tempTextureCoordinates[vt.z];
 
 			// TODO: Uncomment before implementing normals
 			// vertexNormals[v.x]      = tempVertexNormals[vn.x];

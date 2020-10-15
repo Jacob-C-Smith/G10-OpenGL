@@ -39,7 +39,7 @@ GXcamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov
 
     // Calculate perspective projection
     ret->projection = perspective(fov, aspectRatio, near, far);
-
+    ret->view       = lookAt(where, target, up);
     return ret;
 }
 

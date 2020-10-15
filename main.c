@@ -86,27 +86,14 @@ int main(int argc, const char* argv[])
 
 	// G10 Initialization Junk
 	{
-		/*
-		// Create the scene
-		scene = createScene();
-		
-		// Create the camera
-		scene->camera = createCamera((GXvec3_t) { 0.f, 4.f, -1.f }, (GXvec3_t) {0.f,0.f,0.f}, (GXvec3_t) {0.f,1.f,0.f},toRadians(90.f),0.1f,100.f,1280.f/720.f);
-		
-		// Create the projection matrix
-		computeProjectionMatrix(scene->camera);
-
-		// Load and append a test file
-		*/
-
 		scene = loadScene("gameassets/scene.json");
-		appendEntity(scene, loadEntity("gameassets/cube/.json"));
 	}
-
+	GXvec3_t direction = { 0,0,0 };
+	float    hAngle = 0.f;
+	float    vAngle = 0.f;
 	// OpenGL Commands
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	GXentity_t* cube = getEntity(scene, "cube");
 	while (running)
 	{
 		while (SDL_PollEvent(&event)) {
@@ -118,15 +105,17 @@ int main(int argc, const char* argv[])
 			case SDL_KEYDOWN:
 				if (event.key.keysym.sym == SDLK_ESCAPE)
 					running = 0;
+				break;
 			case SDL_MOUSEMOTION:
+				event.motion.xrel;
 				break;
 			default:
 				break;
 			}
 		}
-
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
 		drawScene(scene);
 
@@ -136,6 +125,7 @@ int main(int argc, const char* argv[])
 	// SDL Deinitialization
 	{
 		SDL_DestroyWindow(window);
+		IMG_Quit();
 		SDL_Quit();
 	}
 	// GX Unloading;

@@ -54,7 +54,7 @@ GXentity_t* loadEntity(const char path[])
 {
 	GXentity_t* ret = createEntity(0);
 	size_t l = 0;
-	FILE* f = fopen(path, "rb");
+	FILE* f = fopen(path, "r");
 
 	if (f == NULL)
 	{
@@ -70,6 +70,7 @@ GXentity_t* loadEntity(const char path[])
 	// Allocate data and read file into memory
 	u8* data = malloc(l);
 	fread(data, 1, l, f);
+
 
 	// We no longer need the file
 	fclose(f);
@@ -246,8 +247,9 @@ int destroyEntity(GXentity_t* entity)
 
 	// Check to see if items are set before we unload them
 	if (entity->name != (void*)0)
+	{
 		entity->name = (void*)0;
-
+	}
 	if (entity->mesh != (void*)0)
 		unloadMesh(entity->mesh);
 

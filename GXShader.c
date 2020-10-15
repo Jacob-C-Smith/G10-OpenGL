@@ -6,12 +6,15 @@ GXshader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderP
 	char*        vfdata ,* ffdata;
 	int          vfi    ,  ffi;
 	unsigned int vShader, fShader;
+	int          status;
 
 	// Initialized data
 	FILE* vf        = fopen(vertexShaderPath, "r");
 	FILE* ff        = fopen(fragmentShaderPath, "r");
 	
 	GXshader_t* ret = malloc(sizeof(GXshader_t));
+	if (ret == 0)
+		return (void*)0;
 
 	// Check files
 	if (vf == NULL)
@@ -51,6 +54,9 @@ GXshader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderP
 	fclose(vf);
 	fclose(ff);
 
+	vfdata[vfi-1] = '\0';
+	ffdata[ffi-1] = '\0';
+
 	// Compile, attach, and link shaders
 	vShader = glCreateShader(GL_VERTEX_SHADER);
 	fShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -61,12 +67,47 @@ GXshader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderP
 	glCompileShader(vShader);
 	glCompileShader(fShader);
 
+	glGetShaderiv(vShader, GL_COMPILE_STATUS, &status);
+	if (!status)
+	{
+		char* log = malloc(512);
+		if (log == 0)
+			return (void*)0;
+		glGetShaderInfoLog(vShader, 512, NULL, log);
+		printf(log);
+		free(log);
+	}
+
+	status = 0;
+	glGetShaderiv(fShader, GL_COMPILE_STATUS, &status);
+	if (!status)
+	{
+		char* log = malloc(512);
+		if (log == 0)
+			return (void*)0;
+		glGetShaderInfoLog(fShader, 512, NULL, log);
+		printf(log);
+		free(log);
+	}
+
 	ret->shaderProgramID = glCreateProgram();
 
 	glAttachShader(ret->shaderProgramID, vShader);
 	glAttachShader(ret->shaderProgramID, fShader);
 
 	glLinkProgram(ret->shaderProgramID);
+
+	status = 0;
+	glGetProgramiv(ret->shaderProgramID, GL_LINK_STATUS, &status);
+	if (!status)
+	{
+		char* log = malloc(512);
+		if (log == 0)
+			return (void*)0;
+		glGetProgramInfoLog(ret->shaderProgramID, 512, NULL, log);
+		printf(log);
+		free(log);
+	}
 
 	// Destroy the shader programs we don't need anymore
 	glDeleteShader(vShader);

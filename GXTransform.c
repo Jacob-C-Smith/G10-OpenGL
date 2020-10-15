@@ -22,5 +22,7 @@ int unloadTransform(GXtransform_t* transform)
 	transform->scale       = (GXvec3_t){ 0,0,0 };
 	transform->modelMatrix = (GXmat4_t){ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
+	free(transform);
+
 	return 0;
 }

@@ -71,7 +71,7 @@ GXscene_t* loadScene(const char path[])
 			char* relativePath = 0;
 
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
-			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * subTokenCount);
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
 			
 			for (size_t k = 0; k < subTokenCount; k++)
@@ -102,14 +102,40 @@ GXscene_t* loadScene(const char path[])
 				if (strcmp("aspectRatio", subContents[k].name) == 0)
 					aspectRatio = atof(subContents[k].content.nWhere);
 
+			if (aspectRatio == 0.f)
+				aspectRatio = 16.f/9.f; // Default to 16:9 aspect ratio if not set
+
 			ret->camera = createCamera(where, target, up, fov, near, far, aspectRatio);
 			computeProjectionMatrix(ret->camera);
 
-			//free(subContents);
+			free(subContents);
+		}
+		if (strcmp("entities", rootContents[j].name) == 0)
+		{
+			char** paths = 0;
+			size_t count = 0;
+
+			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
+			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("entities", subContents[k].name) == 0)
+					paths = subContents[k].content.aWhere;
+
+			for (size_t k = 0; k < subTokenCount; k++)
+				if (strcmp("entityCount", subContents[k].name) == 0)
+					count = atoi(subContents[k].content.nWhere);
+
+			if(paths)
+				for (size_t k = 0; k < count; k++)
+					appendEntity(ret,loadEntity(paths[k]));
+
+			free(subContents);
 		}
 	}
 	// Finish up
-	//free(rootContents);
+	free(rootContents);
 
 	return ret;
 }

@@ -26,7 +26,7 @@ inline quaternion_t makeQuaternion               ()
 // Creates a quaternion from a vector in euler angles
 inline quaternion_t makeQuaternionFromEulerAngle (GXvec3_t v)
 {
-	float sx = sinf(toRadians(v.x)), sy = sinf(toRadians(v.y)), sz = sinf(toRadians(v.z)), cx = cosf(toRadians(v.x)), cy = cosf(toRadians(v.y)), cz = cosf(toRadians(v.z));
+	float sx = sinf(toRadians(v.x*2)), sy = sinf(toRadians(v.y*2)), sz = sinf(toRadians(v.z*2)), cx = cosf(toRadians(v.x*2)), cy = cosf(toRadians(v.y*2)), cz = cosf(toRadians(v.z*2));
 
 	return (quaternion_t) {
 		(cz * cx * cy + sz * sx * sy),

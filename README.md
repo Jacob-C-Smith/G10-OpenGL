@@ -222,11 +222,60 @@ At the time of writing, G10 supports the following formats
 Further image and mesh types may be included in the future, so long as the loader can parse the data into the correct ```struct```. Future candidates for supported file types, at the time of writing are
 - PLY
 - FBX
+## Scene JSON Format
+Scenes may be stored in a JSON file
+```json
+{
+    "comment"  : "Made by Jacob Smith on 10/6/2020 at 23:45 GMT-7:00",
+    "entities" : {
+        "entityCount" : 3,
+        "entities" : [
+            "gameassets/asset1/.json",
+            "gameassets/asset2/.json",
+            "gameassets/asset3/.json" 
+        ]
+    },
+    "camera"   : {
+        "where"       : [ 2,2,2 ],
+        "target"      : [ 0,0,0 ],
+        "up"          : [ 0,1,0 ],
+        "fov"         : 90,
+        "near"        : 0.1,
+        "far"         : 100,
+        "aspectRatio" : 1.77777777
+    }
+}
+```
+### comment
+The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored by the code unless in ```debugmode```
+### entities
+The ```"entities"``` label corresponds an object containing information about the entities to be loaded
+#### entityCount
+The ```"entityCount"``` label corresponds to the number of entities in the entities array
+#### entities
+The ```"entities"``` label corresponds to an array that contains paths to entity json files.
+### ⌠camera⌡
+The ```"camera"``` label corresponds to an object that contains information about the scenes camera
+#### ⌠where⌡
+The ```"where"``` label corresponds to where the camera is in the scene
+#### ⌠target⌡
+The ```"target"``` label corresponds to the location the camera is looking at
+#### ⌠up⌡
+The ```"up"``` label corresponds to the up direction in the scene
+#### ⌠fov⌡
+The ```"fov"``` label corresponds to the fov of the camera in degrees
+### ⌠near⌡
+The ```"near"``` label corresponds to the distance of the near clipping plane
+#### ⌠far⌡
+The ```"far"``` label corresponds to the distance of the far clipping plane
+#### ⌠aspectRatio⌡
+The ```"aspectRatio"``` label corresponds to the aspect ratio of the camera. If unset or set to zero, aspect ratio defaults to 16:9
+
 ## Entity JSON Format
 Entities may be stored in a JSON file.
 ```json
 {
-	"comment" : "Made by Jacob Smith on 8/17/2020 at 21:45 GMT-7:00",
+	"comment" : "Made by Jacob Smith on 10/6/2020 at 21:45 GMT-7:00",
 	"flags"   : 31,
 	"name"    : "something",
 	"mesh"    : {
@@ -243,25 +292,25 @@ Entities may be stored in a JSON file.
 	}
 }
 ```
-### comment
+### ⌠comment⌡
 The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored by the code unless in ```debugmode```
-### flags
+### ⌠flags⌡
 The ```"flags"``` label corresponds to the value to be assigned to flags of the entity.
-### name
+### ⌠name⌡
 The ```"name"``` label corresponds to the value to be assigned to the name of the entity.
-### mesh
+### ⌠mesh⌡
 The ```"mesh"``` label corresponds to an object with information about the ```mesh```
 #### ⌠format⌡
 The ```"format"``` label corresponds to a string containing the file format
 #### ⌠relativePath⌡
 The ```"relativePath"``` label corresponds to the relative path of the mesh.
-### texture
+### ⌠texture⌡
 The ```"texture"``` label corresponds to an object with information about the ```texture```
 #### ⌠format⌡
 The ```"format"``` label corresponds to a string containing the file format
 #### ⌠relativePath⌡
 The ```"relativePath"``` label corresponds to the relative path of the texture.
-### shader
+### ⌠shader⌡
 The ```"shader"``` label corresponds to an object with information about the ```shader```
 #### ⌠vertexShaderRelativePath⌡
 The ```"vertexShaderRelativePath"``` label corresponds to the relative path of the vertex shader.
