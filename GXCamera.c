@@ -1,6 +1,6 @@
 ﻿#include <G10/GXCamera.h>
 
-GXmat4_t perspective(float fov, float aspect, float near, float far)
+GXmat4_t perspective( float fov, float aspect, float near, float far )
 {
     /* Compute perspective projection, where f = fov, a = aspect, n = near, and r = far
      * ┌                                                      ┐
@@ -19,7 +19,7 @@ GXmat4_t perspective(float fov, float aspect, float near, float far)
     };
 }
 
-GXcamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio)
+GXcamera_t* createCamera( GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio )
 {
     // Allocate space for a camera struct
     GXcamera_t* ret  = malloc(sizeof(GXcamera_t));
@@ -43,7 +43,7 @@ GXcamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov
     return ret;
 }
 
-GXcamera_t* computeProjectionMatrix(GXcamera_t* camera)
+GXcamera_t* computeProjectionMatrix( GXcamera_t* camera )
 {
     // Compute and set the projection matrix for the camera
     camera->projection = perspective(camera->fov, camera->aspectRatio, camera->near, camera->far);

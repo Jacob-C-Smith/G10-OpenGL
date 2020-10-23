@@ -1,6 +1,6 @@
 #include <G10/GXTexture.h>
 
-int unloadTexture(GXtexture_t* image)
+int unloadTexture( GXtexture_t* image )
 {
 	// Invalidate width, height. Free image.
 	image->width  = 0;

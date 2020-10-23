@@ -18,5 +18,5 @@ struct GXtexture_s
 };
 typedef struct GXtexture_s GXtexture_t;
 
-int unloadTexture (GXtexture_t* image); // ✅ Unloads a texture and all of its contents
+int unloadTexture ( GXtexture_t* image ); // ✅ Unloads a texture and all of its contents
 

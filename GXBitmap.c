@@ -1,6 +1,6 @@
 #include <G10/GXBitmap.h>
 
-GXtexture_t* loadBMPImage(const char path[])
+GXtexture_t* loadBMPImage( const char path[] )
 {
 	// Uninitialized data
 	int          i;
@@ -43,11 +43,6 @@ GXtexture_t* loadBMPImage(const char path[])
 	ret->width  = *(GXsize_t*)&data[0x12];
 	ret->height = *(GXsize_t*)&data[0x16];
 
-	// Debugger logging
-	#ifdef debugmode
-		printf("Loaded file %s\nWidth  %i px\nHeight %i px\n\n", path, ret->width, ret->height);
-	#endif 
-
 	// Create a texture ID
 	glGenTextures(1, &ret->textureID);
 	glBindTexture(GL_TEXTURE_2D, ret->textureID);
@@ -63,6 +58,11 @@ GXtexture_t* loadBMPImage(const char path[])
 
 	// Free data. We don't really need the header anymore. 
 	free(data);
+
+	// Debugger logging
+	#ifdef debugmode
+		printf("Loaded file \"%s\"\n\n", path);
+	#endif 
 
 	return ret;
 }

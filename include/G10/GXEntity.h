@@ -56,8 +56,8 @@ struct GXEntity_s
 };
 typedef struct GXEntity_s GXentity_t;
 
-GXentity_t* createEntity   (GXsize_t flags);                           // ✅ Creates an entity, assigns flags, and returns pointer to it
-int         drawEntity     (GXentity_t* entity);                       // ✅ Draws an entity if draw flag is set
-GXentity_t* loadEntity     (const char path[]);                        // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
-int         assignTexture  (GXshader_t* shader, const char uniform[]); // ✅ Assigns a texture to a glsl uniform
-int         destroyEntity  (GXentity_t* entity);                       // ✅ Destroys the entity and all its contents
+GXentity_t* createEntity   ( GXsize_t flags );                           // ✅ Creates an entity, assigns flags, and returns pointer to it
+int         drawEntity     ( GXentity_t* entity );                       // ✅ Draws an entity if draw flag is set
+GXentity_t* loadEntity     ( const char path[] );                        // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
+int         assignTexture  ( GXshader_t* shader, const char uniform[] ); // ✅ Assigns a texture to a glsl uniform
+int         destroyEntity  ( GXentity_t* entity );                       // ✅ Destroys the entity and all its contents

@@ -7,7 +7,6 @@
 - ✅ Develop an expandable schematic for entities and scenes.
 - ✅ Use JSON parser to read entities for the game engine.
 - ✅ Use JSON parser to read scenes for the game engine.
-- ✅ switchScene() function.
 
 === Renderer goals ===
 - ❌ Some amount of lighting, diffuse specular ambient

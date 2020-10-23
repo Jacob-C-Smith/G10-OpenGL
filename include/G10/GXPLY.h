@@ -45,4 +45,4 @@ struct GXPLYfile_s {
 };
 typedef struct GXPLYfile_s GXPLYfile_t;
 
-GXmesh_t* loadPLYMesh (const char path[]); // ✅ Loads an OBJ file from path and returns a pointer to GXmesh_t
+GXmesh_t* loadPLYMesh ( const char path[] ); // ✅ Loads an OBJ file from path and returns a pointer to GXmesh_t

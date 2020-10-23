@@ -88,9 +88,7 @@ int main(int argc, const char* argv[])
 	{
 		scene = loadScene("gameassets/scene.json");
 	}
-	GXvec3_t direction = { 0,0,0 };
-	float    hAngle = 0.f;
-	float    vAngle = 0.f;
+
 	// OpenGL Commands
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);

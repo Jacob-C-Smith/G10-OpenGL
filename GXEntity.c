@@ -1,6 +1,6 @@
 #include <G10/GXEntity.h>
 
-GXentity_t* createEntity(GXsize_t flags)
+GXentity_t* createEntity( GXsize_t flags )
 {
 	// Allocate space
 	GXentity_t* ret = malloc(sizeof(GXentity_t)); 
@@ -23,7 +23,7 @@ GXentity_t* createEntity(GXsize_t flags)
 	return ret;
 }
 
-int drawEntity(GXentity_t* entity)
+int drawEntity( GXentity_t* entity )
 {
 	// Check if its drawable
 	if (!(entity->flags & GXE_rDrawable))
@@ -50,12 +50,14 @@ int drawEntity(GXentity_t* entity)
 	return 0;
 }
 
-GXentity_t* loadEntity(const char path[])
+GXentity_t* loadEntity( const char path[] )
 {
+	// Initialized data
 	GXentity_t* ret = createEntity(0);
 	size_t l = 0;
 	FILE* f = fopen(path, "r");
 
+	// Check for file
 	if (f == NULL)
 	{
 		printf("Failed to load file %s\n", path);
@@ -75,10 +77,12 @@ GXentity_t* loadEntity(const char path[])
 	// We no longer need the file
 	fclose(f);
 
+	// Parse the first level of the JSON entity
 	int rootTokenCount = GXParseJSON(data, l, 0, (void*) 0);
 	JSONValue_t* rootContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
 	GXParseJSON(data, l, rootTokenCount, rootContents);
-
+	
+	// Search through values and pull out relevent information
 	for (size_t j = 0; j < rootTokenCount; j++)
 	{
 		if (strcmp("comment", rootContents[j].name) == 0)
@@ -99,6 +103,7 @@ GXentity_t* loadEntity(const char path[])
 			ret->flags = atoi(rootContents[j].content.nWhere);
 		if (strcmp("mesh", rootContents[j].name) == 0)
 		{
+			// Parse JSON Values
 			char* relativePath = 0;
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
@@ -130,6 +135,7 @@ GXentity_t* loadEntity(const char path[])
 		}
 		if (strcmp("texture", rootContents[j].name) == 0)
 		{
+			// Parse JSON Values
 			char* relativePath = 0;
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
@@ -169,6 +175,7 @@ GXentity_t* loadEntity(const char path[])
 		}
 		if (strcmp("shader", rootContents[j].name) == 0)
 		{
+			// Parse JSON Values
 			char* vertexShaderRelativePath = 0;
 			char* fragmentShaderRelativePath = 0;
 
@@ -192,6 +199,7 @@ GXentity_t* loadEntity(const char path[])
 		}
 		if (strcmp("transform", rootContents[j].name) == 0)
 		{
+			// Parse JSON Values
 			GXvec3_t location = {0,0,0};
 			GXvec3_t rotation = {0,0,0};
 			GXvec3_t scale    = {0,0,0};
@@ -228,7 +236,7 @@ GXentity_t* loadEntity(const char path[])
 	return ret;
 }
 
-int assignTexture(GXshader_t* shader, const char uniform[])
+int assignTexture( GXshader_t* shader, const char uniform[] )
 {
 	// We can not assign a texture if there is no shader
 	if (shader == (void*) 0)
@@ -241,7 +249,7 @@ int assignTexture(GXshader_t* shader, const char uniform[])
 	return 0;
 }
 
-int destroyEntity(GXentity_t* entity)
+int destroyEntity( GXentity_t* entity )
 {
 	entity->flags = 0;
 

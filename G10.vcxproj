@@ -155,6 +155,7 @@
     <ClCompile Include="GXEntity.c" />
     <ClCompile Include="GXJPG.c" />
     <ClCompile Include="GXJSON.c" />
+    <ClCompile Include="GXMaterial.c" />
     <ClCompile Include="GXMesh.c" />
     <ClCompile Include="GXOBJ.c" />
     <ClCompile Include="GXPLY.c" />
@@ -175,6 +176,7 @@
     <ClInclude Include="include\G10\GXJPG.h" />
     <ClInclude Include="include\G10\GXJSON.h" />
     <ClInclude Include="include\G10\GXLinear.h" />
+    <ClInclude Include="include\G10\GXMaterial.h" />
     <ClInclude Include="include\G10\GXMesh.h" />
     <ClInclude Include="include\G10\GXOBJ.h" />
     <ClInclude Include="include\G10\GXPLY.h" />

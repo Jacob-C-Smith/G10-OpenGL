@@ -1,6 +1,6 @@
 #include <G10/GXMesh.h>
 
-int unloadMesh(GXmesh_t* mesh)
+int unloadMesh( GXmesh_t* mesh )
 {
 	// Invalidate v, vt, vn, and f counts
 	mesh->geometricVerticesCount = 0;

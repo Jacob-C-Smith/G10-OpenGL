@@ -13,12 +13,8 @@ GXscene_t* createScene()
 	return ret;
 }
 
-GXscene_t* loadScene(const char path[])
+GXscene_t* loadScene( const char path[] )
 {
-	//
-	// TODO 
-	//
-
 	// Uninitialized data
 	int i;
 	char* data;
@@ -60,12 +56,12 @@ GXscene_t* loadScene(const char path[])
 		#endif
 		if (strcmp("camera", rootContents[j].name) == 0)
 		{
-			GXvec3_t where = { 0,0,0 };
-			GXvec3_t target = { 0,0,0 };
-			GXvec3_t up = { 0,0,0 };
-			float    fov = 0.f;
-			float    near = 0.f;
-			float    far = 0.f;
+			GXvec3_t where       = { 0,0,0 };
+			GXvec3_t target      = { 0,0,0 };
+			GXvec3_t up          = { 0,0,0 };
+			float    fov         = 0.f;
+			float    near        = 0.f;
+			float    far         = 0.f;
 			float    aspectRatio = 0.f;
 
 			char* relativePath = 0;
@@ -259,6 +255,6 @@ int destroyScene(GXscene_t* scene)
 		i = i->next;
 		destroyEntity(j);
 	}
-
+	//TODO: Destroy Camera, free scene
 	return 0;
 }

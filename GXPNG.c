@@ -1,6 +1,6 @@
 #include <G10/GXPNG.h>
 
-GXtexture_t* loadPNGImage(const char path[])
+GXtexture_t* loadPNGImage( const char path[] )
 {
 	// Uninitialized data
 	SDL_Surface* image;
@@ -10,10 +10,12 @@ GXtexture_t* loadPNGImage(const char path[])
 	// Initialized data
 	GXtexture_t* ret = malloc(sizeof(GXtexture_t));
 	SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
-
+	
+	// Check allocated memory
 	if (ret == 0)
 		return (void*)0;
 
+	// Load the PNG through SDL
 	image = IMG_LoadPNG_RW(r);
 	if (!image)
 	{
@@ -39,7 +41,7 @@ GXtexture_t* loadPNGImage(const char path[])
 	glGenTextures(1, &ret->textureID);
 	glBindTexture(GL_TEXTURE_2D, ret->textureID);
 
-	// Point it to the right place
+	// Point it to the right place, use some ternarry operaters to determine color depth
 	glTexImage2D(GL_TEXTURE_2D, 0, (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, ret->width, ret->height, 0, (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	// More OpenGL things

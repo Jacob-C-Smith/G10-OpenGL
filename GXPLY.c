@@ -1,6 +1,8 @@
 ﻿#include <G10/GXPLY.h>
 
-GXmesh_t* loadPLYMesh(const char path[])
+// TODO: Document and finish
+
+GXmesh_t* loadPLYMesh( const char path[] )
 {
 	// Uninitialized data
 	GXsize_t  l;
@@ -11,16 +13,16 @@ GXmesh_t* loadPLYMesh(const char path[])
 	point3_t* vertexNormals;
 
 	// Initialized data
-	GXmesh_t*    ret = malloc(sizeof(GXmesh_t));
-	GXsize_t     i = 0;
-	GXsize_t     j = 0;
-	GXsize_t     k = 0;
-	FILE*        f = fopen(path, "rb");
+	GXmesh_t*    ret     = malloc(sizeof(GXmesh_t));
+	GXsize_t     i       = 0;
+	GXsize_t     j       = 0;
+	GXsize_t     k       = 0;
+	FILE*        f       = fopen(path, "rb");
 	GXPLYfile_t* plyFile = malloc(sizeof(GXPLYfile_t));
 
-	plyFile->nElements = 0;
-	plyFile->elements = (void*)0;
-	plyFile->flags = 0;
+	plyFile->nElements   = 0;
+	plyFile->elements    = (void*)0;
+	plyFile->flags       = 0;
 
 	if (f == NULL)
 	{

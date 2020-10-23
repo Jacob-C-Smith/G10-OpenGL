@@ -1,6 +1,6 @@
 #include <G10/GXMesh.h>
 
-GXmesh_t* loadOBJMesh(const char path[])
+GXmesh_t* loadOBJMesh( const char path[] )
 {
 	// Uninitialized data
 	int       i;
@@ -24,9 +24,11 @@ GXmesh_t* loadOBJMesh(const char path[])
 	GXsize_t  vtcount = 0;
 	GXsize_t  fcount  = 0;
 
+	// Check allocated memory
 	if (ret == 0)
 		return (void*)0;
 
+	// Check if file exists
 	if (f == NULL)
 	{
 		printf("failed to load file %s\n", path);
@@ -169,9 +171,9 @@ GXmesh_t* loadOBJMesh(const char path[])
 			textureCoordinates[ret->faces.v[fcount].z] = tempTextureCoordinates[vt.z];
 
 			// TODO: Uncomment before implementing normals
-			// vertexNormals[v.x]      = tempVertexNormals[vn.x];
-			// vertexNormals[v.y]      = tempVertexNormals[vn.y];
-			// vertexNormals[v.z]      = tempVertexNormals[vn.z];
+			vertexNormals[v.x]      = tempVertexNormals[vn.x];
+			vertexNormals[v.y]      = tempVertexNormals[vn.y];
+			vertexNormals[v.z]      = tempVertexNormals[vn.z];
 
 			fcount++;
 
@@ -189,10 +191,11 @@ GXmesh_t* loadOBJMesh(const char path[])
 	glGenBuffers(1, &ret->vertexBuffer);
 	glGenBuffers(1, &ret->elementBuffer);
 	glGenBuffers(1, &ret->textureBuffer);
+	glGenBuffers(1, &ret->normalBuffer);
 
 	glBindVertexArray(ret->vertexArray);
 
-	// Populate and enable the vertex buffer, element buffer, and UV coordinates
+	// Populate and enable the vertex buffer, element buffer, UV coordinates, and normals
 	glBindBuffer(GL_ARRAY_BUFFER, ret->vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(point3_t) * ret->geometricVerticesCount, geometricVertices, GL_STATIC_DRAW);
 
@@ -202,11 +205,19 @@ GXmesh_t* loadOBJMesh(const char path[])
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
+	// Set up texture vertecies in OpenGL
 	glBindBuffer(GL_ARRAY_BUFFER, ret->textureBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(point2_t) * ret->textureCoordinatesCount, textureCoordinates, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(1);
+
+	// Set up normal vertecies in OpenGL
+	glBindBuffer(GL_ARRAY_BUFFER, ret->normalBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(point3_t) * ret->vertexNormalsCount, vertexNormals, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(2);
 
 	// Free temporary coordinates
 	free(tempTextureCoordinates);

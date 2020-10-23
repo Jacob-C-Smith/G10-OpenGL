@@ -33,12 +33,17 @@ struct GXMesh_s
 
 	// Array
 	GLuint    vertexArray;
+
 	// geometric vertecies
 	GLuint    vertexBuffer;
 	GLuint    elementBuffer;
-	// textures
+
+	// texture
 	GLuint    textureBuffer;
+
+	// normals
+	GLuint    normalBuffer;
 };
 typedef struct GXMesh_s GXmesh_t;
 
-int unloadMesh (GXmesh_t* mesh); // ✅ Destroy a mesh and all of its contents
+int unloadMesh ( GXmesh_t* mesh ); // ✅ Destroy a mesh and all of its contents

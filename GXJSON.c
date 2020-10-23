@@ -1,6 +1,7 @@
 #include <G10/GXJSON.h>
 
-int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
+// TODO: Fully document function
+int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 {
 	size_t currentWhere = 0;
 	int ret = 0;
@@ -59,7 +60,7 @@ int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 				where[currentWhere].content.nWhere = text;
 				where[currentWhere].type = GXJSONobject;
 				text++;
-				GXsize_t bDepth = 1;
+				GXsize_t bDepth = 1;                        // bDepth keeps track of the bracket depth
 				while (bDepth)
 				{
 					text++;

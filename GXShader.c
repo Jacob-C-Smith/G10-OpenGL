@@ -1,6 +1,6 @@
 #include <G10/GXShader.h>
 
-GXshader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderPath[])
+GXshader_t* loadShader( const char vertexShaderPath[], const char fragmentShaderPath[] )
 {
 	// Uninitialized data
 	char*        vfdata ,* ffdata;
