@@ -10,6 +10,9 @@ int unloadTexture( GXtexture_t* image )
 	glDeleteTextures(1, &image->textureID);
 	image->textureID = 0;
 
+	// Free Image memory
 	free(image);
+
+	// Return nullptr
 	return 0;
 }

@@ -41,7 +41,7 @@ int main(int argc, const char* argv[])
 	u8            running = 1;
 	float         d       = 0.f;
 
-	// SDL + GLAD Initialization Junk
+	// SDL + GLAD Initialization 
 	{
 		// Initialize SDL
 		if (SDL_Init(SDL_INIT_EVERYTHING))
@@ -49,12 +49,14 @@ int main(int argc, const char* argv[])
 			printf("Failed to initialize SDL\n");
 			return -1;
 		}
+
 		// Initialize the image loader library
 		if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
 		{
 			printf("Failed to initialize SDL Image\n");
 			return -1;
 		}
+
 		// Create the window
 		window = SDL_CreateWindow("G10",
 			SDL_WINDOWPOS_CENTERED,
@@ -62,20 +64,24 @@ int main(int argc, const char* argv[])
 			1280,
 			720,
 			SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+
 		// Create the OpenGL context
 		glContext = SDL_GL_CreateContext(window);
+
 		// Check the window
 		if (!window)
 		{
 			printf("Failed to create a window\n");
 			return -1;
 		}
+
 		// Check the OpenGL context
 		if (!glContext)
 		{
 			printf("Failed to create an OpenGL Context\n");
 			return -1;
 		}
+
 		// Check the glad loader
 		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
 		{
@@ -84,7 +90,7 @@ int main(int argc, const char* argv[])
 		}
 	}
 
-	// G10 Initialization Junk
+	// G10 Initialization 
 	{
 		scene = loadScene("gameassets/scene.json");
 	}
@@ -92,8 +98,11 @@ int main(int argc, const char* argv[])
 	// OpenGL Commands
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+
+	// Game loop
 	while (running)
 	{
+		// Parse input
 		while (SDL_PollEvent(&event)) {
 			switch (event.type)
 			{
@@ -111,12 +120,15 @@ int main(int argc, const char* argv[])
 				break;
 			}
 		}
+
+		// Clear screen
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+		// Draw the scene
 		drawScene(scene);
 
+		// V-Sync
 		SDL_GL_SwapWindow(window);
 	}
 
@@ -126,9 +138,12 @@ int main(int argc, const char* argv[])
 		IMG_Quit();
 		SDL_Quit();
 	}
+
 	// GX Unloading;
 	{
 		destroyScene(scene);
 	}
+
+	// Exit
 	return 0;
 }

@@ -1,5 +1,6 @@
 #include <G10/GXMesh.h>
 
+// TODO: Fully document function
 GXmesh_t* loadOBJMesh( const char path[] )
 {
 	// Uninitialized data

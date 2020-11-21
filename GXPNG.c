@@ -31,6 +31,7 @@ GXtexture_t* loadPNGImage( const char path[] )
 	// Allocate space for the pixel data
 	data         = malloc(allocateSize);
 
+	// Check if data is valid
 	if (data == 0)
 		return (void*)0;
 
@@ -44,13 +45,13 @@ GXtexture_t* loadPNGImage( const char path[] )
 	// Point it to the right place, use some ternarry operaters to determine color depth
 	glTexImage2D(GL_TEXTURE_2D, 0, (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, ret->width, ret->height, 0, (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-	// More OpenGL things
+	// Set texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Free data. We don't really need the header anymore. 
+	// Free data.  
 	free(data);
 	SDL_FreeSurface(image);
 	SDL_FreeRW(r);

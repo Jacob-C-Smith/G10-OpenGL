@@ -50,13 +50,13 @@ GXtexture_t* loadBMPImage( const char path[] )
 	// Point it to the right place
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
 	
-	// More OpenGL things
+	// Set texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Free data. We don't really need the header anymore. 
+	// Free data. 
 	free(data);
 
 	// Debugger logging
@@ -64,5 +64,6 @@ GXtexture_t* loadBMPImage( const char path[] )
 		printf("Loaded file \"%s\"\n\n", path);
 	#endif 
 
+	// Return the loaded texture
 	return ret;
 }

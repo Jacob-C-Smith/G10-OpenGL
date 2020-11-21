@@ -43,6 +43,7 @@ int drawEntity( GXentity_t* entity )
 	// Set the model matrix up for the shader
 	GXmat4_t m = mat4xmat4(rotationMatrixFromQuaternion(makeQuaternionFromEulerAngle(entity->transform->rotation)), translationScaleMat(entity->transform->location, entity->transform->scale));
 	setShaderMat4(entity->shader, "M", &m);
+
 	// Draw the entity
 	glBindVertexArray(entity->mesh->vertexArray);
 	glDrawElements(GL_TRIANGLES, entity->mesh->facesCount * 3, GL_UNSIGNED_INT, 0);
@@ -73,7 +74,6 @@ GXentity_t* loadEntity( const char path[] )
 	u8* data = malloc(l);
 	fread(data, 1, l, f);
 
-
 	// We no longer need the file
 	fclose(f);
 
@@ -86,10 +86,10 @@ GXentity_t* loadEntity( const char path[] )
 	for (size_t j = 0; j < rootTokenCount; j++)
 	{
 		if (strcmp("comment", rootContents[j].name) == 0)
-		#ifdef debugmode
-			// Print out comment
-			printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
-		#endif
+			#ifdef debugmode
+				// Print out comment
+				printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
+			#endif
 		if (strcmp("name", rootContents[j].name) == 0)
 		{
 			// Set name
@@ -101,6 +101,7 @@ GXentity_t* loadEntity( const char path[] )
 		if (strcmp("flags", rootContents[j].name) == 0)
 			// Set flags
 			ret->flags = atoi(rootContents[j].content.nWhere);
+
 		if (strcmp("mesh", rootContents[j].name) == 0)
 		{
 			// Parse JSON Values
@@ -108,16 +109,18 @@ GXentity_t* loadEntity( const char path[] )
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+
 			// Find relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("relativePath", subContents[k].name) == 0)
 					relativePath = subContents[k].content.nWhere;
+
 			// Find format
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("format", subContents[k].name) == 0)
 					if (strcmp("OBJ", subContents[k].content.nWhere) == 0)
 						if (relativePath)
-							//Use appropriate loader
+							// Use OBJ loader
 							ret->mesh = loadOBJMesh(relativePath);
 						else
 						#ifdef debugmode
@@ -125,12 +128,14 @@ GXentity_t* loadEntity( const char path[] )
 						#endif
 					else if (strcmp("PLY", subContents[k].content.nWhere) == 0)
 						if (relativePath)
-							//Use appropriate loader
+							// Use PLY loader
 							ret->mesh = loadPLYMesh(relativePath);
 						else
 						#ifdef debugmode
 							printf("No relative path in asset file %s\n", path);
 						#endif
+
+			// Free the JSON values
 			free(subContents);
 		}
 		if (strcmp("texture", rootContents[j].name) == 0)
@@ -140,10 +145,12 @@ GXentity_t* loadEntity( const char path[] )
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+
 			// Find relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("relativePath", subContents[k].name) == 0)
 					relativePath = subContents[k].content.nWhere;
+
 			// Find format
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("format", subContents[k].name) == 0)
@@ -170,22 +177,27 @@ GXentity_t* loadEntity( const char path[] )
 						else
 						#ifdef debugmode
 							printf("No relative path in asset file %s\n", path);
-						#endif
+						#endif			
+			
+			// Free the JSON values
 			free(subContents);
 		}
 		if (strcmp("shader", rootContents[j].name) == 0)
 		{
-			// Parse JSON Values
+			// Create 2 pointers for the shader paths
 			char* vertexShaderRelativePath = 0;
 			char* fragmentShaderRelativePath = 0;
 
+			// Parse JSON Values
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+
 			// Find vertex shader relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("vertexShaderRelativePath", subContents[k].name) == 0)
 					vertexShaderRelativePath = subContents[k].content.nWhere;
+
 			// Find fragment shader relative path
 			for (size_t k = 0; k < subTokenCount; k++)
 				if (strcmp("fragmentShaderRelativePath", subContents[k].name) == 0)
@@ -195,15 +207,17 @@ GXentity_t* loadEntity( const char path[] )
 				// Load the shader
 				ret->shader = loadShader(vertexShaderRelativePath, fragmentShaderRelativePath);
 
+			// Free the JSON values
 			free(subContents);
 		}
 		if (strcmp("transform", rootContents[j].name) == 0)
 		{
-			// Parse JSON Values
+			// Create 3 vectors for transform
 			GXvec3_t location = {0,0,0};
 			GXvec3_t rotation = {0,0,0};
 			GXvec3_t scale    = {0,0,0};
-
+			
+			// Parse JSON Values
 			size_t len = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
@@ -226,13 +240,16 @@ GXentity_t* loadEntity( const char path[] )
 			// Process transform
 			ret->transform = createTransform(location, rotation, scale);
 
+			// Free the JSON values
 			free(subContents);
 		}
 	}
-	// Finish up
+
+	// Free the JSON values
 	free(rootContents);
 	ret->next = 0;
 
+	// Return the entity
 	return ret;
 }
 
@@ -251,24 +268,24 @@ int assignTexture( GXshader_t* shader, const char uniform[] )
 
 int destroyEntity( GXentity_t* entity )
 {
+	// Nullify flags
 	entity->flags = 0;
 
 	// Check to see if items are set before we unload them
 	if (entity->name != (void*)0)
-	{
 		entity->name = (void*)0;
-	}
+
 	if (entity->mesh != (void*)0)
-		unloadMesh(entity->mesh);
+		entity->mesh = unloadMesh(entity->mesh);
 
 	if (entity->shader != (void*)0)
-		unloadShader(entity->shader);
+		entity->shader = unloadShader(entity->shader);
 
 	if (entity->UV != (void*)0)
-		unloadTexture(entity->UV);
+		entity->UV = unloadTexture(entity->UV);
 	
 	if (entity->transform != (void*)0)
-		unloadTransform(entity->transform);
+		entity->transform = unloadTransform(entity->transform);
 
 	// Free the entity
 	free(entity);

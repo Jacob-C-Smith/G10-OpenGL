@@ -9,11 +9,11 @@
 - ✅ Use JSON parser to read scenes for the game engine.
 
 === Renderer goals ===
-- ❌ Some amount of lighting, diffuse specular ambient
+- ❌ Ubershaders
 - ❌ Implement normals.
 
 === Physics goals ===
-- ❌ Collision detection, box, sphere, (cylinder???).
+- ❌ Collision detection, box, sphere, cylinder, pill.
 - ❌ Rigidbody physics.
 
 === General goals

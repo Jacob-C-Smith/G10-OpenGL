@@ -17,8 +17,8 @@ enum GXJSONValue_e
 };
 
 union GXJSONContent_u {
-	void*  nWhere;
-	void** aWhere;
+	void*  nWhere;		 // Where a string/primative/object is
+	void** aWhere;		 // Where an array is
 };
 typedef union GXJSONContent_u GXJSONContent_t;
 
