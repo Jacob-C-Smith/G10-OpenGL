@@ -1,5 +1,4 @@
-﻿// TODO: Fully document file
-#pragma once
+﻿#pragma once
 
 #include <stdio.h>
 #include <string.h>

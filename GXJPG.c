@@ -32,8 +32,6 @@ GXtexture_t* loadJPGImage( const char path[] )
 
 	// Allocate space for the pixel data
 	data = malloc(allocateSize);
-
-	// Check if data is valid
 	if (data == 0)
 		return (void*)0;
 
@@ -47,13 +45,13 @@ GXtexture_t* loadJPGImage( const char path[] )
 	// Point it to the right place
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
-	// Set texture parameters
+	// More OpenGL things
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Free data. 
+	// Free data. We don't really need the header anymore. 
 	free(data);
 	SDL_FreeSurface(image);
 	SDL_FreeRW(r);
@@ -63,6 +61,5 @@ GXtexture_t* loadJPGImage( const char path[] )
 		printf("Loaded file \"%s\"\n\n", path);
 	#endif 
 
-	// Return the loaded texture
 	return ret;
 }

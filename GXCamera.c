@@ -2,8 +2,7 @@
 
 GXmat4_t perspective( float fov, float aspect, float near, float far )
 {
-    /* 
-     * Compute perspective projection, where f = fov, a = aspect, n = near, and r = far
+    /* Compute perspective projection, where f = fov, a = aspect, n = near, and r = far
      * ┌                                                      ┐
      * │ (a*tan(f/2))^-1, 0,             0,                0, │
      * │ 0,               (tan(f/2))^-1, 0,                0  │

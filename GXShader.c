@@ -1,6 +1,5 @@
 #include <G10/GXShader.h>
 
-// TODO: Fully document function
 GXshader_t* loadShader( const char vertexShaderPath[], const char fragmentShaderPath[] )
 {
 	// Uninitialized data
@@ -124,25 +123,25 @@ GXshader_t* loadShader( const char vertexShaderPath[], const char fragmentShader
 
 int useShader(GXshader_t* shader)
 {
-	if(shader)																   // If a shader is present...
-		glUseProgram(shader->shaderProgramID);								   // ... use it
+	if(shader)
+		glUseProgram(shader->shaderProgramID);
 
 	return 0;
 }
 
 void setShaderInt(GXshader_t* shader, const char name[], int value)
 {
-	glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);    // Set int value to name
+	glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
 void setShaderFloat(GXshader_t* shader, const char name[], float value)
 {
-	glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);    // Set float value to name
+	glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
 void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)
 {
-	glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, m); // Set 4 by 4 matrix to name
+	glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, m);
 }
 
 int unloadShader(GXshader_t* shader)
@@ -152,6 +151,5 @@ int unloadShader(GXshader_t* shader)
 	shader->shaderProgramID = 0;
 	free(shader);
 
-	// Return nullptr
 	return 0;
 }

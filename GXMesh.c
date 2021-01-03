@@ -33,7 +33,6 @@ int unloadMesh( GXmesh_t* mesh )
 	// Invalidate mesh
 	free(mesh);
 
-	// Return nullptr
 	return 0;
 }
 

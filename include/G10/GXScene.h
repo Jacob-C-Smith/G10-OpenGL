@@ -15,7 +15,7 @@ struct GXscene_s {
 };
 typedef struct GXscene_s GXscene_t;
 
-GXscene_t*  createScene  ( );                                      // ✅ Create a scene with nothing in it
+GXscene_t*  createScene  ( );                                     // ✅ Create a scene with nothing in it
 GXscene_t*  loadScene    ( const char path[] );                    // ✅ Loads a scene from JSON file at path
 int         appendEntity ( GXscene_t* scene, GXentity_t* entity ); // ✅ Add an entity to the end of the linked list
 int         drawScene    ( GXscene_t* scene );                     // ✅ Iterates through the scene, drawing all valid entities where the GXEdrawable flag == 1

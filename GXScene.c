@@ -2,7 +2,6 @@
 
 GXscene_t* createScene()
 {
-	// Allocate space for a scene
 	GXscene_t* ret = malloc(sizeof(GXscene_t));
 
 	if (ret == 0)
@@ -14,7 +13,6 @@ GXscene_t* createScene()
 	return ret;
 }
 
-// TODO: Fully document function
 GXscene_t* loadScene( const char path[] )
 {
 	// Uninitialized data
@@ -64,7 +62,7 @@ GXscene_t* loadScene( const char path[] )
 			float    fov         = 0.f;
 			float    near        = 0.f;
 			float    far         = 0.f;
-			float    aspectRatio = 0.f;           
+			float    aspectRatio = 0.f;
 
 			char* relativePath = 0;
 
@@ -140,7 +138,6 @@ GXscene_t* loadScene( const char path[] )
 
 int appendEntity(GXscene_t* scene, GXentity_t* entity)
 {
-	// Create a pointer to the head of the list
 	GXentity_t* i = scene->head;
 
 	// Check if the head is null
