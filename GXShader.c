@@ -139,6 +139,11 @@ void setShaderFloat(GXshader_t* shader, const char name[], float value)
 	glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
+void setShaderVec3(GXshader_t* shader, const char name[], GXvec3_t vector)
+{
+	glUniform3f(glGetUniformLocation(shader->shaderProgramID, name), vector.x, vector.y, vector.z);
+}
+
 void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)
 {
 	glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, m);

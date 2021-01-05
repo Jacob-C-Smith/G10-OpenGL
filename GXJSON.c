@@ -1,12 +1,12 @@
 #include <G10/GXJSON.h>
 
 // TODO: Fully document function
-int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
+int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
 {
 	size_t currentWhere = 0;
 	int ret = 0;
 	int i = 1;
-	
+
 	// If we aren't passed a count, we figure out how many top level items there are in the JSON file.
 	if (count == 0)
 	{
@@ -32,7 +32,7 @@ int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 				while (text[++i] != '\"');
 			i++;
 		}
-		
+
 		return ret;                    // Return the total number of key/value pairs we have found.
 	}
 	text;
@@ -40,7 +40,7 @@ int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 	{
 		if (*text == '\"')                                  // We've found a key
 		{
-			where[currentWhere].name = text+1;              // Set a pointer to the start of the key
+			where[currentWhere].name = text + 1;              // Set a pointer to the start of the key
 			while (*++text != '\"');
 
 			*text = 0;                                      // Set a null terminator at the end of the string, overwriting the '\"'
@@ -51,7 +51,7 @@ int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 			if (*text == '\"')                              // Parse out a string
 			{
 				where[currentWhere].content.nWhere = ++text;
-				where[currentWhere].type  = GXJSONstring;
+				where[currentWhere].type = GXJSONstring;
 				while (*++text != '\"');
 				*text = 0;
 			}
@@ -78,7 +78,7 @@ int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 				GXsize_t c = 0;
 				GXsize_t bDepth = 1;
 				GXsize_t cDepth = 0;
-				GXsize_t aEntries = 0;
+				GXsize_t aEntries = 1;
 				while (bDepth)
 				{
 					c++;
@@ -95,9 +95,9 @@ int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 					else if (text[c] == '\"')
 						while (text[++c] != '\"');
 				}
-				if (aEntries)
+				if (aEntries > 1)
 					aEntries++;
-				where[currentWhere].content.aWhere = malloc(sizeof(void*)*aEntries);
+				where[currentWhere].content.aWhere = malloc(sizeof(void*) * (aEntries+1));
 				text++;
 				bDepth = 1, cDepth = 1, c = 0;
 				while (bDepth)
@@ -145,14 +145,14 @@ int GXParseJSON( char* text, size_t len, size_t count, JSONValue_t* where )
 					}
 					text++;
 				}
-
+				where[currentWhere].content.aWhere[c] = (void*)0;
 			}
 			else if ((*text >= '0' && *text <= '9') || *text == '.' || *text == '-')            // Parse out a primative
 			{
 				where[currentWhere].content.nWhere = text;
 				where[currentWhere].type = GXJSONprimative;
-				while ((*++text >= '0' && *text <= '9')|| *text == '.');
-				
+				while ((*++text >= '0' && *text <= '9') || *text == '.');
+
 			}
 			currentWhere++;                                 // Increment the token index
 			if (currentWhere == (size_t)count)              // If we've gotten everything, clean up and leave

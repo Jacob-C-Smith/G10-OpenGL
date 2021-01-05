@@ -10,13 +10,15 @@
 #include <G10/GXtypedef.h>
 
 // Contains information about a texture
-struct GXtexture_s
+struct GXTexture_s
 {
 	unsigned int textureID;
 	GXsize_t width;
 	GXsize_t height;
 };
-typedef struct GXtexture_s GXtexture_t;
+typedef struct GXTexture_s GXTexture_t;
 
-int unloadTexture ( GXtexture_t* image ); // ✅ Unloads a texture and all of its contents
+GXTexture_t* createTexture ( );                    // ✅ Creates an empty texture
+GXTexture_t* loadTexture   ( const char path[] );  // ✅ Loads a texture from the disk
+int          unloadTexture ( GXTexture_t* image ); // ✅ Unloads a texture and all of its contents
 

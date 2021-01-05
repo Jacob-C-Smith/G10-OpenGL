@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <math.h>
 
@@ -30,7 +30,7 @@ struct GXmat4_s {
 };
 typedef struct GXmat4_s GXmat4_t;
 
-// Adds vector a to vector b. Returns new vector
+// ✅ Adds vector a to vector b. Returns new vector
 static inline GXvec3_t addVec3( GXvec3_t a, GXvec3_t b )
 {
 	return (GXvec3_t) {
@@ -40,7 +40,23 @@ static inline GXvec3_t addVec3( GXvec3_t a, GXvec3_t b )
 	};
 }
 
-// Computes the cross product of 2 3D vectors
+// ✅ Subtracts vector a from vector b. Returns new vector
+static inline GXvec3_t subVec3(GXvec3_t a, GXvec3_t b)
+{
+	return (GXvec3_t) {
+		a.x - b.x,
+		a.y - b.y,
+		a.z - b.z
+	};
+}
+
+// ✅ Computes the dot product of 2 3D vectors
+static inline float dotProductVec3(GXvec3_t a, GXvec3_t b)
+{
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+// ✅ Computes the cross product of 2 3D vectors
 static inline GXvec3_t crossProductVec3 ( GXvec3_t a, GXvec3_t b )
 {
 	return (GXvec3_t) {
@@ -50,14 +66,34 @@ static inline GXvec3_t crossProductVec3 ( GXvec3_t a, GXvec3_t b )
 	};
 }
 
-// Normailizes a vector
+// ✅ Multiplies the coordinates of one vector by the coordinates of another
+static inline GXvec3_t vec3xvec3(GXvec3_t a, GXvec3_t b)
+{
+	return (GXvec3_t) {
+		a.x* b.x,
+		a.y* b.y,
+		a.z* b.z
+	};
+}
+
+// ✅ Multiplies a vector by a scalar value
+static inline GXvec3_t vec3xf(GXvec3_t v, float s)
+{
+	return (GXvec3_t) {
+		v.x*s,
+		v.y*s,
+		v.z*s
+	};
+}
+
+// ✅ Normailizes a vector
 static inline GXvec3_t normalize( GXvec3_t v )
 {
 	float vl = sqrtf((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
 	return (GXvec3_t) { v.x / vl, v.y / vl, v.z / vl };
 }
 
-// Multiplies a matrix by a vector
+// ✅ Multiplies a matrix by a vector
 static inline GXvec4_t mat4xvec4( GXmat4_t m, GXvec4_t v )
 {
 	return (GXvec4_t) {
@@ -68,7 +104,7 @@ static inline GXvec4_t mat4xvec4( GXmat4_t m, GXvec4_t v )
 	};
 }
 
-// Multiplies a matrix by a matrix
+// ✅ Multiplies a matrix by a matrix
 static inline GXmat4_t mat4xmat4( GXmat4_t m, GXmat4_t n )
 {
 	return (GXmat4_t) {
@@ -79,7 +115,7 @@ static inline GXmat4_t mat4xmat4( GXmat4_t m, GXmat4_t n )
 	};
 }
 
-// Returns the identity matrix
+// ✅ Returns the identity matrix
 static inline GXmat4_t identityMat4()
 {
 	return (GXmat4_t) {
@@ -90,7 +126,7 @@ static inline GXmat4_t identityMat4()
 	};
 }
 
-// Computes a translation matrix from a translation vector
+// ✅ Computes a translation matrix from a translation vector
 static inline GXmat4_t translationMat( GXvec3_t v )
 {
 	return (GXmat4_t) {
@@ -101,7 +137,7 @@ static inline GXmat4_t translationMat( GXvec3_t v )
 	};
 }
 
-// Computes scale matrix from a scale vector
+// ✅ Computes scale matrix from a scale vector
 static inline GXmat4_t scaleMat( GXvec3_t v )
 {
 	return (GXmat4_t) {
@@ -112,7 +148,7 @@ static inline GXmat4_t scaleMat( GXvec3_t v )
 	};
 }
 
-// Computes a translationScale matrix from a translation vector and a scale vector
+// ✅ Computes a translationScale matrix from a translation vector and a scale vector
 static inline GXmat4_t translationScaleMat( GXvec3_t translation, GXvec3_t scale )
 {
 	return (GXmat4_t) {
@@ -123,7 +159,7 @@ static inline GXmat4_t translationScaleMat( GXvec3_t translation, GXvec3_t scale
 	};
 }
 
-// Computes a rotation matrix from a rotation vector
+// ✅ Computes a rotation matrix from a rotation vector
 static inline GXmat4_t rotationMatrixFromVec( GXvec3_t rotation )
 {
 	return (GXmat4_t) {
@@ -134,7 +170,7 @@ static inline GXmat4_t rotationMatrixFromVec( GXvec3_t rotation )
 	};
 }
 
-// Computes a model matrix from a location, rotation, and scale vector.
+// ✅ Computes a model matrix from a location, rotation, and scale vector.
 static inline GXmat4_t generateModelMatrixFromVec( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale )
 {
 	return mat4xmat4(translationScaleMat(location,scale),rotationMatrixFromVec(rotation));

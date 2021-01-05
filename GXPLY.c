@@ -1,29 +1,30 @@
 ﻿#include <G10/GXPLY.h>
 
-// TODO: Document and finish
+// TODO: Document
 
-GXmesh_t* loadPLYMesh( const char path[] )
+GXMesh_t* loadPLYMesh( const char path[] )
 {
 	// Uninitialized data
-	GXsize_t  l;
-	char*     data;
-	char*     backup;
-	point3_t* geometricVertices;
-	point2_t* textureCoordinates;
-	point3_t* vertexNormals;
+	GXsize_t       l;
+	char*          data;
+	float*         vertexArray;
+	GXPLYindex_t*  indices;
+	size_t         verticesInBuffer;
+	unsigned long* correctedIndicies;
 
 	// Initialized data
-	GXmesh_t*    ret     = malloc(sizeof(GXmesh_t));
+	GXMesh_t*    ret     = malloc(sizeof(GXMesh_t));
 	GXsize_t     i       = 0;
 	GXsize_t     j       = 0;
 	GXsize_t     k       = 0;
 	FILE*        f       = fopen(path, "rb");
-	GXPLYfile_t* plyFile = malloc(sizeof(GXPLYfile_t));
+	GXPLYfile_t* plyFile = calloc(1,sizeof(GXPLYfile_t));
 
 	plyFile->nElements   = 0;
 	plyFile->elements    = (void*)0;
 	plyFile->flags       = 0;
 
+	// Check if file is valid
 	if (f == NULL)
 	{
 		printf("Failed to load file %s\n", path);
@@ -42,7 +43,7 @@ GXmesh_t* loadPLYMesh( const char path[] )
 	if (data == 0)
 		return (void*)0;
 	if (ret == 0)
-		return (void*)0;
+		return ret;
 	if (l < 3)
 		return (void*)0;
 	// Read in the data
@@ -52,7 +53,7 @@ GXmesh_t* loadPLYMesh( const char path[] )
 	fclose(f);
 
 	// Debugger logging
-#ifdef debugmode
+#ifdef GXDEBUGMODE
 	printf("Loaded file %s\n", path);
 #endif
 
@@ -260,7 +261,7 @@ GXmesh_t* loadPLYMesh( const char path[] )
 		else if (strncmp(&data[i], "comment", 7) == 0)
 		{
 			i += 7;
-#ifdef debugmode
+#ifdef GXDEBUGMODE
 			printf("Comment: ");
 			while (data[i++] != '\n')
 				putchar(data[i]);
@@ -270,7 +271,7 @@ GXmesh_t* loadPLYMesh( const char path[] )
 		else if (strncmp(&data[i], "format", 6) == 0)
 		{
 			i += 6;
-#ifdef debugmode
+#ifdef GXDEBUGMODE
 			printf("Format: ");
 			while (data[i++] != '\n')
 				putchar(data[i]);
@@ -281,7 +282,7 @@ GXmesh_t* loadPLYMesh( const char path[] )
 	}
 
 	// Log elements and properties
-	#if debugmode
+	#if GXDEBUGMODE
 		for (int a = 0; a < plyFile->nElements; a++)
 		{
 			printf("element: \"%s\"\n", plyFile->elements[a].name);
@@ -337,42 +338,59 @@ GXmesh_t* loadPLYMesh( const char path[] )
 	while (strncmp(&data[i], "end_header", 10));
 	i += 11;
 
-	int totalVertex = 0, totalFaces = 0;
+	vertexArray           = (float*)&data[i];
+	verticesInBuffer      = plyFile->elements[0].nCount * plyFile->elements[0].sStride;
+	indices               = (void*)&data[i + verticesInBuffer];
+	ret->elementsInBuffer = plyFile->elements[1].nCount * 3 * sizeof(unsigned int);
 
-	float* vertexArray = malloc(sizeof(float));
-
-	for (int a = 0; a < plyFile->nElements; a++)
+	correctedIndicies = malloc(ret->elementsInBuffer);
+	
+	for (i = 0; i < plyFile->elements[1].nCount; i++)
 	{
-		if(strncmp(plyFile->elements[a].name, "vertex", 6)==0)
-			totalVertex = plyFile->elements[j].nCount * plyFile->elements[j].nProperties;
-		if (strncmp(plyFile->elements[a].name, "face", 4) == 0)
-			totalFaces = plyFile->elements[j].nCount * plyFile->elements[j].nProperties;
+		correctedIndicies[i * 3 + 0] = indices[i].a;
+		correctedIndicies[i * 3 + 1] = indices[i].b;
+		correctedIndicies[i * 3 + 2] = indices[i].c;
 	}
-
 
 	// Generate the vertex array and all of its contents, as well as the element buffer
 	glGenVertexArrays(1, &ret->vertexArray);
 	glGenBuffers(1, &ret->vertexBuffer);
 	glGenBuffers(1, &ret->elementBuffer);
-	glGenBuffers(1, &ret->textureBuffer);
 
 	glBindVertexArray(ret->vertexArray);
 
 	// Populate and enable the vertex buffer, element buffer, and UV coordinates
 	glBindBuffer(GL_ARRAY_BUFFER, ret->vertexBuffer);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(point3_t) * ret->geometricVerticesCount, geometricVertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, verticesInBuffer, vertexArray, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ret->elementBuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int3_t) * ret->facesCount, ret->faces.v, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, ret->elementsInBuffer, correctedIndicies, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, plyFile->elements[0].nProperties * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, ret->textureBuffer);
-//	glBufferData(GL_ARRAY_BUFFER, sizeof(point2_t) * ret->textureCoordinatesCount, textureCoordinates, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, plyFile->elements[0].nProperties * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, plyFile->elements[0].nProperties * sizeof(float), (void*)(6*sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+	// Cleanup
+	for (i = 0; i < plyFile->nElements; i++)
+	{
+		plyFile->elements[i].properties[j].name     = (void*)0;
+		plyFile->elements[i].properties[j].typeSize = 0;
+		free(plyFile->elements[i].properties);
+		plyFile->elements[i].name        = (void*)0;
+		plyFile->elements[i].nCount      = 0;
+		plyFile->elements[i].nProperties = 0;
+		plyFile->elements[i].sStride     = 0;
+	}
+
+	free(plyFile->elements);
+	plyFile->flags     = 0;
+	plyFile->nElements = 0;
+	free(plyFile);
 
 	return ret;
 }

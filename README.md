@@ -6,20 +6,19 @@ A scene is the highest level object in G10.
 ```c
 // Scene definintion in G10
 struct GXscene_s {
-	GXentity_t* head;
-	GXcamera_t* camera;
+	GXEntity_t* head;
+	GXCamera_t* camera;
 };
 typedef struct GXscene_s GXscene_t;
-```
-There are several functions to manipulate a scene, all of which are listed below.
-```c
-GXscene_t*  createScene  ();
-GXscene_t*  loadScene    (const char path[]);
-int         appendEntity (GXscene_t* scene, GXentity_t* entity);
-int         drawScene    (GXscene_t* scene);
-GXentity_t* getEntity    (GXscene_t* scene, const char name[]);
-int         removeEntity (GXscene_t* scene, const char name[]);
-int         destroyScene (GXscene_t* scene);
+
+// Scene functions
+GXscene_t*  createScene  ( );
+GXscene_t*  loadScene    ( const char path[] );
+int         appendEntity ( GXscene_t* scene, GXEntity_t* entity );
+int         drawScene    ( GXscene_t* scene );
+GXEntity_t* getEntity    ( GXscene_t* scene, const char name[] );
+int         removeEntity ( GXscene_t* scene, const char name[] );
+int         destroyScene ( GXscene_t* scene );
 ```
 #### ⌠createScene⌡
 ```createScene()``` will create an empty scene.
@@ -29,12 +28,12 @@ Returns a pointer to the scene.
 
 Returns a pointer to the loaded scene.
 #### ⌠appendEntity⌡
-```appendEntity(GXscene_t* scene, GXentity_t* entity)``` will place the parameter ```entity``` at the end of the linked list of objects pointed at by ```scene```.
+```appendEntity(GXscene_t* scene, GXEntity_t* entity)``` will place the parameter ```entity``` at the end of the linked list of objects pointed at by ```scene```.
 #### ⌠drawScene⌡
-```drawScene(GXscene_t* scene)``` will draw all objects in the linked list, so long as the ```GXE_rDrawable``` flag is set in the ```flags``` member of the respective entity.
+```drawScene(GXscene_t* scene)``` will draw all objects in the linked list, so long as the ```GXE_rDrawable``` flag is set in the ```flags``` member of the respective entity, and all other criteria for drawing are met.
 #### ⌠getEntity⌡
-```GXentity_t* getEntity (GXscene_t* scene, const char name[])``` will locate an entity in a ```scene``` by ```name```.
-Returns a pointer to the found entity. On fail, returns ```nullptr```
+```GXEntity_t* getEntity (GXscene_t* scene, const char name[])``` will locate an entity in a ```scene``` by ```name```.
+Returns a pointer to the found entity. On fail, returns ```nullptr```.
 #### ⌠removeEntity⌡
 ```int removeEntity(GXscene_t* scene, const char name[])``` will remove an entity from the ```scene``` by ```name```, deallocating the entity, and finally repair the linked list.
 #### ⌠destroyScene⌡
@@ -43,7 +42,7 @@ Returns a pointer to the found entity. On fail, returns ```nullptr```
 A camera is an object that contains information on how to render a scene. 
 ```c
 // Camera definition in G10
-struct GXcamera_s {
+struct GXCamera_s {
 	
 	// View
 	GXvec3_t where;
@@ -60,80 +59,74 @@ struct GXcamera_s {
 	GXmat4_t view;
 	GXmat4_t projection;
 };
-typedef struct GXcamera_s GXcamera_t;
-```
-There is only one function that should be used for a camera.
+typedef struct GXCamera_s GXCamera_t;
 
-```c
-GXcamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio)
+// Camera functions
+GXCamera_t* createCamera( GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio )
 ```
 #### ⌠createCamera⌡
-```GXcamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio)``` will create a camera with the specified arguments.
+```GXCamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio)``` will create a camera with the specified arguments.
 ### ≡ Entities ≡
 An entity is any object contained within a scene.
 ```c
 // Entity definition in G10
 struct GXEntity_s
 {
-	GXsize_t           ID;
 	GXsize_t           flags;
 	char*              name;
-	GXmesh_t*          mesh;
+	GXMesh_t*          mesh;
 	GXshader_t*        shader;
-	GXtexture_t*       UV;
-	GXTransform_t*     transform;
+	GXMaterial_t*      material;
+	GXtransform_t*     transform;
+
 	struct GXEntity_s* next;
 };
-typedef struct GXEntity_s GXentity_t;
-```
-There are several functions to manipulate an Entity, all of which are listed below.
-```c
-GXentity_t* createEntity  (GXsize_t flags);
-int         drawEntity    (GXentity_t* entity);
-GXentity_t* loadEntity    (const char path[]);
-int         assignTexture (GXentity_t* entity, const char uniform[]);
-int         destroyEntity (GXentity_t* entity);
+typedef struct GXEntity_s GXEntity_t;
+
+// Entity functions
+GXEntity_t* createEntity  ( );
+int         drawEntity    ( GXEntity_t* entity );
+GXEntity_t* loadEntity    ( const char path[] );
+int         assignTexture ( GXEntity_t* entity, const char uniform[] );
+int         destroyEntity ( GXEntity_t* entity );
 ```
 #### ⌠createEntity⌡
-```GXentity_t* createEntity (GXsize_t flags)``` will create an entity with ```flags``` set.
+```GXEntity_t* createEntity ( )``` will create an empty entity.
 Returns a pointer to the created entity.
 #### ⌠drawEntity⌡
-```int drawEntity (GXentity_t* entity)``` will draw ```entity```, as long as the ```GXE_rDrawable``` flag is set in ```flags```.
+```int drawEntity ( GXEntity_t* entity )``` will draw ```entity```, as long as the ```GXE_rDrawable``` flag is set in ```flags```.
 #### ⌠loadEntity⌡
-```GXentity_t* loadEntity (const char path[])``` will load an entity from ```path```, allocate space for the members, and populate them. The JSON format for entities is detailed further in the documentation.
+```GXEntity_t* loadEntity ( const char path[] )``` will load an entity from ```path```, allocate space for the members, and populate them. The JSON format for entities is detailed further in the documentation.
 Returns a pointer to the created entity.
 #### ⌠assignTexture⌡
-```int assignTexture(GXshader_t* shader, const char uniform[])``` assigns the texture in entity to a glsl uniform.
+```int assignTexture( GXshader_t* shader, const char uniform[] )``` assigns the texture in entity to a glsl uniform.
 #### ⌠destroyEntity⌡
-```int destroyEntity(GXentity_t* entity)``` will destroy an entity and depopulate all of its members.
+```int destroyEntity( GXEntity_t* entity )``` will destroy an entity and depopulate all of its members.
 ### ≡ Mesh ≡
 A mesh is a container for sets of points used in rendering.
 ```c
-// /Mesh definition in G10
+// Mesh definition in G10
 struct GXMesh_s
 {
-	GXsize_t ID;
-	faces_t faces;
-	GXsize_t geometricVerticesCount;
-	GXsize_t textureCoordinatesCount;
-	GXsize_t vertexNormalsCount;
-	GXsize_t facesCount;
 	// Array
-	GLuint vertexArray;
-	// geometric vertecies
-	GLuint vertexBuffer;
-	GLuint elementBuffer;
-	// textures
-	GLuint textureBuffer;
+	GLuint    vertexArray;
+
+	// Geometric vertecies
+	GLuint    vertexBuffer;
+	GLuint    elementBuffer;
+
+	// Counts
+	GLuint    elementsInBuffer;
 };
-typedef struct GXMesh_s GXmesh_t;
-```
-There is only 1 mesh manipulation function
-```c
-int unloadMesh(GXmesh_t* mesh);
+typedef struct GXMesh_s GXMesh_t;
+
+// Mesh functions
+GXMesh_t* createMesh ( );
+GXMesh_t* loadMesh   ( const char path[] );
+int       unloadMesh ( GXMesh_t* mesh );
 ```
 #### ⌠unloadMesh⌡
-```int unloadMesh(GXmesh_t* mesh)``` will depopulate all members of ```mesh```, and deallocate ```mesh```
+```int unloadMesh(GXMesh_t* mesh)``` will depopulate all members of ```mesh```, and deallocate ```mesh```
 ### ≡ Shader ≡
 A shader is a program used by OpenGL to render an object.
 ```c
@@ -143,15 +136,15 @@ struct GXShader_s
 	unsigned int shaderProgramID;
 };
 typedef struct GXShader_s GXshader_t;
-```
-There are 6 functions to manipulate shaders
-```c
-GXshader_t* loadShader     (const char vertexShaderPath[], const char fragmentShaderPath[]);
-int         useShader      (GXshader_t* shader);
-void        setShaderInt   (GXshader_t* shader, const char name[], int value);
-void        setShaderFloat (GXshader_t* shader, const char name[], float value);
-void        setShaderMat4  (GXshader_t* shader, const char name[], GXmat4_t* m);
-int         unloadShader   (GXshader_t* shader);
+
+// Shader functions
+GXshader_t* loadShader     ( const char vertexShaderPath[], const char fragmentShaderPath[] );
+int         useShader      ( GXshader_t* shader );                                             
+void        setShaderInt   ( GXshader_t* shader, const char name[], int value );               
+void        setShaderFloat ( GXshader_t* shader, const char name[], float value );   
+void        setShaderVec3  ( GXshader_t* shader, const char name[], GXvec3_t vector );          
+void        setShaderMat4  ( GXshader_t* shader, const char name[], GXmat4_t* m );             
+int         unloadShader   ( GXshader_t* shader );           
 ```
 
 #### ⌠loadShader⌡
@@ -160,37 +153,44 @@ Returns a pointer to the loaded ```GXshader_t```.
 #### ⌠useShader⌡
 ```int useShader(GXshader_t* shader)``` will tell OpenGL to use the ```shader``` for draw calls.
 #### ⌠setShaderInt⌡
-```void setShaderInt(GXshader_t* shader, const char name[], int value)``` will set an int in ```shader``` to ```value```
+```void setShaderInt(GXshader_t* shader, const char name[], int value)``` will set an int in ```shader``` to ```value```.
 #### ⌠setShaderFloat⌡
-```void setShaderFloat(GXshader_t* shader, const char name[], float value)``` will set a float in ```shader``` to ```value```
+```void setShaderFloat(GXshader_t* shader, const char name[], float value)``` will set a float in ```shader``` to ```value```.
+#### ⌠setShaderVec3⌡
+```void setShaderVec3 ( GXshader_t* shader, const char name[], GXvec3_t vector );``` will set a vector in ```shader``` to ```value```.
 #### ⌠setShaderMat4⌡
-```void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)``` will set a float in ```shader``` to ```value```
+```void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)``` will set a float in ```shader``` to ```value```.
 #### ⌠unloadShader⌡
 ```int unloadShader(GXshader_t* shader)``` will depopulate all members of ```shader``` and deallocate the shader.
 ### ≡ Textures ≡
 A texture is an image that is mapped onto a mesh.
 ```c
 // Texture definition in G10
-struct GXtexture_s
+struct GXTexture_s
 {
 	unsigned int textureID;
 	GXsize_t width;
 	GXsize_t height;
-	u8* pixelData;
 };
-typedef struct GXtexture_s GXtexture_t;
+typedef struct GXTexture_s GXTexture_t;
+
+// Texture functions
+GXTexture_t* createTexture ( );
+GXTexture_t* loadTexture   ( const char path[] );
+int          unloadTexture ( GXTexture_t* image ); 
 ```
-There is 1 function to manipulate a texture
-```c
-int unloadTexture(GXtexture_t* image);
-```
+#### ⌠createTexture⌡
+```GXTexture_t* createTexture ( )``` will create an empty texture.
+#### ⌠loadTexture⌡
+```GXTexture_t* loadTexture   ( const char path[] )``` will load a texture and deduce the file type.
 #### ⌠unloadTexture⌡
-```int unloadTexture(GXtexture_t* image)``` will depopulate all members of ```image``` and deallocate ```image```
+```int unloadTexture(GXTexture_t* image)``` will depopulate all members of ```image``` and deallocate ```image```.
+
 ### ≡ Transform ≡
 A transform is 
 ```c
 // Transform definition in G10
-struct GXtransform_s
+struct GXTransform_s
 {
 	GXvec3_t location;
 	GXvec3_t rotation;
@@ -198,47 +198,68 @@ struct GXtransform_s
 
 	GXmat4_t modelMatrix;
 };
-typedef struct GXtransform_s GXtransform_t;
-```
-There are 2 functions to manipulate a transform
-```c
-GXtransform_t* createTransform(GXvec3_t location, GXvec3_t rotation, GXvec3_t scale);
-int            unloadTransform(GXtransform_t* transform);
+typedef struct GXTransform_s GXtransform_t;
+
+// Transform functions
+GXtransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale );
+int            unloadTransform( GXtransform_t* transform );
 ```
 
 #### ⌠createTransform⌡
-```GXtransform_t* createTransform(GXvec3_t location, GXvec3_t rotation, GXvec3_t scale)``` will create a GXtransform from the provided information
+```GXtransform_t* createTransform(GXvec3_t location, GXvec3_t rotation, GXvec3_t scale)``` will create a GXtransform from the provided information.
 
 #### ⌠unloadTransform⌡
-```int unloadTransform(GXtransform_t* transform)``` will destroy the designated GXtransform
+```int unloadTransform(GXtransform_t* transform)``` will destroy the designated GXtransform.
+### ≡ Material ≡
+A material is 
+```c
+// Material definition in G10
+struct GXMaterial_s {
+	GXTexture_t* albedo;
+	GXTexture_t* normal;
+	GXTexture_t* roughness;
+	GXTexture_t* metallic;
+	GXTexture_t* AO;
+};
+typedef struct GXMaterial_s GXMaterial_t;
+
+// Material functions
+GXMaterial_t* createMaterial( );
+int           assignMaterial( GXMaterial_t* material, GXshader_t* shader );
+int           unloadMaterial( GXMaterial_t* material ); 
+```
+
+#### ⌠createMaterial⌡
+```GXMaterial_t* createMaterial( )``` will create a GXmaterial from the provided information.
+
+#### ⌠unloadTransform⌡
+```int assignMaterial( GXMaterial_t* material, GXshader_t* shader )``` will destroy the designated GXtransform.
 
 ## File Loaders
 At the time of writing, G10 supports the following formats
-- Bitmap
+- BMP
 - PNG
 - JPG
-- OBJ
+- PLY
 
 Further image and mesh types may be included in the future, so long as the loader can parse the data into the correct ```struct```. Future candidates for supported file types, at the time of writing are
-- PLY
 - FBX
+- HEIC
+
 ## Scene JSON Format
 Scenes may be stored in a JSON file
 ```json
 {
-    "comment"  : "Made by Jacob Smith on 10/6/2020 at 23:45 GMT-7:00",
-    "entities" : {
-        "entityCount" : 3,
-        "entities" : [
-            "gameassets/asset1/.json",
-            "gameassets/asset2/.json",
-            "gameassets/asset3/.json" 
-        ]
-    },
+    "comment"  : "Made by Jacob Smith on 1/4/2021 at 22:30 GMT-7:00",
+    "entities"  : [
+            "gameassets/asset1.json",
+            "gameassets/asset2.json",
+            "gameassets/asset3.json" 
+        ],
     "camera"   : {
         "where"       : [ 2,2,2 ],
         "target"      : [ 0,0,0 ],
-        "up"          : [ 0,1,0 ],
+        "up"          : [ 0,0,-1 ],
         "fov"         : 90,
         "near"        : 0.1,
         "far"         : 100,
@@ -246,73 +267,81 @@ Scenes may be stored in a JSON file
     }
 }
 ```
-### comment
-The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored by the code unless in ```debugmode```
-### entities
-The ```"entities"``` label corresponds an object containing information about the entities to be loaded
-#### entityCount
-The ```"entityCount"``` label corresponds to the number of entities in the entities array
-#### entities
+### ⌠comment⌡
+The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored by the code unless in ```debugmode```.
+### ⌠entities⌡
 The ```"entities"``` label corresponds to an array that contains paths to entity json files.
 ### ⌠camera⌡
-The ```"camera"``` label corresponds to an object that contains information about the scenes camera
+The ```"camera"``` label corresponds to an object that contains information about the scenes camera.
 #### ⌠where⌡
-The ```"where"``` label corresponds to where the camera is in the scene
+The ```"where"``` label corresponds to where the camera is in the scene.
 #### ⌠target⌡
-The ```"target"``` label corresponds to the location the camera is looking at
+The ```"target"``` label corresponds to the location the camera is looking at.
 #### ⌠up⌡
-The ```"up"``` label corresponds to the up direction in the scene
+The ```"up"``` label corresponds to the up direction in the scene.
 #### ⌠fov⌡
-The ```"fov"``` label corresponds to the fov of the camera in degrees
+The ```"fov"``` label corresponds to the fov of the camera in degrees.
 ### ⌠near⌡
-The ```"near"``` label corresponds to the distance of the near clipping plane
+The ```"near"``` label corresponds to the distance of the near clipping plane.
 #### ⌠far⌡
-The ```"far"``` label corresponds to the distance of the far clipping plane
+The ```"far"``` label corresponds to the distance of the far clipping plane.
 #### ⌠aspectRatio⌡
-The ```"aspectRatio"``` label corresponds to the aspect ratio of the camera. If unset or set to zero, aspect ratio defaults to 16:9
+The ```"aspectRatio"``` label corresponds to the aspect ratio of the camera. If unset or set to zero, aspect ratio defaults to 16:9.
 
 ## Entity JSON Format
 Entities may be stored in a JSON file.
 ```json
 {
-	"comment" : "Made by Jacob Smith on 10/6/2020 at 21:45 GMT-7:00",
-	"flags"   : 31,
-	"name"    : "something",
-	"mesh"    : {
-		"format"                     : "OBJ",
-		"relativePath"               : "gameassets/something/.obj"
+	"comment"   : "Made by Jacob Smith on 1/3/2020 at 9:15 GMT-7:00",
+	"name"      : "Cube",
+	"mesh"      : "gameassets/meshes/cube.ply",
+	"shader"    : {
+		"vertexShaderPath"   : "gameassets/shaders/pbrv.glsl",
+		"fragmentShaderPath" : "gameassets/shaders/pbrf.glsl"
 	},
-	"texture" : {
-		"format"                     : "PNG",
-		"relativePath"               : "gameassets/something/.png"
+	"transform" : {
+		"location"                   : [ 0,0,0 ],
+		"rotation"                   : [ 0,0,0 ],
+		"scale"                      : [ 1,1,1 ]
 	},
-	"shader"  : {
-		"vertexShaderRelativePath"   : "gameassets/something/.glvs",
-		"fragmentShaderRelativePath" : "gameassets/something/.glfs"
+	"material" : {
+		"albedo"                           : "gameassets/textures/basicCube/albedo.png"    ,
+		"normal"                           : "gameassets/textures/basicCube/normal.png",
+		"metallic"                         : "gameassets/textures/basicCube/metal.png"     ,
+		"roughness"                        : "gameassets/textures/basicCube/rough.png"     ,
+		"AO"                               : "gameassets/textures/basicCube/ao.png"       
 	}
 }
 ```
 ### ⌠comment⌡
-The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored by the code unless in ```debugmode```
-### ⌠flags⌡
-The ```"flags"``` label corresponds to the value to be assigned to flags of the entity.
+The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored unless the ```GXDEBUGCOMMENTS``` flag in ```GXDEBUGMODE``` is set.
 ### ⌠name⌡
 The ```"name"``` label corresponds to the value to be assigned to the name of the entity.
 ### ⌠mesh⌡
-The ```"mesh"``` label corresponds to an object with information about the ```mesh```
-#### ⌠format⌡
-The ```"format"``` label corresponds to a string containing the file format
-#### ⌠relativePath⌡
-The ```"relativePath"``` label corresponds to the relative path of the mesh.
-### ⌠texture⌡
-The ```"texture"``` label corresponds to an object with information about the ```texture```
-#### ⌠format⌡
-The ```"format"``` label corresponds to a string containing the file format
-#### ⌠relativePath⌡
-The ```"relativePath"``` label corresponds to the relative path of the texture.
+The ```"mesh"``` label corresponds to an object with information about the ```mesh```.
 ### ⌠shader⌡
-The ```"shader"``` label corresponds to an object with information about the ```shader```
+The ```"shader"``` label corresponds to an object with information about the ```shader```.
 #### ⌠vertexShaderRelativePath⌡
 The ```"vertexShaderRelativePath"``` label corresponds to the relative path of the vertex shader.
 #### ⌠fragmentShaderRelativePath⌡
 The ```"fragmentShaderRelativePath"``` label corresponds to the relative path of the fragment shader.
+### ⌠transform⌡
+The ```"shader"``` label corresponds to an object with information about the ```shader```.
+#### ⌠location⌡
+The ```"location"``` label corresponds to the location of the entity.
+#### ⌠rotation⌡
+The ```"rotation"``` label corresponds to the rotation of the entity.
+#### ⌠scale⌡
+The ```"scale"``` label corresponds to the scale of the entity.
+### ⌠material⌡
+The ```"material"``` label corresponds to an object with information about the ```material```.
+#### ⌠albedo⌡
+The ```"albedo"``` label corresponds to the path of an albedo texture.
+#### ⌠normal⌡
+The ```"normal"``` label corresponds to the path of an normal texture.
+#### ⌠metallic⌡
+The ```"metallic"``` label corresponds to the path of an metallic texture.
+#### ⌠roughness⌡
+The ```"roughness"``` label corresponds to the path of an roughness texture.
+#### ⌠AO⌡
+The ```"AO"``` label corresponds to the path of an AO texture.

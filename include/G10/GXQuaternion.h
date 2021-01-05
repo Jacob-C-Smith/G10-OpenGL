@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <stdio.h>
 #include <math.h>
@@ -7,7 +7,7 @@
 #include <G10/GXLinear.h>
 #include <G10/GXilmath.h>
 
-// Dimensions for quaternion
+// Quaternion
 struct quaternion_s
 {
 	float u;
@@ -17,13 +17,13 @@ struct quaternion_s
 };
 typedef struct quaternion_s quaternion_t;
 
-// Creates quaternion (0,0,0,0)
+// ✅ Creates quaternion (0,0,0,0)
 inline quaternion_t makeQuaternion ()
 {
 	return (quaternion_t) { 0.f,0.f,0.f,0.f };
 }
 
-// Creates a quaternion from a vector in euler angles
+// ✅ Creates a quaternion from a vector in euler angles
 inline quaternion_t makeQuaternionFromEulerAngle ( GXvec3_t v )
 {
 	float sx = sinf(toRadians(v.x*2)), sy = sinf(toRadians(v.y*2)), sz = sinf(toRadians(v.z*2)), cx = cosf(toRadians(v.x*2)), cy = cosf(toRadians(v.y*2)), cz = cosf(toRadians(v.z*2));
@@ -36,7 +36,7 @@ inline quaternion_t makeQuaternionFromEulerAngle ( GXvec3_t v )
 	};
 }
 
-// Multiplys two quaternions as vectors
+// ✅ Multiplys two quaternions as vectors
 inline quaternion_t multiplyQuaternionVector ( quaternion_t q1, quaternion_t q2 )
 {
 	return (quaternion_t) {
@@ -47,7 +47,7 @@ inline quaternion_t multiplyQuaternionVector ( quaternion_t q1, quaternion_t q2 
 	};
 }
 
-// Multiplys two quaternions
+// ✅ Multiplys two quaternions
 inline quaternion_t multiplyQuaternion ( quaternion_t q1, quaternion_t q2 )
 {
 	return (quaternion_t) {
@@ -58,7 +58,7 @@ inline quaternion_t multiplyQuaternion ( quaternion_t q1, quaternion_t q2 )
 	};
 }
 
-// Creates a rotation matrix from a quaternion
+// ✅ Creates a rotation matrix from a quaternion
 inline GXmat4_t     rotationMatrixFromQuaternion ( quaternion_t q )
 {
 	return (GXmat4_t) {

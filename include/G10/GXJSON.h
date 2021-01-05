@@ -22,7 +22,7 @@ union GXJSONContent_u {
 };
 typedef union GXJSONContent_u GXJSONContent_t;
 
-//Container for the 
+// Container for the 
 struct JSONValue_s
 {
 	char*              name;    // The key
@@ -32,5 +32,5 @@ struct JSONValue_s
 typedef struct JSONValue_s JSONValue_t;
 
 int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where ); // ✅ Parses a JSON file and places tokens at an array of JSONValue_t* tokens. 
-                                                                              //   If the function is called when the where parameter is nullptr, the
-                                                                              //   function will return the number of entities that need to be allocated for.
+                                                                              //    If the function is called when the where parameter is nullptr, the
+                                                                              //    function will return the number of entities that need to be allocated for.

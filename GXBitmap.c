@@ -1,18 +1,18 @@
 #include <G10/GXBitmap.h>
 
-GXtexture_t* loadBMPImage( const char path[] )
+GXTexture_t* loadBMPImage( const char path[] )
 {
 	// Uninitialized data
 	int          i;
 	u8*          data;
 
 	// Initialized data
-	GXtexture_t* ret = malloc(sizeof(GXtexture_t));
+	GXTexture_t* ret = malloc(sizeof(GXTexture_t));
 	FILE*        f   = fopen(path, "rb");
 
 	// Check allocated memory
 	if (ret == 0)
-		return (void*)0;
+		return ret;
 
 	// Check if file is valid
 	if (f == NULL)

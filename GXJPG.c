@@ -1,6 +1,6 @@
 #include <G10/GXJPG.h>
 
-GXtexture_t* loadJPGImage( const char path[] )
+GXTexture_t* loadJPGImage( const char path[] )
 {
 	// Uninitialized data
 	SDL_Surface* image;
@@ -8,12 +8,12 @@ GXtexture_t* loadJPGImage( const char path[] )
 	u8*          data;
 
 	// Initialized data
-	GXtexture_t* ret = malloc(sizeof(GXtexture_t));
+	GXTexture_t* ret = malloc(sizeof(GXTexture_t));
 	SDL_RWops*   r = SDL_RWFromFile(path, "rb");
 
 	// Check allocated memory
 	if (ret == 0)
-		return (void*)0;
+		return ret;
 
 	// Load file through SDL
 	image = IMG_LoadJPG_RW(r);
@@ -22,7 +22,7 @@ GXtexture_t* loadJPGImage( const char path[] )
 	if (!image)
 	{
 		printf("Failed to load file %s\n", path);
-		return (void*)0;
+		return image;
 	}
 
 	// Copy some information
@@ -57,7 +57,7 @@ GXtexture_t* loadJPGImage( const char path[] )
 	SDL_FreeRW(r);
 
 	// Debugger logging
-	#ifdef debugmode
+	#ifdef GXDEBUGMODE & GXDEBUGTEXTURE
 		printf("Loaded file \"%s\"\n\n", path);
 	#endif 
 
