@@ -345,3 +345,40 @@ The ```"metallic"``` label corresponds to the path of an metallic texture.
 The ```"roughness"``` label corresponds to the path of an roughness texture.
 #### ⌠AO⌡
 The ```"AO"``` label corresponds to the path of an AO texture.
+## Demo application
+Below is the source code of one approach to creating a game with G10. 
+```c
+#include <stdbool.h>
+#include <G10/GXScene.h>
+
+int main(int argc, const char[] argv)
+{
+	{
+		/* Declare your variables, initialize your data, set up your window manager, and load OpenGL here */
+	}
+
+	/* Initialized data */
+	bool running = true;
+	GXScene_t* scene = loadScene("gameassets/level1/scene.json");
+	
+	/* Game loop */
+	while(running)
+	{
+		{
+			/* Process input, clear the screen, check for exit, etc */
+		}
+		
+		drawScene(scene);
+
+		/* Swap windows if using VSync, etc */
+	}
+
+	/* Clean up G10 */
+	destroyScene(scene);
+	
+	{
+		/* Clean up OpenGL, window manager, allocated memory, etc */
+	}
+	return 0;
+}
+```
