@@ -1,6 +1,6 @@
 #include <G10/GXPNG.h>
 
-GXTexture_t* loadPNGImage( const char path[] )
+GXTexture_t* loadPNGImage ( const char path[] )
 {
 	// Uninitialized data
 	SDL_Surface* image;

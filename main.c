@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
 
 #include <SDL2/SDL.h>
 
@@ -16,7 +15,7 @@
 
 #undef main
 
-int main(int argc, const char* argv[])
+int main( int argc, const char* argv[] )
 {
 	// Uninitialized SDL data
 	SDL_Window*   window;
@@ -24,11 +23,13 @@ int main(int argc, const char* argv[])
 	SDL_GLContext glContext;
 	
 	// Uninitialized G10 data
-	GXscene_t*    scene;
+	GXScene_t*    scene;
 
 	// Initialized Data
-	u8            running = 1;
-	float         d       = 0.f;
+	u8            running                  = 1;
+	u32           d, currentTime, lastTime = 0;
+	
+	GXvec3_t a = addVec3((GXvec3_t) { 6.f, 6.f, 6.f }, (GXvec3_t) { 1.f, 1.f, 1.f });
 
 	// SDL + GLAD Initialization Junk
 	{
@@ -84,7 +85,7 @@ int main(int argc, const char* argv[])
 		}
 		// Enable VSync
 		SDL_GL_SetSwapInterval(1);
-		
+	
 		// Uncomment for mouse locking
 		//SDL_SetRelativeMouseMode(SDL_TRUE);
 	}
@@ -92,14 +93,25 @@ int main(int argc, const char* argv[])
 	// G10 Initialization Junk
 	{
 		scene = loadScene("gameassets/scene.json");
+		scene->head->rigidbody = createRigidBody(0.1f, true);
 	}
 
 
 	// OpenGL Commands
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	
+	// Main game loop
 	while (running)
 	{
+		// Calculate delta time
+		currentTime = SDL_GetTicks();
+		d           = currentTime - lastTime;
+		lastTime    = currentTime;
+
+		printf("%d\n", d);
+
+		// Process input
 		while (SDL_PollEvent(&event)) {
 			switch (event.type)
 			{
@@ -110,6 +122,15 @@ int main(int argc, const char* argv[])
 				{
 					switch (event.key.keysym.sym)
 					{
+					case SDLK_1:
+						setActiveCamera(scene, "Primary Camera");
+						break;
+					case SDLK_2:
+						setActiveCamera(scene, "Secondary Camera");
+						break;
+					case SDLK_3:
+						setActiveCamera(scene, "Ternary Camera");
+						break;
 					case SDLK_ESCAPE:
 						running = 0;
 						break;
@@ -144,12 +165,22 @@ int main(int argc, const char* argv[])
 				break;
 			}
 		}
+
+		// Clear the screen
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
-		drawScene(scene);
+		// Process physics
 		
+		//updatePositionAndVelocity(scene->head->rigidbody, scene->head->transform, d);
+
+		// Draw the scene
+		drawScene(scene);
+		SDL_Delay(1);
+
+		// Swap the window 
 		SDL_GL_SwapWindow(window);
+		
 	}
 	
 	// GX Unloading;

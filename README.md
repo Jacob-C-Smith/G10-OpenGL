@@ -5,20 +5,20 @@
 A scene is the highest level object in G10.
 ```c
 // Scene definintion in G10
-struct GXscene_s {
+struct GXScene_s {
 	GXEntity_t* head;
 	GXCamera_t* camera;
 };
-typedef struct GXscene_s GXscene_t;
+typedef struct GXScene_s GXScene_t;
 
 // Scene functions
-GXscene_t*  createScene  ( );
-GXscene_t*  loadScene    ( const char path[] );
-int         appendEntity ( GXscene_t* scene, GXEntity_t* entity );
-int         drawScene    ( GXscene_t* scene );
-GXEntity_t* getEntity    ( GXscene_t* scene, const char name[] );
-int         removeEntity ( GXscene_t* scene, const char name[] );
-int         destroyScene ( GXscene_t* scene );
+GXScene_t*  createScene  ( );
+GXScene_t*  loadScene    ( const char path[] );
+int         appendEntity ( GXScene_t* scene, GXEntity_t* entity );
+int         drawScene    ( GXScene_t* scene );
+GXEntity_t* getEntity    ( GXScene_t* scene, const char name[] );
+int         removeEntity ( GXScene_t* scene, const char name[] );
+int         destroyScene ( GXScene_t* scene );
 ```
 #### ⌠createScene⌡
 ```createScene()``` will create an empty scene.
@@ -28,16 +28,16 @@ Returns a pointer to the scene.
 
 Returns a pointer to the loaded scene.
 #### ⌠appendEntity⌡
-```appendEntity(GXscene_t* scene, GXEntity_t* entity)``` will place the parameter ```entity``` at the end of the linked list of objects pointed at by ```scene```.
+```appendEntity(GXScene_t* scene, GXEntity_t* entity)``` will place the parameter ```entity``` at the end of the linked list of objects pointed at by ```scene```.
 #### ⌠drawScene⌡
-```drawScene(GXscene_t* scene)``` will draw all objects in the linked list, so long as the ```GXE_rDrawable``` flag is set in the ```flags``` member of the respective entity, and all other criteria for drawing are met.
+```drawScene(GXScene_t* scene)``` will draw all objects in the linked list, so long as the ```GXE_rDrawable``` flag is set in the ```flags``` member of the respective entity, and all other criteria for drawing are met.
 #### ⌠getEntity⌡
-```GXEntity_t* getEntity (GXscene_t* scene, const char name[])``` will locate an entity in a ```scene``` by ```name```.
+```GXEntity_t* getEntity (GXScene_t* scene, const char name[])``` will locate an entity in a ```scene``` by ```name```.
 Returns a pointer to the found entity. On fail, returns ```nullptr```.
 #### ⌠removeEntity⌡
-```int removeEntity(GXscene_t* scene, const char name[])``` will remove an entity from the ```scene``` by ```name```, deallocating the entity, and finally repair the linked list.
+```int removeEntity(GXScene_t* scene, const char name[])``` will remove an entity from the ```scene``` by ```name```, deallocating the entity, and finally repair the linked list.
 #### ⌠destroyScene⌡
-```int destroyScene(GXscene_t* scene)``` will destroy a ```scene```, deallocating all entities in the linked list, setting ```head``` to ```nullptr```, and finally deallocating the ```scene```.
+```int destroyScene(GXScene_t* scene)``` will destroy a ```scene```, deallocating all entities in the linked list, setting ```head``` to ```nullptr```, and finally deallocating the ```scene```.
 ### ≡ Cameras ≡
 A camera is an object that contains information on how to render a scene. 
 ```c
@@ -75,9 +75,9 @@ struct GXEntity_s
 	GXsize_t           flags;
 	char*              name;
 	GXMesh_t*          mesh;
-	GXshader_t*        shader;
+	GXShader_t*        shader;
 	GXMaterial_t*      material;
-	GXtransform_t*     transform;
+	GXTransform_t*     transform;
 
 	struct GXEntity_s* next;
 };
@@ -99,7 +99,7 @@ Returns a pointer to the created entity.
 ```GXEntity_t* loadEntity ( const char path[] )``` will load an entity from ```path```, allocate space for the members, and populate them. The JSON format for entities is detailed further in the documentation.
 Returns a pointer to the created entity.
 #### ⌠assignTexture⌡
-```int assignTexture( GXshader_t* shader, const char uniform[] )``` assigns the texture in entity to a glsl uniform.
+```int assignTexture( GXShader_t* shader, const char uniform[] )``` assigns the texture in entity to a glsl uniform.
 #### ⌠destroyEntity⌡
 ```int destroyEntity( GXEntity_t* entity )``` will destroy an entity and depopulate all of its members.
 ### ≡ Mesh ≡
@@ -135,33 +135,33 @@ struct GXShader_s
 {
 	unsigned int shaderProgramID;
 };
-typedef struct GXShader_s GXshader_t;
+typedef struct GXShader_s GXShader_t;
 
 // Shader functions
-GXshader_t* loadShader     ( const char vertexShaderPath[], const char fragmentShaderPath[] );
-int         useShader      ( GXshader_t* shader );                                             
-void        setShaderInt   ( GXshader_t* shader, const char name[], int value );               
-void        setShaderFloat ( GXshader_t* shader, const char name[], float value );   
-void        setShaderVec3  ( GXshader_t* shader, const char name[], GXvec3_t vector );          
-void        setShaderMat4  ( GXshader_t* shader, const char name[], GXmat4_t* m );             
-int         unloadShader   ( GXshader_t* shader );           
+GXShader_t* loadShader     ( const char vertexShaderPath[], const char fragmentShaderPath[] );
+int         useShader      ( GXShader_t* shader );                                             
+void        setShaderInt   ( GXShader_t* shader, const char name[], int value );               
+void        setShaderFloat ( GXShader_t* shader, const char name[], float value );   
+void        setShaderVec3  ( GXShader_t* shader, const char name[], GXvec3_t vector );          
+void        setShaderMat4  ( GXShader_t* shader, const char name[], GXmat4_t* m );             
+int         unloadShader   ( GXShader_t* shader );           
 ```
 
 #### ⌠loadShader⌡
-```GXshader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderPath[])``` will load a vertex and fragment shader from ```vertexShaderPath``` and ```fragmentShaderPath``` respectively; then compile and link the shader.
-Returns a pointer to the loaded ```GXshader_t```.
+```GXShader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderPath[])``` will load a vertex and fragment shader from ```vertexShaderPath``` and ```fragmentShaderPath``` respectively; then compile and link the shader.
+Returns a pointer to the loaded ```GXShader_t```.
 #### ⌠useShader⌡
-```int useShader(GXshader_t* shader)``` will tell OpenGL to use the ```shader``` for draw calls.
+```int useShader(GXShader_t* shader)``` will tell OpenGL to use the ```shader``` for draw calls.
 #### ⌠setShaderInt⌡
-```void setShaderInt(GXshader_t* shader, const char name[], int value)``` will set an int in ```shader``` to ```value```.
+```void setShaderInt(GXShader_t* shader, const char name[], int value)``` will set an int in ```shader``` to ```value```.
 #### ⌠setShaderFloat⌡
-```void setShaderFloat(GXshader_t* shader, const char name[], float value)``` will set a float in ```shader``` to ```value```.
+```void setShaderFloat(GXShader_t* shader, const char name[], float value)``` will set a float in ```shader``` to ```value```.
 #### ⌠setShaderVec3⌡
-```void setShaderVec3 ( GXshader_t* shader, const char name[], GXvec3_t vector );``` will set a vector in ```shader``` to ```value```.
+```void setShaderVec3 ( GXShader_t* shader, const char name[], GXvec3_t vector );``` will set a vector in ```shader``` to ```value```.
 #### ⌠setShaderMat4⌡
-```void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)``` will set a float in ```shader``` to ```value```.
+```void setShaderMat4(GXShader_t* shader, const char name[], GXmat4_t* m)``` will set a float in ```shader``` to ```value```.
 #### ⌠unloadShader⌡
-```int unloadShader(GXshader_t* shader)``` will depopulate all members of ```shader``` and deallocate the shader.
+```int unloadShader(GXShader_t* shader)``` will depopulate all members of ```shader``` and deallocate the shader.
 ### ≡ Textures ≡
 A texture is an image that is mapped onto a mesh.
 ```c
@@ -198,18 +198,18 @@ struct GXTransform_s
 
 	GXmat4_t modelMatrix;
 };
-typedef struct GXTransform_s GXtransform_t;
+typedef struct GXTransform_s GXTransform_t;
 
 // Transform functions
-GXtransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale );
-int            unloadTransform( GXtransform_t* transform );
+GXTransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale );
+int            unloadTransform( GXTransform_t* transform );
 ```
 
 #### ⌠createTransform⌡
-```GXtransform_t* createTransform(GXvec3_t location, GXvec3_t rotation, GXvec3_t scale)``` will create a GXtransform from the provided information.
+```GXTransform_t* createTransform(GXvec3_t location, GXvec3_t rotation, GXvec3_t scale)``` will create a GXtransform from the provided information.
 
 #### ⌠unloadTransform⌡
-```int unloadTransform(GXtransform_t* transform)``` will destroy the designated GXtransform.
+```int unloadTransform(GXTransform_t* transform)``` will destroy the designated GXtransform.
 ### ≡ Material ≡
 A material is 
 ```c
@@ -225,7 +225,7 @@ typedef struct GXMaterial_s GXMaterial_t;
 
 // Material functions
 GXMaterial_t* createMaterial( );
-int           assignMaterial( GXMaterial_t* material, GXshader_t* shader );
+int           assignMaterial( GXMaterial_t* material, GXShader_t* shader );
 int           unloadMaterial( GXMaterial_t* material ); 
 ```
 
@@ -233,7 +233,7 @@ int           unloadMaterial( GXMaterial_t* material );
 ```GXMaterial_t* createMaterial( )``` will create a GXmaterial from the provided information.
 
 #### ⌠unloadTransform⌡
-```int assignMaterial( GXMaterial_t* material, GXshader_t* shader )``` will destroy the designated GXtransform.
+```int assignMaterial( GXMaterial_t* material, GXShader_t* shader )``` will destroy the designated GXtransform.
 
 ## File Loaders
 At the time of writing, G10 supports the following formats

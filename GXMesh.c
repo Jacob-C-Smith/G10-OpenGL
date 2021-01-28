@@ -2,7 +2,7 @@
 
 #include <G10/GXPLY.h>
 
-GXMesh_t* createMesh( )
+GXMesh_t* createMesh ( )
 {
 	// Initialized data
 	GXMesh_t* ret = malloc(sizeof(GXMesh_t));
@@ -18,11 +18,11 @@ GXMesh_t* createMesh( )
 	return ret;
 }
 
-GXMesh_t* loadMesh( const char path[] )
+GXMesh_t* loadMesh ( const char path[] )
 {
 	// Initialized data
-	char* fileExtension = 1 + strrchr(path, '.');
-	GXMesh_t* ret = (void*)0;
+	char*     fileExtension = 1 + strrchr(path, '.');
+	GXMesh_t* ret           = (void*)0;
 
 	// Figure out what type of file we are dealing with throught the extenstion. This is an admittedly naive approach, but each loader function checks for signatures, so any error handling is handed off to them
 	if (strcmp(fileExtension, "ply") == 0 || strcmp(fileExtension, "PLY") == 0)
@@ -35,7 +35,7 @@ GXMesh_t* loadMesh( const char path[] )
 	return ret;
 }
 
-int unloadMesh( GXMesh_t* mesh )
+int unloadMesh ( GXMesh_t* mesh )
 {
 	// Free up OpenGL buffers
 	glDeleteVertexArrays(1, &mesh->vertexArray);

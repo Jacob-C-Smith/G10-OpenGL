@@ -18,7 +18,10 @@ struct GXTexture_s
 };
 typedef struct GXTexture_s GXTexture_t;
 
+// Constructors
 GXTexture_t* createTexture ( );                    // ✅ Creates an empty texture
 GXTexture_t* loadTexture   ( const char path[] );  // ✅ Loads a texture from the disk
+
+// Destructors
 int          unloadTexture ( GXTexture_t* image ); // ✅ Unloads a texture and all of its contents
 

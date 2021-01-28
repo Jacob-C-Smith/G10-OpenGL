@@ -2,7 +2,7 @@
 
 // TODO: Document
 
-GXMesh_t* loadPLYMesh( const char path[] )
+GXMesh_t* loadPLYMesh ( const char path[] )
 {
 	// Uninitialized data
 	GXsize_t       l;
@@ -14,9 +14,9 @@ GXMesh_t* loadPLYMesh( const char path[] )
 
 	// Initialized data
 	GXMesh_t*    ret     = malloc(sizeof(GXMesh_t));
-	GXsize_t     i       = 0;
-	GXsize_t     j       = 0;
-	GXsize_t     k       = 0;
+	GXsize_t     i       = 0,
+	             j       = 0,
+	             k       = 0;
 	FILE*        f       = fopen(path, "rb");
 	GXPLYfile_t* plyFile = calloc(1,sizeof(GXPLYfile_t));
 

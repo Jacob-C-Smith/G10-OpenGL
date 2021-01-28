@@ -1,6 +1,6 @@
 #include <G10/GXBitmap.h>
 
-GXTexture_t* loadBMPImage( const char path[] )
+GXTexture_t* loadBMPImage ( const char path[] )
 {
 	// Uninitialized data
 	int          i;

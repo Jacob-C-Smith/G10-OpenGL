@@ -54,6 +54,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -130,13 +131,12 @@
     <ClCompile>
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,6 +157,7 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="GXBitmap.c" />
     <ClCompile Include="GXCamera.c" />
+    <ClCompile Include="GXCollision.c" />
     <ClCompile Include="GXEntity.c" />
     <ClCompile Include="GXJPG.c" />
     <ClCompile Include="GXJSON.c" />
@@ -164,6 +165,8 @@
     <ClCompile Include="GXMesh.c" />
     <ClCompile Include="GXPLY.c" />
     <ClCompile Include="GXPNG.c" />
+    <ClCompile Include="GXRI.c" />
+    <ClCompile Include="GXRigidbody.c" />
     <ClCompile Include="GXScene.c" />
     <ClCompile Include="GXShader.c" />
     <ClCompile Include="GXTexture.c" />
@@ -185,6 +188,8 @@
     <ClInclude Include="include\G10\GXPLY.h" />
     <ClInclude Include="include\G10\GXPNG.h" />
     <ClInclude Include="include\G10\GXQuaternion.h" />
+    <ClInclude Include="include\G10\GXRI.h" />
+    <ClInclude Include="include\G10\GXRigidbody.h" />
     <ClInclude Include="include\G10\GXScene.h" />
     <ClInclude Include="include\G10\GXShader.h" />
     <ClInclude Include="include\G10\GXTexture.h" />
@@ -193,5 +198,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

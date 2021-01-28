@@ -1,6 +1,6 @@
 #include <G10/GXEntity.h>
 
-GXEntity_t* createEntity( )
+GXEntity_t* createEntity ( )
 {
 	// Allocate space
 	GXEntity_t* ret = malloc(sizeof(GXEntity_t)); 
@@ -23,7 +23,7 @@ GXEntity_t* createEntity( )
 	return ret;
 }
 
-int drawEntity( GXEntity_t* entity )
+int drawEntity ( GXEntity_t* entity )
 {
 	// If the drawable flag is not set, we can stop
 	if (!(entity->flags & GXEFDrawable))
@@ -43,7 +43,7 @@ int drawEntity( GXEntity_t* entity )
 	return 0;
 }
 
-GXEntity_t* loadEntity( const char path[] )
+GXEntity_t* loadEntity ( const char path[] )
 {
 	// Initialized data
 	GXEntity_t* ret = createEntity();
@@ -104,30 +104,39 @@ GXEntity_t* loadEntity( const char path[] )
 		// Process a shader
 		if (strcmp("shader", rootContents[j].name) == 0)
 		{
+			// Process shader as path
+			if (rootContents[j].type == GXJSONstring)
+			{
+				ret->shader = loadShaderAsJSON((const char*)rootContents[j].content.nWhere);
+				goto shaderSet;
+			}
+
 			// Initialized data
 			size_t       len                        = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
 			JSONValue_t* subContents                = malloc(sizeof(JSONValue_t) * rootTokenCount);
 
 			char*        vertexShaderPath           = 0;
 			char*        fragmentShaderPath         = 0;
-			
+			char*        name                       = 0;
+
 			// Parse JSON Values
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
 
 			// Find vertex and fragment shader path
 			for (size_t k = 0; k < subTokenCount; k++)
-				if      (strcmp("vertexShaderPath", subContents[k].name)   == 0)
+				if      (strcmp("vertexShaderPath"  , subContents[k].name) == 0)
 					vertexShaderPath = subContents[k].content.nWhere;
 				else if (strcmp("fragmentShaderPath", subContents[k].name) == 0)
 					fragmentShaderPath = subContents[k].content.nWhere;
-
+				else if (strcmp("name"              , subContents[k].name) == 0)
+					name = subContents[k].content.nWhere;
 			// Load the shader if there are enough paths supplied
 			if (vertexShaderPath && fragmentShaderPath)
-				ret->shader = loadShader(vertexShaderPath, fragmentShaderPath);
+				ret->shader = loadShader(vertexShaderPath, fragmentShaderPath,name);
 
 			// Free subcontents
 			free(subContents);
-
+			shaderSet:
 			// Set the shader flag
 			ret->flags |= GXEFShader;
 		}
@@ -168,10 +177,19 @@ GXEntity_t* loadEntity( const char path[] )
 		// Process a material
 		if (strcmp("material", rootContents[j].name) == 0)
 		{
+			// Process material as a file
+			if (rootContents[j].type == GXJSONstring)
+			{
+				GXMaterial_t* material = loadMaterial((const char*)rootContents[j].content.nWhere);
+				ret->material          = material;
+				goto materialSet;
+			}
+
 			// Initialized data
-			size_t        len         = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
-			JSONValue_t*  subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
-			GXMaterial_t* material    = createMaterial();
+			size_t        len           = strlen(rootContents[j].content.nWhere),
+				          subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
+			JSONValue_t*  subContents   = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			GXMaterial_t* material      = createMaterial();
 
 			// Parse JSON Values
 			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
@@ -194,11 +212,12 @@ GXEntity_t* loadEntity( const char path[] )
 
 			// Set the material and flip the flag
 			ret->material       = material;
-			ret->flags          |= GXEFMaterial;
+			materialSet: 
+			ret->flags |= GXEFMaterial;
 		}
 	}
 
-	if (ret->flags  & GXEFMesh   &&       // Its deductively something that can be drawn if there is a mesh
+	if (ret->flags  & GXEFMesh   &&       // Its got to be something that can be drawn if there is a mesh
 		ret->flags  & GXEFShader &&       // and a shader. 
 		(ret->flags & GXEFDrawable) == 0) // Unless otherwise stated
 		ret->flags |= GXEFDrawable;
@@ -213,7 +232,7 @@ GXEntity_t* loadEntity( const char path[] )
 	return ret;
 }
 
-int assignTexture( GXshader_t* shader, const char uniform[] )
+int assignTexture ( GXShader_t* shader, const char uniform[] )
 {
 	// We can not assign a texture if there is no shader
 	if (shader == (void*) 0)
@@ -226,7 +245,7 @@ int assignTexture( GXshader_t* shader, const char uniform[] )
 	return 0;
 }
 
-int destroyEntity( GXEntity_t* entity )
+int destroyEntity ( GXEntity_t* entity )
 {
 	// Unset all flags
 	entity->flags = 0;

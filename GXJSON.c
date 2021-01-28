@@ -1,11 +1,11 @@
 #include <G10/GXJSON.h>
 
 // TODO: Fully document function
-int GXParseJSON(char* text, size_t len, size_t count, JSONValue_t* where)
+int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 {
 	size_t currentWhere = 0;
-	int ret = 0;
-	int i = 1;
+	int    ret          = 0,
+		   i            = 1;
 
 	// If we aren't passed a count, we figure out how many top level items there are in the JSON file.
 	if (count == 0)

@@ -28,6 +28,8 @@
 
 #include <G10/GXMaterial.h>
 
+#include <G10/GXRigidbody.h>
+
 // G10 uses bitflags to understand how to treat entities.
 
 // General flags
@@ -41,10 +43,10 @@
 #define GXEFDrawable         0x0000000000000020 // If set, render on update cycle
 
 // Physics flags
-#define GXEFComputesPhysics  0x0000000000000040 // If set, compute physics on update cycle
-#define GXEFCollisionFixed   0x0000000000000080 // If set, use fixed collision detection
-#define GXEFCollisionDynamic 0x0000000000000100 // If set, use dynamic collision detection
-
+#define GXEFRigidbody        0x0000000000000040 // If set, use rigid body physics
+#define GXEFComputesPhysics  0x0000000000000080 // If set, compute physics on update cycle
+#define GXEFCollisionFixed   0x0000000000000100 // If set, use fixed collision detection
+#define GXEFCollisionDynamic 0x0000000000000200 // If set, use dynamic collision detection
 
 #define GXEFStandardObject GXEFPresent | GXEFMesh | GXEFShader | GXEFMaterial | GXEFTransform | GXEFDrawable
 
@@ -53,9 +55,10 @@ struct GXEntity_s
 	GXsize_t           flags;     // Tells G10 how to handle the entity
 	char*              name;      // An identifier for the entity
 	GXMesh_t*          mesh;      // A mesh
-	GXshader_t*        shader;    // A shader
+	GXShader_t*        shader;    // A shader
 	GXMaterial_t*      material;  // A PBR material
-	GXtransform_t*     transform; // A transform
+	GXTransform_t*     transform; // A transform
+	GXRigidbody_t*     rigidbody; // A rigidbody
 
 	struct GXEntity_s* next;      // Points to the next entity.
 };
@@ -64,5 +67,5 @@ typedef struct GXEntity_s GXEntity_t;
 GXEntity_t* createEntity   ( );                                          // ✅ Creates an entity, assigns flags, and returns pointer to it
 int         drawEntity     ( GXEntity_t* entity );                       // ✅ Draws an entity if draw flag is set
 GXEntity_t* loadEntity     ( const char path[] );                        // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
-int         assignTexture  ( GXshader_t* shader, const char uniform[] ); // ✅ Assigns a texture to a glsl uniform
+int         assignTexture  ( GXShader_t* shader, const char uniform[] ); // ✅ Assigns a texture to a glsl uniform
 int         destroyEntity  ( GXEntity_t* entity );                       // ✅ Destroys the entity and all its contents

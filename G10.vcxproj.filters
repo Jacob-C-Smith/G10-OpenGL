@@ -74,6 +74,15 @@
     <ClCompile Include="GXMaterial.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GXRigidbody.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXRI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXCollision.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\G10\GXBitmap.h">
@@ -131,6 +140,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXRigidbody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXRI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

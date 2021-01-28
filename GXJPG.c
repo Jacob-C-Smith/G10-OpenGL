@@ -1,6 +1,6 @@
 #include <G10/GXJPG.h>
 
-GXTexture_t* loadJPGImage( const char path[] )
+GXTexture_t* loadJPGImage ( const char path[] )
 {
 	// Uninitialized data
 	SDL_Surface* image;
@@ -9,7 +9,7 @@ GXTexture_t* loadJPGImage( const char path[] )
 
 	// Initialized data
 	GXTexture_t* ret = malloc(sizeof(GXTexture_t));
-	SDL_RWops*   r = SDL_RWFromFile(path, "rb");
+	SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
 
 	// Check allocated memory
 	if (ret == 0)

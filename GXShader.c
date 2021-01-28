@@ -1,6 +1,6 @@
 #include <G10/GXShader.h>
 
-GXshader_t* loadShader( const char vertexShaderPath[], const char fragmentShaderPath[] )
+GXShader_t* loadShader ( const char vertexShaderPath[], const char fragmentShaderPath[], const char shaderName[] )
 {
 	// Uninitialized data
 	char*        vfdata ,* ffdata;
@@ -12,7 +12,7 @@ GXshader_t* loadShader( const char vertexShaderPath[], const char fragmentShader
 	FILE* vf        = fopen(vertexShaderPath, "r");
 	FILE* ff        = fopen(fragmentShaderPath, "r");
 	
-	GXshader_t* ret = malloc(sizeof(GXshader_t));
+	GXShader_t* ret = malloc(sizeof(GXShader_t));
 	if (ret == 0)
 		return (void*)0;
 
@@ -121,7 +121,83 @@ GXshader_t* loadShader( const char vertexShaderPath[], const char fragmentShader
 
 }
 
-int useShader(GXshader_t* shader)
+GXShader_t* loadShaderAsJSON ( const char shaderPath[] )
+{
+	// Uninitialized data
+	int         i;
+	char*       data;
+
+	// Initialized data
+	GXShader_t* ret;
+	FILE*       f                  = fopen(shaderPath, "rb");
+	char*       vertexShaderPath   = 0,
+		*       fragmentShaderPath = 0,
+	    *       shaderName         = 0;
+
+	// Check if file is valid
+	if (f == NULL)
+	{
+		printf("Failed to load file %s\n", shaderPath);
+		return (void*)0;
+	}
+
+	// Find file size and prep for read
+	fseek(f, 0, SEEK_END);
+	i = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	// Allocate data and read file into memory
+	data = malloc(i);
+
+	// Check if data is valid
+	if (data == 0)
+		return (void*)0;
+
+	// Read to data
+	fread(data, 1, i, f);
+
+	// We no longer need the file
+	fclose(f);
+
+	data[i] = '\0';
+
+	// Initialized data
+	size_t        len            = strlen(data), 
+		          rootTokenCount = GXParseJSON(data, len, 0, 0);
+	JSONValue_t*  rootContents   = malloc(sizeof(JSONValue_t) * rootTokenCount);
+
+	// Parse JSON Values
+	GXParseJSON(data, len, rootTokenCount, rootContents);
+	
+	// Find and load the textures
+	for (size_t k = 0; k < rootTokenCount; k++)
+
+		// Point to the vertex shader
+		if (strcmp("vertexShaderPath", rootContents[k].name) == 0)
+			vertexShaderPath = rootContents[k].content.nWhere;
+
+		// Point to the fragment shader
+		else if (strcmp("fragmentShaderPath", rootContents[k].name) == 0)
+			fragmentShaderPath = rootContents[k].content.nWhere;
+		
+		// Copy out the name of the shader
+		else if (strcmp("name", rootContents[k].name) == 0)
+			shaderName = rootContents[k].content.nWhere;
+
+	// Spin up the shader and set the name
+	ret = loadShader(vertexShaderPath, fragmentShaderPath, shaderName);
+	
+	// Free subcontents
+	free(rootContents);
+	
+	if (vertexShaderPath == 0 || fragmentShaderPath == 0)
+		return vertexShaderPath;
+
+	// Set the material and flip the flag
+	return ret;
+}
+
+int useShader ( GXShader_t* shader )
 {
 	if(shader)
 		glUseProgram(shader->shaderProgramID);
@@ -129,27 +205,27 @@ int useShader(GXshader_t* shader)
 	return 0;
 }
 
-void setShaderInt(GXshader_t* shader, const char name[], int value)
+void setShaderInt ( GXShader_t* shader, const char name[], int value )
 {
 	glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
-void setShaderFloat(GXshader_t* shader, const char name[], float value)
+void setShaderFloat ( GXShader_t* shader, const char name[], float value )
 {
 	glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
-void setShaderVec3(GXshader_t* shader, const char name[], GXvec3_t vector)
+void setShaderVec3 ( GXShader_t* shader, const char name[], GXvec3_t vector )
 {
 	glUniform3f(glGetUniformLocation(shader->shaderProgramID, name), vector.x, vector.y, vector.z);
 }
 
-void setShaderMat4(GXshader_t* shader, const char name[], GXmat4_t* m)
+void setShaderMat4 ( GXShader_t* shader, const char name[], GXmat4_t* m )
 {
 	glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, m);
 }
 
-int unloadShader(GXshader_t* shader)
+int unloadShader ( GXShader_t* shader )
 {
 	// Deallocate associated data
 	glDeleteProgram(shader->shaderProgramID);

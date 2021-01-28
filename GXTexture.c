@@ -4,24 +4,24 @@
 #include <G10/GXJPG.h>
 #include <G10/GXPNG.h>
 
-GXTexture_t* createTexture()
+GXTexture_t* createTexture ( )
 {
 	GXTexture_t* ret = malloc(sizeof(GXTexture_t));
 	if (ret == 0)
 		return ret;
 
-	ret->width     = 0;
-	ret->height    = 0;
+	ret->width     = 0,
+	ret->height    = 0,
 	ret->textureID = 0;
 
 	return ret;
 }
 
-GXTexture_t* loadTexture(const char path[])
+GXTexture_t* loadTexture ( const char path[] )
 {
 	// Initialized data
-	char* fileExtension = 1+strrchr(path, '.');
-	GXTexture_t* ret = (void*)0;
+	char*        fileExtension = 1+strrchr(path, '.');
+	GXTexture_t* ret           = (void*)0;
 
 	// Figure out what type of file we are dealing with throught the extenstion. This is an admittedly naive approach, but each loader function checks for signatures, so any error handling is handed off to them
 	if (strcmp(fileExtension, "bmp") == 0 || strcmp(fileExtension, "dib") == 0 ||
@@ -44,10 +44,10 @@ GXTexture_t* loadTexture(const char path[])
 	return ret;
 }
 
-int unloadTexture( GXTexture_t* image )
+int unloadTexture ( GXTexture_t* image )
 {
 	// Invalidate width, height. Free image.
-	image->width  = 0;
+	image->width  = 0,
 	image->height = 0;
 
 	// Delete OpenGL buffers

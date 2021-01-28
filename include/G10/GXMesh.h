@@ -24,6 +24,9 @@ struct GXMesh_s
 };
 typedef struct GXMesh_s GXMesh_t;
 
+// Constructors
 GXMesh_t* createMesh ( );                   // ✅ Creates an empty mesh
 GXMesh_t* loadMesh   ( const char path[] ); // ✅ Loads a mesh from the disk
+
+/// Destructors
 int       unloadMesh ( GXMesh_t* mesh );    // ✅ Destroy a mesh and all of its contents

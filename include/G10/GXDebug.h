@@ -12,6 +12,10 @@
 #define GXDEBUGVERBOSE    0x0000000000000200 // Prints a LOT of info
 #define GXDEBUGALL        0xFFFFFFFFFFFFFFFF // Debug everything
 
+#ifdef _DEBUG
 #define GXDEBUGMODE GXDEBUGALL
+#else
+#define GXDEBUGMODE 0x0
+#endif
 
 #endif

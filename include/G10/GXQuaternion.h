@@ -18,7 +18,7 @@ struct quaternion_s
 typedef struct quaternion_s quaternion_t;
 
 // ✅ Creates quaternion (0,0,0,0)
-inline quaternion_t makeQuaternion ()
+inline quaternion_t makeQuaternion ( )
 {
 	return (quaternion_t) { 0.f,0.f,0.f,0.f };
 }

@@ -1,9 +1,9 @@
 #include <G10/GXTransform.h>
 
-GXtransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale )
+GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale )
 {
 	// Allocate space
-	GXtransform_t* ret = malloc(sizeof(GXtransform_t));
+	GXTransform_t* ret = malloc(sizeof(GXTransform_t));
 
 	// Check if valid
 	if (ret == 0)
@@ -28,7 +28,7 @@ GXtransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t s
 	return ret;
 }
 
-int unloadTransform( GXtransform_t* transform )
+int unloadTransform ( GXTransform_t* transform )
 {
 	// Zero set everything
 	transform->location    = (GXvec3_t){ 0,0,0 };

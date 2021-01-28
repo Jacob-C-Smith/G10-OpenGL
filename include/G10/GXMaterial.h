@@ -2,6 +2,7 @@
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
 #include <G10/GXShader.h>
+#include <G10/GXJSON.h>
 
 struct GXMaterial_s {
 	GXTexture_t* albedo;
@@ -12,6 +13,12 @@ struct GXMaterial_s {
 };
 typedef struct GXMaterial_s GXMaterial_t;
 
-GXMaterial_t* createMaterial( );                                            // ✅ Creates an empty material
-int           assignMaterial( GXMaterial_t* material, GXshader_t* shader ); // ✅ Sets uniforms and binds textures for drawing calls
-int           unloadMaterial( GXMaterial_t* material );                     // ✅ Destroys a material
+// Constructors
+GXMaterial_t* createMaterial ( );                                            // ✅ Creates an empty material
+GXMaterial_t* loadMaterial   ( const char path[] );                          // ✅ Loads a material from a JSON file
+
+// Material
+int           assignMaterial ( GXMaterial_t* material, GXShader_t* shader ); // ✅ Sets uniforms and binds textures for drawing calls
+
+// Destructors
+int           unloadMaterial ( GXMaterial_t* material );                     // ✅ Destroys a material

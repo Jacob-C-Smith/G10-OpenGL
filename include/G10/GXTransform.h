@@ -14,7 +14,10 @@ struct GXTransform_s
 
 	GXmat4_t modelMatrix;
 };
-typedef struct GXTransform_s GXtransform_t;
+typedef struct GXTransform_s GXTransform_t;
 
-GXtransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale ); // ✅ Creates a transform from location, rotation, and scale
-int            unloadTransform( GXtransform_t* transform );                             // ✅ Destroys a transform
+// Constructors
+GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale ); // ✅ Creates a transform from location, rotation, and scale
+
+// Destructors
+int            unloadTransform ( GXTransform_t* transform );                             // ✅ Destroys a transform
