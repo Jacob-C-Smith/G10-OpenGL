@@ -22,31 +22,33 @@ GXmat4_t perspective ( float fov, float aspect, float near, float far )
     };
 }
 
-GXCamera_t* createCamera ( )
+GXCamera_t* createCamera()
 {
     // Allocate space for a camera struct
-    GXCamera_t* ret  = malloc(sizeof(GXCamera_t));
-    
+    GXCamera_t* ret = malloc(sizeof(GXCamera_t));
+
+    // Check the memory
     if (ret == 0)
         return ret;
+
+    // Zero set the link
+    ret->next = (void*)0;
 
     return ret;
 }
 
-GXCamera_t* computeProjectionMatrix ( GXCamera_t* camera )
+void computeProjectionMatrix ( GXCamera_t* camera )
 {
     // Compute and set the projection matrix for the camera
     camera->projection = perspective(camera->fov, camera->aspectRatio, camera->near, camera->far);
-
-    return camera;
 }
 
 int destroyCamera ( GXCamera_t* camera )
 {
     // View
-    camera->where       = (GXvec3_t){ 0.f,0.f,0.f };
-    camera->target      = (GXvec3_t){ 0.f,0.f,0.f };
-    camera->up          = (GXvec3_t){ 0.f,0.f,0.f };
+    camera->where       = (GXvec3_t){ 0.f,0.f,0.f,0.f };
+    camera->target      = (GXvec3_t){ 0.f,0.f,0.f,0.f };
+    camera->up          = (GXvec3_t){ 0.f,0.f,0.f,0.f };
 
     // Projection
     camera->fov         = 0.f;
@@ -65,7 +67,7 @@ int destroyCamera ( GXCamera_t* camera )
                                         0.f,0.f,0.f,0.f,
                                         0.f,0.f,0.f,0.f };
 
-    // Set next to zero
+    // Set link to zero
     camera->next        = (void*) 0;
 
     return 0;

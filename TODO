@@ -3,20 +3,34 @@
 === Framework goals ===
  - ✅ Write a JSON parser to read scenes and entities from the game.
  - ✅ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
- - ✅ parse arrays in JSON parser.
+ - ✅ Parse arrays in JSON parser.
  - ✅ Develop an expandable schematic for entities and scenes.
  - ✅ Use JSON parser to read entities for the game engine.
  - ✅ Use JSON parser to read scenes for the game engine.
-
+ - ❌ Fully document the JSON parser
+ - ❌ Parse rigidbody files as paths
+ - ❌ Parse camera files as paths
+ - ❌ Parse light files as paths
+ - ❌ Parse rigidbody files as paths
+ 
 === Renderer goals ===
  - ✅ PBR model
- - 
+ - ❌ Implement a key/value pairs system to associate scene information with uniform variables in glsl
+ - ❌ Handle multiple albedo images in one material
+ - ❌ Process out lights
+ - ❌ Linearly assign lights
+ - ❌ Implement a method that periodically reprioritizes  lights based on how far they are from a camera
+
 === Physics goals ===
+ - ✅ Summate and apply forces on an entity
+ - ✅ Calculate acceleration, velocity, and position 
+ - ❌ Summate and apply torque
+ - ❌ Calculate angular acceleration, velocity, and rotation
  - ❌ Collision detection, box, sphere, (cylinder???).
  - ❌ Rigidbody physics.
 
-=== General goals
+=== General goals ===
  - ❌ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
- - ❌ Implement threading.
+ - ❌ Implement multithreading.
  - ❌ Export this whole project into a DLL file so that other developers can use it.
  - ❌ Figure out a better way of handling input.

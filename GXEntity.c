@@ -18,6 +18,9 @@ GXEntity_t* createEntity ( )
 	ret->shader    = (void*)0;
 	ret->material  = (void*)0;
 	ret->transform = (void*)0;
+	ret->rigidbody = (void*)0;
+	ret->collider  = (void*)0;
+
 	ret->next      = (void*)0;
 
 	return ret;
@@ -63,16 +66,15 @@ GXEntity_t* loadEntity ( const char path[] )
 	fseek(f, 0, SEEK_SET);
 
 	// Allocate data and read file into memory
-	u8* data = malloc(l);
+	u8* data = malloc(l+1);
 	fread(data, 1, l, f);
-
 
 	// We no longer need the file
 	fclose(f);
 
 	// Parse the first level of the JSON entity
 	int rootTokenCount = GXParseJSON(data, l, 0, (void*) 0);
-	JSONValue_t* rootContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+	JSONValue_t* rootContents = calloc(rootTokenCount,sizeof(JSONValue_t));
 	GXParseJSON(data, l, rootTokenCount, rootContents);
 	
 	// Search through values and pull out relevent information
@@ -80,29 +82,38 @@ GXEntity_t* loadEntity ( const char path[] )
 	{
 		// Handle comments
 		if (strcmp("comment", rootContents[j].name) == 0)
-			#ifdef GXDEBUGMODE & GXDEBUGCOMMENTS
-				// Print out comment
-				printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
+		{
+			#ifndef NDEBUG
+			// Print out comment
+			printf("comment in file \"%s\" - \"%s\"\n", path, (char*)rootContents[j].content.nWhere);
 			#endif
+		}
+
+		// If flags are set, then we will use the provided flags. If flags are not set,
+		// we will detect what flags can be set automatically
+		else if (strcmp("flags", rootContents[j].name) == 0)
+		{
+
+		}
 
 		// Set name
-		if (strcmp("name", rootContents[j].name) == 0)
+		else if (strcmp("name", rootContents[j].name) == 0)
 		{
 			size_t len = strlen(rootContents[j].content.nWhere);
-			ret->name = malloc(len);
+			ret->name  = malloc(len+1);
 			strncpy(ret->name, rootContents[j].content.nWhere, len);
-			ret->name[len] = 0;
+			ret->name[len]   = 0;
 		}
 
 		// Load and process a mesh
-		if (strcmp("mesh", rootContents[j].name) == 0)
+		else if (strcmp("mesh", rootContents[j].name) == 0)
 		{
 			ret->mesh  = loadMesh(rootContents[j].content.nWhere);
 			ret->flags |= GXEFMesh;
 		}
 		
 		// Process a shader
-		if (strcmp("shader", rootContents[j].name) == 0)
+		else if (strcmp("shader", rootContents[j].name) == 0)
 		{
 			// Process shader as path
 			if (rootContents[j].type == GXJSONstring)
@@ -113,7 +124,7 @@ GXEntity_t* loadEntity ( const char path[] )
 
 			// Initialized data
 			size_t       len                        = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
-			JSONValue_t* subContents                = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			JSONValue_t* subContents                = calloc(rootTokenCount,sizeof(JSONValue_t));
 
 			char*        vertexShaderPath           = 0;
 			char*        fragmentShaderPath         = 0;
@@ -130,65 +141,34 @@ GXEntity_t* loadEntity ( const char path[] )
 					fragmentShaderPath = subContents[k].content.nWhere;
 				else if (strcmp("name"              , subContents[k].name) == 0)
 					name = subContents[k].content.nWhere;
+
 			// Load the shader if there are enough paths supplied
 			if (vertexShaderPath && fragmentShaderPath)
 				ret->shader = loadShader(vertexShaderPath, fragmentShaderPath,name);
 
 			// Free subcontents
 			free(subContents);
-			shaderSet:
+
 			// Set the shader flag
+			shaderSet:
 			ret->flags |= GXEFShader;
 		}
-
-		// Process a transform
-		if (strcmp("transform", rootContents[j].name) == 0)
-		{
-			// Initialiazed data
-			size_t       len         = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
-			JSONValue_t* subContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
-
-			GXvec3_t     location    = {0,0,0};
-			GXvec3_t     rotation    = {0,0,0};
-			GXvec3_t     scale       = {0,0,0};
-			
-			// Parse JSON Values
-			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
-			
-			// Find location, rotation, and scale
-			for (size_t k = 0; k < subTokenCount; k++)
-				if      (strcmp("location", subContents[k].name) == 0)
-					location = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
-				else if (strcmp("rotation", subContents[k].name) == 0)
-					rotation = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
-				else if (strcmp("scale", subContents[k].name)    == 0)
-					scale = (GXvec3_t){ atof(subContents[k].content.aWhere[0]), atof(subContents[k].content.aWhere[1]), atof(subContents[k].content.aWhere[2]) };
-			
-			// Process transform
-			ret->transform = createTransform(location, rotation, scale);
-
-			// Free subcontents
-			free(subContents);
-
-			// Set the transform flag
-			ret->flags |= GXEFTransform;
-		}
-
+		
 		// Process a material
-		if (strcmp("material", rootContents[j].name) == 0)
+		else if (strcmp("material", rootContents[j].name) == 0)
 		{
-			// Process material as a file
+			// TODO: Process multiple albedos
+			// Process material as a path
 			if (rootContents[j].type == GXJSONstring)
 			{
-				GXMaterial_t* material = loadMaterial((const char*)rootContents[j].content.nWhere);
-				ret->material          = material;
+				ret->material = loadMaterial((const char*)rootContents[j].content.nWhere);
 				goto materialSet;
 			}
 
 			// Initialized data
 			size_t        len           = strlen(rootContents[j].content.nWhere),
 				          subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
-			JSONValue_t*  subContents   = malloc(sizeof(JSONValue_t) * rootTokenCount);
+			JSONValue_t*  subContents   = calloc(rootTokenCount, sizeof(JSONValue_t));
 			GXMaterial_t* material      = createMaterial();
 
 			// Parse JSON Values
@@ -212,8 +192,79 @@ GXEntity_t* loadEntity ( const char path[] )
 
 			// Set the material and flip the flag
 			ret->material       = material;
+
 			materialSet: 
 			ret->flags |= GXEFMaterial;
+		}
+
+		// Process a transform
+		else if (strcmp("transform", rootContents[j].name) == 0)
+		{
+
+			// Process transform as a file
+			if (rootContents[j].type == GXJSONstring)
+			{
+				GXTransform_t* transform = loadTransform((const char*)rootContents[j].content.nWhere);
+				ret->transform = transform;
+				goto transformSet;
+			}
+			
+			// Initialiazed data
+			size_t       len         = strlen(rootContents[j].content.nWhere), subTokenCount = GXParseJSON(rootContents[j].content.nWhere, len, 0, 0);
+			JSONValue_t* subContents = calloc(rootTokenCount,sizeof(JSONValue_t));
+
+			GXvec3_t     location    = { 0,0,0 };
+			GXvec3_t     rotation    = { 0,0,0 };
+			GXvec3_t     scale       = { 0,0,0 };
+			
+			// Parse JSON Values
+			GXParseJSON(rootContents[j].content.nWhere, len, subTokenCount, subContents);
+			
+			// Find location, rotation, and scale
+			for (size_t k = 0; k < subTokenCount; k++)
+				if      (strcmp("location", subContents[k].name) == 0)
+					location = ( GXvec3_t ) { (float)atof( subContents[k].content.aWhere[0]), (float)atof(subContents[k].content.aWhere[1]), (float)atof(subContents[k].content.aWhere[2]) };
+				else if (strcmp("rotation", subContents[k].name) == 0)
+					rotation = (GXvec3_t) { (float)atof( subContents[k].content.aWhere[0]), (float)atof(subContents[k].content.aWhere[1]), (float)atof(subContents[k].content.aWhere[2]) };
+				else if (strcmp("scale", subContents[k].name)    == 0)
+					scale = (GXvec3_t) { (float)atof( subContents[k].content.aWhere[0]), (float)atof(subContents[k].content.aWhere[1]), (float)atof(subContents[k].content.aWhere[2]) };
+			
+			// Process transform
+			ret->transform = createTransform(location, rotation, scale);
+
+			// Free subcontents
+			free(subContents);
+
+			transformSet:
+			// Set the transform flag
+			ret->flags |= GXEFTransform;
+		}
+
+		// Process a rigidbody
+		else if (strcmp("rigidbody", rootContents[j].name) == 0)
+		{
+			// TODO: Parse as path
+			
+			// Parse as object
+			
+			// Parse the first level of the JSON entity
+			int subTokenCount = GXParseJSON(rootContents[j].content.nWhere, l, 0, (void*)0);
+			JSONValue_t* subContents = calloc(subTokenCount, sizeof(JSONValue_t));
+			GXParseJSON(rootContents[j].content.nWhere, l, subTokenCount, subContents);
+			// TODO: Finish parsing rigidbodies
+/*
+			for (size_t k = 0; k < subTokenCount; k++);
+				if (strcmp("mass", subContents[k].name) == 0)
+				{
+					ret->rigidbody = createRigidbody((float)atof(subContents[k].content.nWhere), 1.f,true);
+				}*/
+			free(subContents);
+		}
+
+		// Process a collider
+		else if (strcmp("collider", rootContents[j].name) == 0)
+		{
+			
 		}
 	}
 
@@ -252,16 +303,27 @@ int destroyEntity ( GXEntity_t* entity )
 
 	// Check to see if items are set before we unload them
 	if (entity->name != (void*)0)
-		entity->name = (void*)0;
+		free(entity->name); entity->name = (void*)0;
 
 	if (entity->mesh != (void*)0)
 		unloadMesh(entity->mesh);
 
 	if (entity->shader != (void*)0)
-		unloadShader(entity->shader);
-	
+		entity->shader = (void*)0;
+
+	if (entity->material != (void*)0)
+		entity->material = (void*)0;
+
 	if (entity->transform != (void*)0)
-		unloadTransform(entity->transform);
+		entity->transform = (void*)0;
+
+	if (entity->rigidbody != (void*)0)
+		entity->rigidbody = (void*)0;
+
+	if (entity->collider != (void*)0)
+		entity->collider = (void*)0;
+
+	entity->next = (void*)0;
 
 	// Free the entity
 	free(entity);

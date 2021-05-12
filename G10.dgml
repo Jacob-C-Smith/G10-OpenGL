@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
+  <Nodes>
+    <Node Id="AO" Bounds="-851.06972283302,-1429.14247212864,50,25.96" Label="AO" />
+    <Node Id="Acceleration" Bounds="-1010.32138949969,-1373.18247212864,85.3600000000001,25.96" Label="Acceleration" />
+    <Node Id="Albedo" Bounds="-771.06972283302,-1429.14247212864,58.0733333333333,25.96" Label="Albedo" />
+    <Node Id="AspectRatio" Bounds="-1126.63305616635,-897.422472128641,83.3433333333332,25.96" Label="Aspect ratio" />
+    <Node Id="Camera" Bounds="-1146.63305616635,-1049.34247212864,381.476666666666,253.84" Group="Expanded" Label="Camera" />
+    <Node Id="CameraParser" Bounds="188.013610500314,-1493.18247212864,95.85,25.96" Label="Camera Parser" />
+    <Node Id="ElementBuffer" Bounds="-630.04972283302,-1373.18247212864,97.8166666666666,25.96" Label="Element buffer" />
+    <Node Id="ElementsInBuffer" Bounds="-630.04972283302,-1317.22247212864,115.893333333333,25.96" Label="Elements in buffer" />
+    <Node Id="Entity" Bounds="-1146.63305616635,-1509.14247212864,757.31,429.8" Group="Expanded" Label="Entity" />
+    <Node Id="EntityParser" Bounds="299.913610500314,-1549.14247212864,85.1266666666667,25.96" Label="Entity Parser" />
+    <Node Id="FOV" Bounds="-1126.63305616635,-1009.34247212864,50,25.96" Label="FOV" />
+    <Node Id="FarClippingPlane" Bounds="-898.81972283302,-897.422472128641,113.663333333333,25.96" Label="Far clipping plane" />
+    <Node Id="Flags" Bounds="-680.496389499687,-1241.26247212864,50,25.96" Label="Flags" />
+    <Node Id="G10Engine" Bounds="-1186.63305616635,-1589.14247212864,1324.64666666667,833.64" Group="Expanded" Label="G10 Engine" />
+    <Node Id="GXPort" Bounds="168.013610500314,-1589.14247212864,237.026666666667,141.92" Group="Expanded" Label="GXPort" />
+    <Node Id="Gravity?" Bounds="-1102.74138949969,-1373.18247212864,62.4200000000001,25.96" Label="Gravity?" />
+    <Node Id="JSON" Bounds="-290.24472283302,-1509.14247212864,68.6799999999998,44" Group="Expanded" Label="JSON" />
+    <Node Id="LightParser" Bounds="188.013610500314,-1549.14247212864,81.9,25.96" Label="Light Parser" />
+    <Node Id="Location" Bounds="-1106.63305616635,-1145.30247212864,65.1233333333334,25.96" Label="Location" />
+    <Node Id="Mass" Bounds="-1102.74138949969,-1429.14247212864,50,25.96" Label="Mass" />
+    <Node Id="Material" Bounds="-871.06972283302,-1469.14247212864,191.02,197.88" Group="Expanded" Label="Material" />
+    <Node Id="Mesh" Bounds="-650.04972283302,-1469.14247212864,240.726666666667,197.88" Group="Expanded" Label="Mesh" />
+    <Node Id="Metallic" Bounds="-761.53972283302,-1373.18247212864,61.49,25.96" />
+    <Node Id="Name" Bounds="-735.156389499687,-1049.34247212864,51.6966666666667,25.96" />
+    <Node Id="Name1" Bounds="-851.06972283302,-1201.26247212864,51.6966666666667,25.96" Label="Name" />
+    <Node Id="Name2" Bounds="-886.633056166353,-1009.34247212864,51.6966666666667,25.96" Label="Name" />
+    <Node Id="NearClippingPlane" Bounds="-1126.63305616635,-841.462472128641,123.466666666667,25.96" Label="Near clipping plane" />
+    <Node Id="Next" Bounds="-600.496389499687,-1241.26247212864,75.8400000000001,25.96" Label="next entity" />
+    <Node Id="NextCamera" Bounds="-1013.28972283302,-897.422472128641,84.4700000000003,25.96" Label="next camera" />
+    <Node Id="Normal" Bounds="-851.06972283302,-1373.18247212864,59.5299999999997,25.96" Label="Normal" />
+    <Node Id="PhysicsEngine" Bounds="20.873610500314,-1549.14247212864,97.1399999999999,25.96" Label="Physics Engine" />
+    <Node Id="PositionPointer" Bounds="-1102.74138949969,-1317.22247212864,106.706666666667,25.96" Label="Location pointer" />
+    <Node Id="Projection" Bounds="-1011.50972283302,-1145.30247212864,90.4400000000001,25.96" Label="Model matrix" />
+    <Node Id="Projection1" Bounds="-959.276389499686,-953.382472128641,73.4433333333334,25.96" Label="Projection" />
+    <Node Id="Renderer" Bounds="-339.323056166353,-1549.14247212864,166.836666666667,104" Group="Expanded" Label="File loading and parsing" />
+    <Node Id="RenderingEngine" Bounds="-142.486389499686,-1549.14247212864,133.36,44" Group="Expanded" Label="Rendering Engine" />
+    <Node Id="RigidBody" Bounds="-1122.74138949969,-1469.14247212864,217.78,197.88" Group="Expanded" Label="Rigid body" />
+    <Node Id="Rotation" Bounds="-1026.63305616635,-1201.26247212864,64.8233333333333,25.96" Label="Rotation" />
+    <Node Id="Roughness" Bounds="-851.06972283302,-1317.22247212864,77.7566666666667,25.96" />
+    <Node Id="Scale" Bounds="-1106.63305616635,-1201.26247212864,50,25.96" Label="Scale" />
+    <Node Id="Scene" Bounds="-1166.63305616635,-1549.14247212864,797.31,773.64" Group="Expanded" Label="Active Scene" />
+    <Node Id="Shader" Bounds="-871.06972283302,-1241.26247212864,160.573333333333,141.92" Group="Expanded" Label="Shader" />
+    <Node Id="ShaderProgramID" Bounds="-851.06972283302,-1145.30247212864,120.573333333333,25.96" Label="Shader Program ID" />
+    <Node Id="Target" Bounds="-1126.63305616635,-953.382472128641,52.6300000000001,25.96" Label="Target" />
+    <Node Id="Transform" Bounds="-1126.63305616635,-1241.26247212864,225.563333333334,141.92" Group="Expanded" />
+    <Node Id="Up" Bounds="-1046.63305616635,-1009.34247212864,50,25.96" Label="Up" />
+    <Node Id="Velocity" Bounds="-1022.74138949969,-1429.14247212864,61.2266666666665,25.96" Label="Velocity" />
+    <Node Id="VertexArray" Bounds="-630.04972283302,-1429.14247212864,82.6433333333334,25.96" Label="Vertex array" />
+    <Node Id="VertexBuffer" Bounds="-517.406389499686,-1429.14247212864,88.0833333333335,25.96" Label="Vertex buffer" />
+    <Node Id="View" Bounds="-966.633056166353,-1009.34247212864,50,25.96" Label="View" />
+    <Node Id="Where" Bounds="-1044.00305616635,-953.382472128641,54.7266666666665,25.96" Label="Where" />
+    <Node Id="e30cbae6-6a4a-41c9-a7b5-99eb2a44ceeb1" Bounds="-1206.63305616635,-1629.14247212864,1631.67333333333,893.64" Group="Expanded" Label="G10 System" UseManualLocation="True" />
+  </Nodes>
+  <Links>
+    <Link Source="Camera" Target="AspectRatio" Category="Contains" />
+    <Link Source="Camera" Target="FOV" Category="Contains" />
+    <Link Source="Camera" Target="FarClippingPlane" Category="Contains" />
+    <Link Source="Camera" Target="Name2" Category="Contains" />
+    <Link Source="Camera" Target="NearClippingPlane" Category="Contains" />
+    <Link Source="Camera" Target="NextCamera" Category="Contains" />
+    <Link Source="Camera" Target="Projection1" Category="Contains" />
+    <Link Source="Camera" Target="Target" Category="Contains" />
+    <Link Source="Camera" Target="Up" Category="Contains" />
+    <Link Source="Camera" Target="View" Category="Contains" />
+    <Link Source="Camera" Target="Where" Category="Contains" />
+    <Link Source="Entity" Target="Flags" Category="Contains" />
+    <Link Source="Entity" Target="Material" Category="Contains" />
+    <Link Source="Entity" Target="Mesh" Category="Contains" />
+    <Link Source="Entity" Target="Next" Category="Contains" />
+    <Link Source="Entity" Target="RigidBody" Category="Contains" />
+    <Link Source="Entity" Target="Shader" Category="Contains" />
+    <Link Source="Entity" Target="Transform" Category="Contains" />
+    <Link Source="G10Engine" Target="PhysicsEngine" Category="Contains" />
+    <Link Source="G10Engine" Target="Renderer" Category="Contains" />
+    <Link Source="G10Engine" Target="RenderingEngine" Category="Contains" />
+    <Link Source="G10Engine" Target="Scene" Category="Contains" />
+    <Link Source="GXPort" Target="CameraParser" Category="Contains" />
+    <Link Source="GXPort" Target="EntityParser" Category="Contains" />
+    <Link Source="GXPort" Target="LightParser" Category="Contains" />
+    <Link Source="Material" Target="AO" Category="Contains" />
+    <Link Source="Material" Target="Albedo" Category="Contains" />
+    <Link Source="Material" Target="Metallic" Category="Contains" />
+    <Link Source="Material" Target="Normal" Category="Contains" />
+    <Link Source="Material" Target="Roughness" Category="Contains" />
+    <Link Source="Mesh" Target="ElementBuffer" Category="Contains" />
+    <Link Source="Mesh" Target="ElementsInBuffer" Category="Contains" />
+    <Link Source="Mesh" Target="VertexArray" Category="Contains" />
+    <Link Source="Mesh" Target="VertexBuffer" Category="Contains" />
+    <Link Source="PositionPointer" Target="Location" Bounds="-1137.41422877068,-515.574329168757,202.304206381929,55.1978746030796" />
+    <Link Source="PositionPointer" Target="Location" Index="1" />
+    <Link Source="Renderer" Target="JSON" Category="Contains" />
+    <Link Source="RigidBody" Target="Acceleration" Category="Contains" />
+    <Link Source="RigidBody" Target="Gravity?" Category="Contains" />
+    <Link Source="RigidBody" Target="Mass" Category="Contains" />
+    <Link Source="RigidBody" Target="PositionPointer" Category="Contains" />
+    <Link Source="RigidBody" Target="Velocity" Category="Contains" />
+    <Link Source="Scene" Target="Camera" Category="Contains" />
+    <Link Source="Scene" Target="Entity" Category="Contains" />
+    <Link Source="Scene" Target="Name" Category="Contains" />
+    <Link Source="Shader" Target="Name1" Category="Contains" />
+    <Link Source="Shader" Target="ShaderProgramID" Category="Contains" />
+    <Link Source="Transform" Target="Location" Category="Contains" />
+    <Link Source="Transform" Target="Projection" Category="Contains" />
+    <Link Source="Transform" Target="Rotation" Category="Contains" />
+    <Link Source="Transform" Target="Scale" Category="Contains" />
+    <Link Source="e30cbae6-6a4a-41c9-a7b5-99eb2a44ceeb1" Target="G10Engine" Category="Contains" />
+    <Link Source="e30cbae6-6a4a-41c9-a7b5-99eb2a44ceeb1" Target="GXPort" Category="Contains" />
+  </Links>
+  <Categories>
+    <Category Id="Contains" Label="Contains" Description="Whether the source of the link contains the target object" CanBeDataDriven="False" CanLinkedNodesBeDataDriven="True" IncomingActionLabel="Contained By" IsContainment="True" OutgoingActionLabel="Contains" />
+  </Categories>
+  <Properties>
+    <Property Id="Bounds" DataType="System.Windows.Rect" />
+    <Property Id="CanBeDataDriven" Label="CanBeDataDriven" Description="CanBeDataDriven" DataType="System.Boolean" />
+    <Property Id="CanLinkedNodesBeDataDriven" Label="CanLinkedNodesBeDataDriven" Description="CanLinkedNodesBeDataDriven" DataType="System.Boolean" />
+    <Property Id="Group" Label="Group" Description="Display the node as a group" DataType="Microsoft.VisualStudio.GraphModel.GraphGroupStyle" />
+    <Property Id="IncomingActionLabel" Label="IncomingActionLabel" Description="IncomingActionLabel" DataType="System.String" />
+    <Property Id="IsContainment" DataType="System.Boolean" />
+    <Property Id="Label" Label="Label" Description="Displayable label of an Annotatable object" DataType="System.String" />
+    <Property Id="OutgoingActionLabel" Label="OutgoingActionLabel" Description="OutgoingActionLabel" DataType="System.String" />
+    <Property Id="UseManualLocation" DataType="System.Boolean" />
+  </Properties>
+</DirectedGraph>

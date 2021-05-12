@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <G10/GXdebug.h>
 #include <G10/GXtypedef.h>
 #include <G10/GXMesh.h>
 
@@ -31,9 +30,9 @@ struct GXPLYelement_s
 typedef struct GXPLYelement_s GXPLYelement_t;
 
 struct GXPLYfile_s {
-	GXsize_t        nElements;
+	size_t        nElements;
 	GXPLYelement_t* elements;
-	GXsize_t        flags;
+	size_t        flags;
 };
 typedef struct GXPLYfile_s GXPLYfile_t;
 

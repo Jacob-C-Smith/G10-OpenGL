@@ -28,7 +28,7 @@ GXMesh_t* loadMesh ( const char path[] )
 	if (strcmp(fileExtension, "ply") == 0 || strcmp(fileExtension, "PLY") == 0)
 		ret = loadPLYMesh(path);
 	else
-	#if GXDEBUGMODE & GXDEBUGMESH
+	#ifndef NDEBUG
 		printf("Could not load file %s\n", path);
 	#endif
 

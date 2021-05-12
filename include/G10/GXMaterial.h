@@ -5,11 +5,11 @@
 #include <G10/GXJSON.h>
 
 struct GXMaterial_s {
-	GXTexture_t* albedo;
-	GXTexture_t* normal;
-	GXTexture_t* roughness;
-	GXTexture_t* metallic;
-	GXTexture_t* AO;
+	GXTexture_t* albedo; 
+	GXTexture_t* normal; 
+	GXTexture_t* roughness; 
+	GXTexture_t* metallic; 
+	GXTexture_t* AO; 
 };
 typedef struct GXMaterial_s GXMaterial_t;
 

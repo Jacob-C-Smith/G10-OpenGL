@@ -72,7 +72,7 @@ An entity is any object contained within a scene.
 // Entity definition in G10
 struct GXEntity_s
 {
-	GXsize_t           flags;
+	size_t           flags;
 	char*              name;
 	GXMesh_t*          mesh;
 	GXShader_t*        shader;
@@ -169,8 +169,8 @@ A texture is an image that is mapped onto a mesh.
 struct GXTexture_s
 {
 	unsigned int textureID;
-	GXsize_t width;
-	GXsize_t height;
+	size_t width;
+	size_t height;
 };
 typedef struct GXTexture_s GXTexture_t;
 
@@ -250,7 +250,8 @@ Further image and mesh types may be included in the future, so long as the loade
 Scenes may be stored in a JSON file
 ```json
 {
-    "comment"  : "Made by Jacob Smith on 1/4/2021 at 22:30 GMT-7:00",
+    "comment"   : "Made by Jacob Smith on 1/4/2021 at 22:30 GMT-7:00",
+	"name"      : "Example Scene"
     "entities"  : [
             "gameassets/asset1.json",
             "gameassets/asset2.json",
@@ -263,12 +264,26 @@ Scenes may be stored in a JSON file
         "fov"         : 90,
         "near"        : 0.1,
         "far"         : 100,
-        "aspectRatio" : 1.77777777
+        "aspectRatio" : 1.77777777 
     }
+	"lights"   : [
+		    {
+               "name"     : "Light 1",
+               "color"    : [ 10.0, 10.0, 10.0 ],
+               "position" : [ 3.0, 3.0, 3.0 ]
+            },
+			{
+               "name"     : "Light 2",
+               "color"    : [ 10.0, 10.0, 10.0 ],
+               "position" : [ 3.0, 3.0, 3.0 ]
+            }
+	]
 }
 ```
 ### ⌠comment⌡
 The ```"comment"``` label corresponds to a string with arbitrary information about the entity. The comment is ignored by the code unless in ```debugmode```.
+### ⌠name⌡ 
+The ```"name"``` label corresponds to a stri
 ### ⌠entities⌡
 The ```"entities"``` label corresponds to an array that contains paths to entity json files.
 ### ⌠camera⌡

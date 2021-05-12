@@ -6,9 +6,7 @@
 
 #include <glad/glad.h>
 
-#include <G10/GXDebug.h>
 #include <G10/GXtypedef.h>
-#include <G10/GXDimension.h>
 
 // Stores information about a mesh
 struct GXMesh_s

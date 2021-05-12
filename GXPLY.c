@@ -5,7 +5,7 @@
 GXMesh_t* loadPLYMesh ( const char path[] )
 {
 	// Uninitialized data
-	GXsize_t       l;
+	size_t         l;
 	char*          data;
 	float*         vertexArray;
 	GXPLYindex_t*  indices;
@@ -14,7 +14,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 
 	// Initialized data
 	GXMesh_t*    ret     = malloc(sizeof(GXMesh_t));
-	GXsize_t     i       = 0,
+	size_t       i       = 0,
 	             j       = 0,
 	             k       = 0;
 	FILE*        f       = fopen(path, "rb");
@@ -37,7 +37,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	fseek(f, 0, SEEK_SET);
 
 	// Allocate data and read file into memory
-	data = malloc(l);
+	data = malloc(l+1);
 
 	// Check to make sure we got the RAM
 	if (data == 0)
@@ -53,7 +53,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	fclose(f);
 
 	// Debugger logging
-#ifdef GXDEBUGMODE
+#ifndef NDEBUG
 	printf("Loaded file %s\n", path);
 #endif
 
@@ -70,7 +70,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	}
 
 	// Allocate space for elements, zero out i.
-	plyFile->elements = malloc(sizeof(GXPLYelement_t) * plyFile->nElements);
+	plyFile->elements = calloc(plyFile->nElements, sizeof(GXPLYelement_t));
 	i ^= i;
 
 	// Fill out names, counts, and property counts of elements
@@ -78,7 +78,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	{
 		if (strncmp(&data[i], "element", 7) == 0)
 		{
-			GXsize_t m = 0;
+			size_t m = 0;
 			i += 8;
 
 			while (data[i + m] != ' ')
@@ -97,7 +97,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 				plyFile->elements[j].nProperties++;
 				while (data[i++] != '\n');
 			}
-			plyFile->elements[j].properties = malloc(sizeof(GXPLYproperty_t) * plyFile->elements[j].nProperties);
+			plyFile->elements[j].properties = calloc(plyFile->elements[j].nProperties,sizeof(GXPLYproperty_t));
 			j++, i--;
 		}
 		while (data[i++] != '\n');
@@ -112,7 +112,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	{
 		if (strncmp(&data[i], "element", 7) == 0)
 		{
-			GXsize_t m = 0;
+			size_t m = 0;
 			i += 8;
 
 			while (data[i + m] != ' ')
@@ -153,7 +153,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 				while (data[i++] != '\n');
 			}
 			j++, i--, k ^= k;
-			plyFile->elements[j].properties = malloc(sizeof(GXPLYproperty_t) * plyFile->elements[j].nProperties);
+			plyFile->elements[j].properties = calloc(plyFile->elements[j].nProperties, sizeof(GXPLYproperty_t));
 		}
 		while (data[i++] != '\n');
 	}
@@ -261,7 +261,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 		else if (strncmp(&data[i], "comment", 7) == 0)
 		{
 			i += 7;
-#ifdef GXDEBUGMODE
+#ifndef NDEBUG
 			printf("Comment: ");
 			while (data[i++] != '\n')
 				putchar(data[i]);
@@ -271,7 +271,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 		else if (strncmp(&data[i], "format", 6) == 0)
 		{
 			i += 6;
-#ifdef GXDEBUGMODE
+#ifndef NDEBUG
 			printf("Format: ");
 			while (data[i++] != '\n')
 				putchar(data[i]);
@@ -282,7 +282,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	}
 
 	// Log elements and properties
-	#if GXDEBUGMODE
+	#ifndef NDEBUG
 		for (int a = 0; a < plyFile->nElements; a++)
 		{
 			printf("element: \"%s\"\n", plyFile->elements[a].name);

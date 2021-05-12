@@ -2,17 +2,9 @@
 
 #include <math.h>
 
-#include <G10/GXDebug.h>
+// TODO: Phase out all of these functions in favor of SIMD accelerated funcitons.
 
-// 3D vector
-struct GXvec3_s {
-	float x;
-	float y;
-	float z;
-};
-typedef struct GXvec3_s GXvec3_t;
-
-// 4D vector
+// 3D / 4D vector
 struct GXvec4_s {
 	float x;
 	float y;
@@ -20,6 +12,7 @@ struct GXvec4_s {
 	float w;
 };
 typedef struct GXvec4_s GXvec4_t;
+typedef struct GXvec4_s GXvec3_t;
 
 // 4x4 matrix
 struct GXmat4_s {
@@ -60,9 +53,9 @@ static inline float dotProductVec3 ( GXvec3_t a, GXvec3_t b )
 static inline GXvec3_t crossProductVec3 ( GXvec3_t a, GXvec3_t b )
 {
 	return (GXvec3_t) {
-		a.y* b.z - a.z * b.y,
-		a.z* b.x - a.x * b.z,
-		a.x* b.y - a.y * b.x
+		a.y * b.z - a.z * b.y,
+		a.z * b.x - a.x * b.z,
+		a.x * b.y - a.y * b.x
 	};
 }
 
@@ -70,9 +63,9 @@ static inline GXvec3_t crossProductVec3 ( GXvec3_t a, GXvec3_t b )
 static inline GXvec3_t vec3xvec3 ( GXvec3_t a, GXvec3_t b )
 {
 	return (GXvec3_t) {
-		a.x* b.x,
-		a.y* b.y,
-		a.z* b.z
+		a.x * b.x,
+		a.y * b.y,
+		a.z * b.z
 	};
 }
 
@@ -80,17 +73,18 @@ static inline GXvec3_t vec3xvec3 ( GXvec3_t a, GXvec3_t b )
 static inline GXvec3_t vec3xf ( GXvec3_t v, float s )
 {
 	return (GXvec3_t) {
-		v.x*s,
-		v.y*s,
-		v.z*s
+		v.x * s,
+		v.y * s,
+		v.z * s,
+		v.w * s
 	};
 }
 
 // ✅ Normailizes a vector
 static inline GXvec3_t normalize ( GXvec3_t v )
 {
-	float vl = sqrtf((v.x * v.x) + (v.y * v.y) + (v.z * v.z));
-	return (GXvec3_t) { v.x / vl, v.y / vl, v.z / vl };
+	float vl = sqrtf((v.x * v.x) + (v.y * v.y) + (v.z * v.z) + (v.w * v.w));
+	return (GXvec3_t) { v.x / vl, v.y / vl, v.z / vl, v.w / vl };
 }
 
 // ✅ Multiplies a matrix by a vector
@@ -114,6 +108,17 @@ static inline GXmat4_t mat4xmat4 ( GXmat4_t m, GXmat4_t n )
 		(m.m * n.a + m.n * n.e + m.o * n.i + m.p * n.m), (m.m * n.b + m.n * n.f + m.o * n.j + m.p * n.n), (m.m * n.c + m.n * n.g + m.o * n.k + m.p * n.o), (m.m * n.d + m.n * n.h + m.o * n.l + m.p * n.p)
 	};
 }
+
+static inline GXmat4_t mat4rcp(GXmat4_t m)
+{
+	return (GXmat4_t) {
+		(m.a), (m.e), (m.i), (m.m),
+		(m.b), (m.f), (m.j), (m.n),
+		(m.c), (m.g), (m.k), (m.o),
+		(m.d), (m.h), (m.l), (m.p)
+	};
+}
+
 
 // ✅ Returns the identity matrix
 static inline GXmat4_t identityMat4 ( )
@@ -173,5 +178,5 @@ static inline GXmat4_t rotationMatrixFromVec ( GXvec3_t rotation )
 // ✅ Computes a model matrix from a location, rotation, and scale vector.
 static inline GXmat4_t generateModelMatrixFromVec ( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale )
 {
-	return mat4xmat4(translationScaleMat(location,scale),rotationMatrixFromVec(rotation));
+	return (translationScaleMat(location,scale),rotationMatrixFromVec(rotation));
 }

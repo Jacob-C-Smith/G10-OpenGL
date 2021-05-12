@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\arch">
+      <UniqueIdentifier>{fe311e11-f9eb-48e8-807c-bf90dbd55c76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\arch\x86_64">
+      <UniqueIdentifier>{9d52a5ce-6fbb-4895-9ac8-7a16f8200ef0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes">
@@ -65,9 +71,6 @@
     <ClCompile Include="GXTexture.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GXTransform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -80,7 +83,13 @@
     <ClCompile Include="GXRI.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GXCollision.c">
+    <ClCompile Include="GXLight.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="G10.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -89,12 +98,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXDebug.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXDimension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXEntity.h">
@@ -145,8 +148,40 @@
     <ClInclude Include="include\G10\GXRigidbody.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\GXRI.h">
+    <ClInclude Include="include\G10\arch\x86_64\GXSSEmath.h">
+      <Filter>Header Files\arch\x86_64</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCollider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\G10.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="GXRigidbody_x86_64.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="benchmarks.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="G10.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

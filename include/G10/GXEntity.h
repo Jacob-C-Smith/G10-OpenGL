@@ -2,8 +2,6 @@
 
 #include <stdlib.h>
 
-#include <G10/GXDebug.h>
-
 #include <G10/GXtypedef.h>
 
 #include <G10/GXLinear.h>
@@ -30,10 +28,14 @@
 
 #include <G10/GXRigidbody.h>
 
-// G10 uses bitflags to understand how to treat entities.
+#include <G10/GXCollider.h>
+
+#include <G10/arch/x86_64/GXSSEmath.h>
+
+// G10 uses bitflags to recognize the features of an entity, as well as how it should be interfaced with by the engine
 
 // General flags
-#define GXEFPresent          0x0000000000000001 // If set, use object
+#define GXEFPresent          0x0000000000000001 // If set, the object is valid
 
 // Renderer flags
 #define GXEFMesh             0x0000000000000002 // If set, mesh is present
@@ -41,6 +43,8 @@
 #define GXEFMaterial         0x0000000000000008 // If set, PBR material is present
 #define GXEFTransform        0x0000000000000010 // If set, transform is present
 #define GXEFDrawable         0x0000000000000020 // If set, render on update cycle
+#define GXEFDynamic          0x0000000000000400 // If set, the objects position will be changing quite often. Dynamic and static bits are mutually exculsive
+#define GXEFStatic           0x0000000000000800 // If set, the objects position will not be changing. Bits 10 and 11 are mutually exclusive
 
 // Physics flags
 #define GXEFRigidbody        0x0000000000000040 // If set, use rigid body physics
@@ -52,13 +56,14 @@
 
 struct GXEntity_s
 {
-	GXsize_t           flags;     // Tells G10 how to handle the entity
+	size_t             flags;     // Tells G10 how to handle the entity
 	char*              name;      // An identifier for the entity
 	GXMesh_t*          mesh;      // A mesh
 	GXShader_t*        shader;    // A shader
 	GXMaterial_t*      material;  // A PBR material
 	GXTransform_t*     transform; // A transform
 	GXRigidbody_t*     rigidbody; // A rigidbody
+	GXCollider_t*      collider;  // A collider
 
 	struct GXEntity_s* next;      // Points to the next entity.
 };

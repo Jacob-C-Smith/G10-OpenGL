@@ -1,6 +1,5 @@
 ﻿#pragma once
 
-#include <G10/GXDebug.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

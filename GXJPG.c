@@ -57,7 +57,7 @@ GXTexture_t* loadJPGImage ( const char path[] )
 	SDL_FreeRW(r);
 
 	// Debugger logging
-	#ifdef GXDEBUGMODE & GXDEBUGTEXTURE
+	#ifndef NDEBUG
 		printf("Loaded file \"%s\"\n\n", path);
 	#endif 
 

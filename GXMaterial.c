@@ -61,7 +61,7 @@ GXMaterial_t* loadMaterial ( const char path[] )
     data[i] = '\0';
     // Initialized data
     size_t        len          = strlen(data), rootTokenCount = GXParseJSON(data, len, 0, 0);
-    JSONValue_t*  rootContents = malloc(sizeof(JSONValue_t) * rootTokenCount);
+    JSONValue_t*  rootContents = calloc(rootTokenCount, sizeof(JSONValue_t));
 
     // Parse JSON Values
     GXParseJSON(data, len, rootTokenCount, rootContents);

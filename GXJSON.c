@@ -16,7 +16,7 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 				ret++;
 			else if (text[i] == '{')   // Any time we hit a '{', we have come across an object, and need to skip over it. 
 			{
-				GXsize_t bDepth = 1;
+				size_t bDepth = 1;
 				while (bDepth)
 				{
 					i++;
@@ -35,7 +35,7 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 
 		return ret;                    // Return the total number of key/value pairs we have found.
 	}
-	text;
+	text[len]='\0';
 	while (*++text)
 	{
 		if (*text == '\"')                                  // We've found a key
@@ -60,7 +60,7 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 				where[currentWhere].content.nWhere = text;
 				where[currentWhere].type = GXJSONobject;
 				text++;
-				GXsize_t bDepth = 1;                        // bDepth keeps track of the bracket depth
+				size_t bDepth = 1;                        // bDepth keeps track of the bracket depth
 				while (bDepth)
 				{
 					text++;
@@ -75,10 +75,10 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 			else if (*text == '[')                          // Parse out an array
 			{
 				where[currentWhere].type = GXJSONarray;
-				GXsize_t c = 0;
-				GXsize_t bDepth = 1;
-				GXsize_t cDepth = 0;
-				GXsize_t aEntries = 1;
+				size_t c = 0;
+				size_t bDepth = 1;
+				size_t cDepth = 0;
+				size_t aEntries = 1;
 				while (bDepth)
 				{
 					c++;
@@ -97,7 +97,7 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 				}
 				if (aEntries > 1)
 					aEntries++;
-				where[currentWhere].content.aWhere = malloc(sizeof(void*) * (aEntries+1));
+				where[currentWhere].content.aWhere = calloc((aEntries + 1),sizeof(void*));
 				text++;
 				bDepth = 1, cDepth = 1, c = 0;
 				while (bDepth)

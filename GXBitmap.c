@@ -17,7 +17,10 @@ GXTexture_t* loadBMPImage ( const char path[] )
 	// Check if file is valid
 	if (f == NULL)
 	{
+		// Error handling
+		#ifndef NDEBUG
 		printf("Failed to load file %s\n", path);
+		#endif 
 		return (void*)0;
 	}	
 
@@ -40,8 +43,8 @@ GXTexture_t* loadBMPImage ( const char path[] )
 	fclose(f);
 
 	// Fill out width and height information
-	ret->width  = *(GXsize_t*)&data[0x12];
-	ret->height = *(GXsize_t*)&data[0x16];
+	ret->width  = *(size_t*)&data[0x12];
+	ret->height = *(size_t*)&data[0x16];
 
 	// Create a texture ID
 	glGenTextures(1, &ret->textureID);
@@ -50,17 +53,18 @@ GXTexture_t* loadBMPImage ( const char path[] )
 	// Point it to the right place
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
 	
-	// More OpenGL things
+	// Bilinear texture filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+	// Create mipmaps
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	// Free data. We don't really need the header anymore. 
 	free(data);
 
 	// Debugger logging
-	#ifdef debugmode
+	#ifndef NDEBUG
 		printf("Loaded file \"%s\"\n\n", path);
 	#endif 
 

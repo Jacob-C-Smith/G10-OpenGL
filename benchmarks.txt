@@ -1,0 +1,41 @@
+﻿The following benchmarks are collected from my machine. Below are my processor and memory.
+
+ - AMD Ryzen 5 2600X @ 3.800 GHz
+ - (4x8) GBytes RAM @ 2866 MHz
+
+The numbers were computed by generating a random array of 10,000,000 of each operand, and measuring the time for the
+program to finish 10,000,000 operations on each of the random indicies. Certain operations are very conducive to 
+fast AVX code, but most operations will be, on average, 10-13x faster. 
+
+┌─────────────────────────────────────────────────┐
+│ 001. Inverse Transpose Matrix                   │
+│                                                 │
+│ Average time to transpose 10,000,000 matricies  │
+│                                                 │
+│ naive 842.23ms                                  │
+│ SIMD   80.93ms                                  │
+│                                                 │
+│ Performance increase: 10.407x faster            │
+└─────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────┐
+│ 002. Cross product                                 │
+│                                                    │
+│ Average time to compute 10,000,000 cross products  │
+│                                                    │
+│ naive 727.28ms                                     │
+│ SIMD   55.81ms                                     │
+│                                                    │
+│ Performance increase: 13.031x faster               │
+└────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│ 003. Matrix multiplication                                 │
+│                                                            │
+│ Average time to compute 10,000,000 matrix multiplications  │
+│                                                            │
+│ naive 1344.86ms                                            │
+│ SIMD   102.33ms                                            │
+│                                                            │
+│ Performance increase: 13.142x faster                       │
+└────────────────────────────────────────────────────────────┘

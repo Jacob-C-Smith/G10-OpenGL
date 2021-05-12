@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <G10/GXDebug.h>
 #include <G10/GXLinear.h>
+
+#include <G10/arch/x86_64/GXSSEmath.h>
 
 struct GXCamera_s {
 
@@ -33,7 +34,7 @@ typedef struct GXCamera_s GXCamera_t;
 
 GXCamera_t*     createCamera            ( );                                                  // ✅ Creates a camera object to render a scene
 GXmat4_t        perspective             ( float fov, float aspect, float near, float far );   // ✅ Computes perspective projection matrix from FOV, aspect ratio, near and far clipping planes.
-GXCamera_t*     computeProjectionMatrix ( GXCamera_t* camera );                               // ✅ Computes an updated projection matrix
+void            computeProjectionMatrix ( GXCamera_t* camera );                               // ✅ Computes an updated projection matrix
 inline GXmat4_t lookAt                  ( GXvec3_t eye, GXvec3_t target, GXvec3_t up )        // ✅ Computes a view matrix from eye, target, and up vectors
 { 
 	// Compute forward direction

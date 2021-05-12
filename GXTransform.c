@@ -15,10 +15,11 @@ GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t 
 	ret->scale    = scale;
 
 	// Create a model matrix from the location, rotation, and scale
+
 	ret->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(makeQuaternionFromEulerAngle(rotation)), translationScaleMat(location, scale));
 
 	// Debug information
-    #if GXDEBUGMODE & GXDEBUGTRANSFORM
+    #ifndef NDEBUG
 		printf("Transform created with location (%f,%f,%f)\n" 
 		       "                       rotation (%f,%f,%f)\n"
 			   "                       scale    (%f,%f,%f)\n"
@@ -26,6 +27,11 @@ GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t 
 	#endif
 
 	return ret;
+}
+
+GXTransform_t* loadTransform(const char path[])
+{
+	return (void*)0;
 }
 
 int unloadTransform ( GXTransform_t* transform )

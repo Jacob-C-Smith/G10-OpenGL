@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <G10/GXdebug.h>
 #include <G10/GXLinear.h>
 #include <G10/GXilmath.h>
 
@@ -41,9 +40,9 @@ inline quaternion_t multiplyQuaternionVector ( quaternion_t q1, quaternion_t q2 
 {
 	return (quaternion_t) {
 		(-q1.i * q2.i - q1.j * q2.j - q1.k * q2.k),
-		(q1.j * q2.k - q1.k * q2.j),
-		(q1.k * q2.i - q1.i * q2.k),
-		(q1.i * q2.j - q1.j * q2.i)
+		(q1.j  * q2.k - q1.k * q2.j),
+		(q1.k  * q2.i - q1.i * q2.k),
+		(q1.i  * q2.j - q1.j * q2.i)
 	};
 }
 

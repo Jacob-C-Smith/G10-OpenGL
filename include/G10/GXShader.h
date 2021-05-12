@@ -5,11 +5,19 @@
 
 #include <glad/glad.h>
 
-#include <G10/GXDebug.h>
 #include <G10/GXtypedef.h>
 
 #include <G10/GXLinear.h>
 #include <G10/GXJSON.h>
+
+// TODO: Implement a key/value system to associate the following defines with uniform variable names in opengl.
+
+#define GXSP_CameraPosition 0x0000000000000001
+#define GXSP_CameraRotation 0x0000000000000002
+
+#define GXSP_Model          0x0000000000000004
+#define GXSP_View           0x0000000000000008
+#define GXSP_Perspective    0x0000000000000010
 
 // Contains information about a shader
 struct GXShader_s

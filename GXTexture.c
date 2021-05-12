@@ -24,8 +24,10 @@ GXTexture_t* loadTexture ( const char path[] )
 	GXTexture_t* ret           = (void*)0;
 
 	// Figure out what type of file we are dealing with throught the extenstion. This is an admittedly naive approach, but each loader function checks for signatures, so any error handling is handed off to them
-	if (strcmp(fileExtension, "bmp") == 0 || strcmp(fileExtension, "dib") == 0 ||
-		strcmp(fileExtension, "BMP") == 0 || strcmp(fileExtension, "DIB") == 0)
+	if (strcmp(fileExtension, "png") == 0 || strcmp(fileExtension, "PNG") == 0)
+		return loadPNGImage(path); 
+	else if (strcmp(fileExtension, "bmp") == 0 || strcmp(fileExtension, "dib") == 0 ||
+		     strcmp(fileExtension, "BMP") == 0 || strcmp(fileExtension, "DIB") == 0)
 		return loadBMPImage(path);
 	else if (strcmp(fileExtension, "jpg")  == 0 || strcmp(fileExtension, "jpeg") == 0 ||
 		     strcmp(fileExtension, "jpe")  == 0 || strcmp(fileExtension, "jif")  == 0 ||
@@ -34,11 +36,9 @@ GXTexture_t* loadTexture ( const char path[] )
 		     strcmp(fileExtension, "JPE")  == 0 || strcmp(fileExtension, "JIF")  == 0 ||
 		     strcmp(fileExtension, "JFIF") == 0 || strcmp(fileExtension, "JFI")  == 0)
 		return loadJPGImage(path);
-	else if (strcmp(fileExtension, "png") == 0 || strcmp(fileExtension, "PNG") == 0)
-		return loadPNGImage(path);
 	else
-	#if GXDEBUGMODE & GXDEBUGTEXTURE
-		printf("Could not load file %s\n", path);
+	#ifndef NDEBUG
+		printf("Could not load file %s, unrecognized file extension.\n", path);
 	#endif
 
 	return ret;
@@ -46,7 +46,7 @@ GXTexture_t* loadTexture ( const char path[] )
 
 int unloadTexture ( GXTexture_t* image )
 {
-	// Invalidate width, height. Free image.
+	// Invalidate width, height.
 	image->width  = 0,
 	image->height = 0;
 

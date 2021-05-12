@@ -98,6 +98,7 @@ GXShader_t* loadShader ( const char vertexShaderPath[], const char fragmentShade
 	glLinkProgram(ret->shaderProgramID);
 
 	status = 0;
+
 	glGetProgramiv(ret->shaderProgramID, GL_LINK_STATUS, &status);
 	if (!status)
 	{
@@ -108,6 +109,8 @@ GXShader_t* loadShader ( const char vertexShaderPath[], const char fragmentShade
 		printf(log);
 		free(log);
 	}
+	glDetachShader(ret->shaderProgramID, vShader);
+	glDetachShader(ret->shaderProgramID, fShader);
 
 	// Destroy the shader programs we don't need anymore
 	glDeleteShader(vShader);
@@ -164,7 +167,7 @@ GXShader_t* loadShaderAsJSON ( const char shaderPath[] )
 	// Initialized data
 	size_t        len            = strlen(data), 
 		          rootTokenCount = GXParseJSON(data, len, 0, 0);
-	JSONValue_t*  rootContents   = malloc(sizeof(JSONValue_t) * rootTokenCount);
+	JSONValue_t*  rootContents   = calloc(rootTokenCount,sizeof(JSONValue_t));
 
 	// Parse JSON Values
 	GXParseJSON(data, len, rootTokenCount, rootContents);
@@ -179,11 +182,17 @@ GXShader_t* loadShaderAsJSON ( const char shaderPath[] )
 		// Point to the fragment shader
 		else if (strcmp("fragmentShaderPath", rootContents[k].name) == 0)
 			fragmentShaderPath = rootContents[k].content.nWhere;
-		
+
 		// Copy out the name of the shader
 		else if (strcmp("name", rootContents[k].name) == 0)
 			shaderName = rootContents[k].content.nWhere;
-
+		
+		// Copy out requested data
+		else if (strcmp("requestData", rootContents[k].name) == 0)
+		{
+			// TODO: Copy out key/value pairs for requested data
+		}
+		
 	// Spin up the shader and set the name
 	ret = loadShader(vertexShaderPath, fragmentShaderPath, shaderName);
 	
