@@ -5,6 +5,8 @@
 #include <G10/GXJSON.h>
 
 struct GXMaterial_s {
+	char* name;
+
 	GXTexture_t* albedo; 
 	GXTexture_t* normal; 
 	GXTexture_t* roughness; 

@@ -14,33 +14,36 @@ GXTexture_t* loadBMPImage ( const char path[] )
 	if (ret == 0)
 		return ret;
 
-	// Check if file is valid
-	if (f == NULL)
+	// Load the file
 	{
-		// Error handling
-		#ifndef NDEBUG
-		printf("Failed to load file %s\n", path);
-		#endif 
-		return (void*)0;
-	}	
+		// Check if file is valid
+		if (f == NULL)
+		{
+			// Error handling
+			#ifndef NDEBUG
+				printf("Failed to load file %s\n", path);
+			#endif 
+			return (void*)0;
+		}
 
-	// Find file size and prep for read
-	fseek(f, 0, SEEK_END);
-	i = ftell(f);
-	fseek(f, 0, SEEK_SET);
+		// Find file size and prep for read
+		fseek(f, 0, SEEK_END);
+		i = ftell(f);
+		fseek(f, 0, SEEK_SET);
 
-	// Allocate data and read file into memory
-	data = malloc(i);
+		// Allocate data and read file into memory
+		data = malloc(i);
 
-	// Check if data is valid
-	if (data == 0)
-		return (void*)0;
+		// Check if data is valid
+		if (data == 0)
+			return (void*)0;
 
-	// Read to data
-	fread(data, 1, i, f);
+		// Read to data
+		fread(data, 1, i, f);
 
-	// We no longer need the file
-	fclose(f);
+		// We no longer need the file
+		fclose(f);
+	}
 
 	// Fill out width and height information
 	ret->width  = *(size_t*)&data[0x12];

@@ -11,7 +11,6 @@
 
 #include <G10/arch/x86_64/GXSSEmath.h>
 
-
 // Contains information about a scene
 struct GXScene_s {
 	char*       name;
@@ -32,11 +31,15 @@ int         appendLight     ( GXScene_t* scene, GXLight_t*  light  ); // ✅ App
 
 // Drawing
 int         drawScene       ( GXScene_t* scene );                     // ✅ Iterates through the scene, drawing all valid entities where the GXEdrawable flag == 1
+
+// Physics
 int         computePhysics  ( GXScene_t* scene, float deltaTime );    // ✅ Iterates through the scene, processing physics for all entities.
 
 // Getters + Setters
 GXEntity_t* getEntity       ( GXScene_t* scene, const char name[] );  // ✅ Searches for the specified entity and returns a pointer to it, else returns nullptr.
-GXCamera_t* getCamera       ( GXScene_t* scene, const char name[] );  // ✅ Searches for the specified camera and returnds a pointer to it, else returns nullptr.
+GXCamera_t* getCamera       ( GXScene_t* scene, const char name[] );  // ✅ Searches for the specified camera and returns a pointer to it, else returns nullptr.
+GXLight_t*  getLight        ( GXScene_t* scene, const char name[] );  // ✅ Searches for the specified light and returns a pointer to it, else returns nullptr.
+
 int         setActiveCamera ( GXScene_t* scene, const char name[] );  // ✅ Finds and sets the active camera
 
 // Removers
@@ -45,4 +48,4 @@ int         removeCamera    ( GXScene_t* scene, const char name[] );  // ✅ Rem
 int         removeLight     ( GXScene_t* scene, const char name[] );  // ✅ Removes a light by name
 
 // Destructors
-int         destroyScene    ( GXScene_t* scene );                     // ✅ destroy a scene and all of its contents
+int         destroyScene    ( GXScene_t* scene );                     // ✅ Destroy a scene and all of its contents

@@ -6,9 +6,11 @@ GXMesh_t* createMesh ( )
 {
 	// Initialized data
 	GXMesh_t* ret = malloc(sizeof(GXMesh_t));
+
 	// Check allocated memory
 	if (ret == 0)
 		return ret;
+
 	// Set vertex arrays, vertex buffers, and element buffers to 0
 	ret->vertexArray      = 0;
 	ret->vertexBuffer     = 0;
@@ -23,7 +25,7 @@ GXMesh_t* loadMesh ( const char path[] )
 	// Initialized data
 	char*     fileExtension = 1 + strrchr(path, '.');
 	GXMesh_t* ret           = (void*)0;
-
+	
 	// Figure out what type of file we are dealing with throught the extenstion. This is an admittedly naive approach, but each loader function checks for signatures, so any error handling is handed off to them
 	if (strcmp(fileExtension, "ply") == 0 || strcmp(fileExtension, "PLY") == 0)
 		ret = loadPLYMesh(path);
@@ -33,6 +35,22 @@ GXMesh_t* loadMesh ( const char path[] )
 	#endif
 
 	return ret;
+}
+
+GXMesh_t* loadMeshFromJSON(const char path[])
+{
+	// TODO: Load as JSON
+
+	return 0;
+}
+
+int drawMesh(GXMesh_t* mesh)
+{
+	// Draw the entity
+	glBindVertexArray(mesh->vertexArray);
+	glDrawElements(GL_TRIANGLES, mesh->elementsInBuffer * 3, GL_UNSIGNED_INT, 0);
+
+	return 0;
 }
 
 int unloadMesh ( GXMesh_t* mesh )

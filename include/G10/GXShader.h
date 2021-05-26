@@ -10,20 +10,32 @@
 #include <G10/GXLinear.h>
 #include <G10/GXJSON.h>
 
+#include <G10/GXKeyValue.h>
+
 // TODO: Implement a key/value system to associate the following defines with uniform variable names in opengl.
 
 #define GXSP_CameraPosition 0x0000000000000001
 #define GXSP_CameraRotation 0x0000000000000002
-
 #define GXSP_Model          0x0000000000000004
 #define GXSP_View           0x0000000000000008
-#define GXSP_Perspective    0x0000000000000010
+#define GXSP_Projection     0x0000000000000010
+#define GXSP_LightPosition  0x0000000000000020
+#define GXSP_LightColor     0x0000000000000040
+#define GXSP_LightCount     0x0000000000000080
+#define GXSP_Albedo         0x0000000000000100
+#define GXSP_Normal         0x0000000000000200
+#define GXSP_Metal          0x0000000000000400
+#define GXSP_Rough          0x0000000000000800
+#define GXSP_AO             0x0000000000001000
 
 // Contains information about a shader
 struct GXShader_s
 {
-	char*        name;
-	unsigned int shaderProgramID;
+	char*         name;
+	unsigned int  shaderProgramID;
+	size_t        requestedDataFlags;
+	size_t        requestedDataCount;
+	GXKeyValue_t* requestedData;
 };
 typedef struct GXShader_s GXShader_t;
 

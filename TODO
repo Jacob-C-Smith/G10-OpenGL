@@ -30,7 +30,7 @@
  - ❌ Rigidbody physics.
 
 === General goals ===
- - ❌ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
+ - ✅ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
  - ❌ Implement multithreading.
  - ❌ Export this whole project into a DLL file so that other developers can use it.
  - ❌ Figure out a better way of handling input.

@@ -166,12 +166,12 @@
     <ClCompile Include="GXMesh.c" />
     <ClCompile Include="GXPLY.c" />
     <ClCompile Include="GXPNG.c" />
-    <ClCompile Include="GXRI.c" />
     <ClCompile Include="GXRigidbody.c" />
     <ClCompile Include="GXScene.c" />
     <ClCompile Include="GXShader.c" />
     <ClCompile Include="GXTexture.c" />
     <ClCompile Include="GXTransform.c" />
+    <ClCompile Include="include\G10\GXKeyValue.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +184,7 @@
     <ClInclude Include="include\G10\GXilmath.h" />
     <ClInclude Include="include\G10\GXJPG.h" />
     <ClInclude Include="include\G10\GXJSON.h" />
+    <ClInclude Include="include\G10\GXKeyValue.h" />
     <ClInclude Include="include\G10\GXLight.h" />
     <ClInclude Include="include\G10\GXLinear.h" />
     <ClInclude Include="include\G10\GXMaterial.h" />
@@ -203,7 +204,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="GXCamera_x86_64.asm" />
     <MASM Include="GXRigidbody_x86_64.asm" />
+    <MASM Include="GXMath_x86_64.asm" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="benchmarks.txt" />

@@ -23,20 +23,22 @@ struct GXRigidbody_s
 	GXvec3_t  angularVelocity;     // The last angular velocity of the entity.
 	
 	GXvec3_t* forces;              // A list of forces acting on the entity.
-	size_t  forcesCount;           // The number of forces acting on the entity.
+	size_t    forcesCount;         // The number of forces acting on the entity.
 };
 typedef struct GXRigidbody_s GXRigidbody_t;
 
 
 // Constructors
-GXRigidbody_t*         createRigidbody           ( float mass, float radius, bool useGravity );
+GXRigidbody_t*         createRigidbody                    ( float mass, float radius, bool useGravity );
+
+extern void            calculateDerivativesOfDisplacement ( void* entity );
 
 // Physics
-static inline GXvec3_t applyForce                ( GXRigidbody_t* rigidbody ) {
+static inline GXvec3_t applyForce                         ( GXRigidbody_t* rigidbody ) {
 	return vec3xf(rigidbody->acceleration, rigidbody->mass);
 }
-int                    updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transform, u32 deltaTime );
-int                    computeCollision          ( GXRigidbody_t* a, GXRigidbody_t* b );
+int                    updatePositionAndVelocity          ( GXRigidbody_t* rigidbody, GXTransform_t* transform, u32 deltaTime );
+int                    computeCollision                   ( GXRigidbody_t* a, GXRigidbody_t* b );
 
 // Destructors
-int                    destroyRigidBody          ( GXRigidbody_t* rigidbody );
+int                    destroyRigidBody                   ( GXRigidbody_t* rigidbody );

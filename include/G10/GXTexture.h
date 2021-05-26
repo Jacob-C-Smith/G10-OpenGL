@@ -11,7 +11,13 @@
 // Contains information about a texture
 struct GXTexture_s
 {
+	// Name
+	char* name;
+
+	// For OpenGL
 	unsigned int textureID;
+
+	// Resolution
 	size_t       width;
 	size_t       height;
 };

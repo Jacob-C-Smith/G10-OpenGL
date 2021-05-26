@@ -26,6 +26,7 @@ GXRigidbody_t* createRigidbody ( float mass, float radius, bool useGravity )
 
 int updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transform, u32 deltaTime )
 {
+	// Initialized data
 	GXvec3_t f = applyForce(rigidbody);
 	GXvec3_t a = vec3xf(f, 1 / rigidbody->mass);
 
@@ -37,7 +38,7 @@ int updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transfo
 
 int computeCollision ( GXRigidbody_t* a, GXRigidbody_t* b )
 {
-	;
+	
 	return 0;
 }
  

@@ -5,57 +5,62 @@
 GXMesh_t* loadPLYMesh ( const char path[] )
 {
 	// Uninitialized data
-	size_t         l;
+	size_t         l,
+		           verticesInBuffer;
 	char*          data;
 	float*         vertexArray;
 	GXPLYindex_t*  indices;
-	size_t         verticesInBuffer;
 	unsigned long* correctedIndicies;
 
 	// Initialized data
-	GXMesh_t*    ret     = malloc(sizeof(GXMesh_t));
-	size_t       i       = 0,
-	             j       = 0,
-	             k       = 0;
-	FILE*        f       = fopen(path, "rb");
-	GXPLYfile_t* plyFile = calloc(1,sizeof(GXPLYfile_t));
+	GXMesh_t*      ret     = malloc(sizeof(GXMesh_t));
+	size_t         i       = 0,
+	               j       = 0,
+	               k       = 0;
+	FILE*          f       = fopen(path, "rb");
+	GXPLYfile_t*   plyFile = calloc(1,sizeof(GXPLYfile_t));
+
+	if (ret == 0)
+		return ret;
 
 	plyFile->nElements   = 0;
 	plyFile->elements    = (void*)0;
 	plyFile->flags       = 0;
 
-	// Check if file is valid
-	if (f == NULL)
+	// Load the file
 	{
-		printf("Failed to load file %s\n", path);
-		return (void*)0;
+		// Check if file is valid
+		if (f == NULL)
+		{
+			printf("Failed to load file %s\n", path);
+			return (void*)0;
+		}
+		
+		// Find file size and prep for read
+		fseek(f, 0, SEEK_END);
+		l = ftell(f);
+		fseek(f, 0, SEEK_SET);
+
+		// Allocate data and read file into memory
+		data = malloc(l+1);
+		if (data == 0)
+			return (void*)0;
+
+		// Check
+		if (l < 3)
+			return (void*)0;
+
+		// Read in the data
+		fread(data, 1, l, f);
+
+		// We no longer need the file
+		fclose(f);
 	}
 
-	// Find file size and prep for read
-	fseek(f, 0, SEEK_END);
-	l = ftell(f);
-	fseek(f, 0, SEEK_SET);
-
-	// Allocate data and read file into memory
-	data = malloc(l+1);
-
-	// Check to make sure we got the RAM
-	if (data == 0)
-		return (void*)0;
-	if (ret == 0)
-		return ret;
-	if (l < 3)
-		return (void*)0;
-	// Read in the data
-	fread(data, 1, l, f);
-
-	// We no longer need the file
-	fclose(f);
-
 	// Debugger logging
-#ifndef NDEBUG
-	printf("Loaded file %s\n", path);
-#endif
+	#ifndef NDEBUG
+		printf("Loaded file %s\n", path);
+	#endif
 
 	// Check signature
 	if ((data[0] == 'p' && data[1] == 'l' && data[2] == 'y') == 0)
@@ -78,7 +83,9 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	{
 		if (strncmp(&data[i], "element", 7) == 0)
 		{
+			// Initialized data
 			size_t m = 0;
+
 			i += 8;
 
 			while (data[i + m] != ' ')
@@ -128,6 +135,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 			while (data[i++] != '\n');
 			while (strncmp(&data[i], "property", 8) == 0)
 			{
+				int n = 0;
 				i += 9;
 				if (strncmp(&data[i], "float", 5) == 0)
 				{
@@ -136,7 +144,6 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 				}
 
 				m = 0;
-				int n = 0;
 				while (data[i + m] != '\n')
 					m++;
 
@@ -165,12 +172,13 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	{
 		if (strncmp(&data[i], "element", 7) == 0)
 		{
-			i += 8;
-			size_t namelen = 0;
-			size_t y = 0;
-			size_t x = 0;
-			size_t listItems = 0;
+			
+			size_t namelen   = 0,
+			       y         = 0,
+			       x         = 0,
+			       listItems = 0;
 
+			i += 8;
 			while (data[i++ + namelen] != ' ');
 			y = atoi(&data[i]);
 			while (data[i++] != '\n');
@@ -261,22 +269,22 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 		else if (strncmp(&data[i], "comment", 7) == 0)
 		{
 			i += 7;
-#ifndef NDEBUG
-			printf("Comment: ");
-			while (data[i++] != '\n')
-				putchar(data[i]);
-			data--;
-#endif
+			#ifndef NDEBUG
+				printf("Comment: ");
+				while (data[i++] != '\n')
+					putchar(data[i]);
+				data--;
+			#endif
 		}
 		else if (strncmp(&data[i], "format", 6) == 0)
 		{
 			i += 6;
-#ifndef NDEBUG
-			printf("Format: ");
-			while (data[i++] != '\n')
-				putchar(data[i]);
-			data--;
-#endif
+			#ifndef NDEBUG
+				printf("Format: ");
+				while (data[i++] != '\n')
+					putchar(data[i]);
+				data--;
+			#endif
 		}
 		while (data[i++] != '\n');
 	}
@@ -294,8 +302,8 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	// Create flags
 	{
 		int tflags = 0;
+		// Determine what properties are in the file
 		{
-			// Determine what properties are in the file
 			for (int a = 0; a < plyFile->nElements; a++)
 				for (int b = 0; b < plyFile->elements[a].nProperties; b++)
 					if (strncmp(plyFile->elements[a].properties[b].name, "x", 1) == 0)
@@ -322,7 +330,7 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 						tflags |= 0x400;
 					else if (strncmp(plyFile->elements[a].properties[b].name, "alpha", 5) == 0)
 						tflags |= 0x800;
-			}
+		}
 		{
 			if (tflags & 0x001 && tflags & 0x002 && tflags & 0x004)
 				plyFile->flags |= GXPLY_Geometric;
@@ -344,7 +352,9 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	ret->elementsInBuffer = plyFile->elements[1].nCount * 3 * sizeof(unsigned int);
 
 	correctedIndicies = malloc(ret->elementsInBuffer);
-	
+	if (correctedIndicies == (void*)0)
+		return correctedIndicies;
+
 	for (i = 0; i < plyFile->elements[1].nCount; i++)
 	{
 		correctedIndicies[i * 3 + 0] = indices[i].a;
@@ -380,11 +390,13 @@ GXMesh_t* loadPLYMesh ( const char path[] )
 	{
 		plyFile->elements[i].properties[j].name     = (void*)0;
 		plyFile->elements[i].properties[j].typeSize = 0;
+
 		free(plyFile->elements[i].properties);
-		plyFile->elements[i].name        = (void*)0;
-		plyFile->elements[i].nCount      = 0;
-		plyFile->elements[i].nProperties = 0;
-		plyFile->elements[i].sStride     = 0;
+		
+		plyFile->elements[i].name                   = (void*)0;
+		plyFile->elements[i].nCount                 = 0;
+		plyFile->elements[i].nProperties            = 0;
+		plyFile->elements[i].sStride                = 0;
 	}
 
 	free(plyFile->elements);

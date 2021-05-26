@@ -18,155 +18,94 @@ GXScene_t* createScene ( )
 GXScene_t* loadScene ( const char path[] )
 {
 	// Uninitialized data
-	int i;
-	char* data;
+	int          i;
+	char*        data;
+	int          rootTokenCount;
+	JSONValue_t* rootContents; 
 
 	// Initialized data
-	GXScene_t* ret = createScene();
-	size_t l = 0;
+	GXScene_t*   ret = createScene();
+	size_t       l   = 0;
+	FILE*        f   = fopen(path, "rb");
+
 	if (ret == 0)
 		return (void*)0;
 
-	// Open file for reading
-	FILE* f = fopen(path, "rb");
-
-	// Check if file is valid
-	if (f == NULL)
+	// Load the file
 	{
-		printf("Failed to load file %s\n", path);
-		return (void*)0;
+		// Check if file is valid
+		if (f == NULL)
+		{
+			printf("Failed to load file %s\n", path);
+			return (void*)0;
+		}
+
+		// Find file size and prep for read
+		fseek(f, 0, SEEK_END);
+		i = ftell(f);
+		fseek(f, 0, SEEK_SET);
+
+		// Allocate data and read file into memory
+		data = malloc(i+1);
+		if (data == 0)
+			return (void*)0;
+		fread(data, 1, i, f);
+
+		// We no longer need the file
+		fclose(f);
+
+		// For reasons beyond me, the null terminator isn't included.
+		data[i] = '\0';
 	}
 
-	// Find file size and prep for read
-	fseek(f, 0, SEEK_END);
-	i = ftell(f);
-	fseek(f, 0, SEEK_SET);
-
-	// Allocate data and read file into memory
-	data = malloc(i);
-	if (data == 0)
-		return (void*)0;
-	fread(data, 1, i, f);
-
-	// We no longer need the file
-	fclose(f);
-
-	l = strlen(data);
-
 	// Parse the first level of the JSON entity
-	int rootTokenCount = GXParseJSON(data, i, 0, (void*)0);
-	JSONValue_t* rootContents = calloc(rootTokenCount, sizeof(JSONValue_t));
+	l              = strlen(data);
+	rootTokenCount = GXParseJSON(data, i, 0, (void*)0);
+	rootContents   = calloc(rootTokenCount, sizeof(JSONValue_t));
+
 	GXParseJSON(data, i, rootTokenCount, rootContents);
 
+	// Find and exfiltrate important information.
 	for (size_t j = 0; j < rootTokenCount; j++)
 	{
 		// Handle comments
 		if (strcmp("comment", rootContents[j].name) == 0)
 		{
 			#ifndef NDEBUG
-			// Print out comment
-			printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
+				// Print out comment
+				printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
 			#endif
+			continue;
 		}
 
 		// Copy out the name of the scene
 		if (strcmp("name", rootContents[j].name) == 0)
 		{
+			// Initialized data.
 			size_t len = strlen(rootContents[j].content.nWhere);
-			ret->name = malloc(len);
+			ret->name  = malloc(len+1);
+
 			strncpy(ret->name, rootContents[j].content.nWhere, len);
+			ret->name[len] = '\0';
+			continue;
 		}
 
 		// Create cameras
 		if (strcmp("cameras", rootContents[j].name) == 0)
 		{
+			// Initialized data
 			size_t k = 0;
+
 			while (rootContents[j].content.aWhere[k])
 			{
-				// Create the camera
-				GXCamera_t* camera = createCamera();
-
-				// Parse out JSON camera data
-				size_t len = strlen(rootContents[j].content.aWhere[k]), subTokenCount = GXParseJSON(rootContents[j].content.aWhere[k], len, 0, 0);
-				JSONValue_t* subContents = calloc(subTokenCount, sizeof(JSONValue_t));
-				GXParseJSON(rootContents[j].content.aWhere[k], len, subTokenCount, subContents);
-
-				for (size_t l = 0; l < subTokenCount; l++)
-				{
-					// Parse out the camera name
-					if (strcmp("name", subContents[l].name) == 0)
-					{
-						camera->name = malloc(strlen(subContents[l].content.nWhere));
-						strcpy(camera->name, (const char*)subContents[l].content.nWhere);
-						continue;
-					}
-
-					// Parse out where the camera is
-					if (strcmp("where", subContents[l].name) == 0)
-					{
-						camera->where = (GXvec3_t){ (float)atof(subContents[l].content.aWhere[0]), (float)atof(subContents[l].content.aWhere[1]), (float)atof(subContents[l].content.aWhere[2]) };
-						continue;
-					}
-
-					// Parse out target
-					else if (strcmp("target", subContents[l].name) == 0)
-					{
-						camera->target = (GXvec3_t){ (float)atof(subContents[l].content.aWhere[0]), (float)atof(subContents[l].content.aWhere[1]), (float)atof(subContents[l].content.aWhere[2]) };
-						continue;
-					}
-
-					// Parse out up
-					else if (strcmp("up", subContents[l].name) == 0)
-					{
-						camera->up = (GXvec3_t){ (float) atof(subContents[l].content.aWhere[0]), (float)atof(subContents[l].content.aWhere[1]), (float)atof(subContents[l].content.aWhere[2]) };
-						continue;
-					}
-
-					// Parse out FOV
-					else if (strcmp("fov", subContents[l].name) == 0)
-					{
-						camera->fov = (float)atof(subContents[l].content.nWhere);
-						continue;
-					}
-
-					// Parse out near clipping plane
-					else if (strcmp("near", subContents[l].name) == 0)
-					{
-						camera->near = (float)atof(subContents[l].content.nWhere);
-						continue;
-					}
-
-					// Parse out far clipping plane
-					else if (strcmp("far", subContents[l].name) == 0)
-					{
-						camera->far = (float)atof(subContents[l].content.nWhere);
-						continue;
-					}
-
-					// Parse out aspect ratio
-					else if (strcmp("aspectRatio", subContents[l].name) == 0)
-					{
-						camera->aspectRatio = (float)atof(subContents[l].content.nWhere);
-						continue;
-					}
-				}
-				// If no aspect ratio is supplied, default to 16:9 aspect ratio if not set
-				if (camera->aspectRatio == 0.f)
-					camera->aspectRatio = 16.f / 9.f;
-
-				// Calculate perspective projection
-				camera->projection = perspective(camera->fov, camera->aspectRatio, camera->near, camera->far);
-				camera->view = lookAt(camera->where, camera->target, camera->up);
-
-				// Set next to zero
-				camera->next = (void*)0;
-
-				appendCamera(ret, camera);
-				// Free subcontents
-				free(subContents);
+				// NOTE: Camera file paths can not start with '{'
+				if (*(char*)rootContents[j].content.aWhere[k] == '{')
+					appendCamera(ret, loadCameraAsJSON(rootContents[j].content.aWhere[k]));
+				else
+					appendCamera(ret, loadCamera(rootContents[j].content.aWhere[k]));
 				k++;
 			}
-
+			continue;
 		}
 
 		// Create entities
@@ -175,12 +114,13 @@ GXScene_t* loadScene ( const char path[] )
 			size_t k = 0;
 			while (rootContents[j].content.aWhere[k])
 			{
-			#ifndef NDEBUG
-				printf("Loading \"%s\"\n", (char*)rootContents[j].content.aWhere[k]);
-			#endif	
-				appendEntity(ret, loadEntity(rootContents[j].content.aWhere[k]));
+				if (*(char*)rootContents[j].content.aWhere[k] == '{')
+					appendEntity(ret, loadEntityAsJSON(rootContents[j].content.aWhere[k]));
+				else
+					appendEntity(ret, loadEntity(rootContents[j].content.aWhere[k]));		
 				k++;
 			}
+			continue;
 		}
 
 		// Set up lights
@@ -189,58 +129,13 @@ GXScene_t* loadScene ( const char path[] )
 			size_t k = 0;
 			while (rootContents[j].content.aWhere[k])
 			{
-				// Uninitialized data
-				JSONValue_t* subContents;
-				size_t       subTokenCount;
-
-				// Initialized data
-				GXLight_t* light = createLight();
-				size_t     len   = strlen(rootContents[j].content.aWhere[k]);
-
-				// Preparse the data
-				len           = strlen(rootContents[j].content.aWhere[k]);
-				subTokenCount = GXParseJSON(rootContents[j].content.aWhere[k], len, 0, 0);
-				subContents   = calloc(subTokenCount, sizeof(JSONValue_t));
-
-				// Parse out JSON light data
-				GXParseJSON(rootContents[j].content.aWhere[k], len, subTokenCount, subContents);
-
-				// Iterate through key / value pairs to find relevent information
-				for (size_t l = 0; l < subTokenCount; l++)
-				{
-					// Parse out the light name
-					if (strcmp("name", subContents[l].name) == 0)
-					{
-						light->name = malloc(strlen(subContents[l].content.nWhere));
-						if (light->name == (void*)0)
-							return 0;
-						strcpy(light->name, (const char*)subContents[l].content.nWhere);
-						continue;
-					}
-
-					// Parse out light color
-					if (strcmp("color", subContents[l].name) == 0)
-					{
-						light->color = (GXvec3_t){ (float)atof(subContents[l].content.aWhere[0]), (float)atof(subContents[l].content.aWhere[1]), (float)atof(subContents[l].content.aWhere[2]) };
-						continue;
-					}
-
-					// Parse out light position
-					if (strcmp("position", subContents[l].name) == 0)
-					{
-						light->location = (GXvec3_t){ (float)atof(subContents[l].content.aWhere[0]), (float)atof(subContents[l].content.aWhere[1]), (float)atof(subContents[l].content.aWhere[2]) };
-						continue;
-					}
-				}
-
-				// Set next to zero
-				light->next = (void*)0;
-				appendLight(ret, light);
-
-				// Free subcontents
-				free(subContents);
+				if (*(char*)rootContents[j].content.aWhere[k] == '{')
+					appendLight(ret, loadLightAsJSON(rootContents[j].content.aWhere[k]));
+				else
+					appendLight(ret, loadLight(rootContents[j].content.aWhere[k]));
 				k++;
 			}
+			continue;
 		}
 	}
 
@@ -283,7 +178,7 @@ int appendEntity ( GXScene_t* scene, GXEntity_t* entity )
 	#ifndef NDEBUG
 		printf("Entity \"%s\" can not be appended to \"%s\" because an entity with that name already exists\n", entity->name, scene->name);
 	#endif
-	return -1;
+	return 0;
 }
 
 int appendCamera ( GXScene_t* scene, GXCamera_t* camera ) 
@@ -318,10 +213,10 @@ int appendCamera ( GXScene_t* scene, GXCamera_t* camera )
 	#ifndef NDEBUG
 		printf("Camera \"%s\" can not be appended to \"%s\" because a camera with that name already exists\n", camera->name, scene->name);
 	#endif
-	return -1;
+	return 0;
 }
 
-int appendLight(GXScene_t* scene, GXLight_t* light)
+int appendLight  ( GXScene_t* scene, GXLight_t* light )
 {
 	// Set the pointer to the head of the linked list
 	GXLight_t* i = scene->lights;
@@ -352,68 +247,68 @@ int appendLight(GXScene_t* scene, GXLight_t* light)
 	#ifndef NDEBUG
 	printf("Light \"%s\" can not be appended to \"%s\" because a light with that name already exists\n", light->name, scene->name);
 	#endif
-	return -1;
+	return 0;
 }
 
-int drawScene ( GXScene_t* scene )
+int drawScene    ( GXScene_t* scene )
 {
+	// Initialized data
+	GXEntity_t* i = scene->entities;
+
 	// Is the scene real?
 	if (scene == 0)
-		return -1;
-
-	// Create a pointer to the head of the list
-	GXEntity_t* i = scene->entities;
+		goto invalidScene;
 	
 	// Iterate through list until we hit nullptr
 	while (i)
 	{
-		// Check for a shader
-		if (i->flags & GXEFShader)
+		// Set up the shader
 		{
 			// Use it
 			useShader(i->shader);
-
 			// Set some uniforms for the shader
-			setShaderMat4(i->shader, "V", (const GLfloat*)&scene->cameras->view);
-			setShaderMat4(i->shader, "P", (const GLfloat*)&scene->cameras->projection);
+			for (size_t j = 0; j < i->shader->requestedDataCount; j++)
+			{
+				switch (i->shader->requestedData[j].key)
+				{
+				case GXSP_Projection:
+					setShaderMat4(i->shader, i->shader->requestedData[j].value, (const GLfloat*)&scene->cameras->projection);
+					break;
+				case GXSP_View:
+					setShaderMat4(i->shader, i->shader->requestedData[j].value, (const GLfloat*)&scene->cameras->view);
+					break;
+				case GXSP_CameraPosition:
+					setShaderVec3(i->shader, i->shader->requestedData[j].value, scene->cameras->where);
+					break;
+				default:
+					break;
+				}
+			}
 
-			setShaderVec3(i->shader, "camPos", scene->cameras->where);
 		}
 
 		// If a PBR material is available, set up lights to use it
-		if (i->flags & GXEFMaterial && scene->lights)
+		if (1)
 		{
 			GXLight_t* light = scene->lights;
 
 			char* buffer = malloc(512);
+			if (buffer == (void*)0)
+				return 0;
+
 			// TODO: Dynamically determine max lights from graphics settings and machine hardware
 			for(size_t j = 0; j < GX_MAX_LIGHTS && light; j++)
-			{
-				// TODO: use sprintf to generate
-				
-				buffer[sprintf(buffer, "lightPositions[%d]\0", j) + 1] = 0;
+			{				
+				buffer[sprintf(buffer, "lightPositions[%lld]\0", j) + 1] = 0;
 				setShaderVec3(i->shader, buffer, light->location);
-				buffer[sprintf(buffer, "lightColors[%d]\0", j) + 1] = 0;
+				buffer[sprintf(buffer, "lightColors[%lld]\0", j) + 1] = 0;
 				setShaderVec3(i->shader, buffer, light->color);
 			
 				light = light->next;
 			}
 
 			free(buffer);
-			/*
-			setShaderVec3(i->shader, "lightPositions[0]", (GXvec3_t) { 4.f, 0.f, 5.f } );
-			setShaderVec3(i->shader, "lightColors[0]"   , (GXvec3_t) { 1000.f, 1000.f, 1000.f } );
-			setShaderVec3(i->shader, "lightPositions[1]", (GXvec3_t) { -4.f, 0.f, 5.f } );
-			setShaderVec3(i->shader, "lightColors[1]"   , (GXvec3_t) { 1000.f, 1000.f, 1000.f } );
-			setShaderVec3(i->shader, "lightPositions[2]", (GXvec3_t) { 0.f, 4.f, 5.f } );
-			setShaderVec3(i->shader, "lightColors[2]"   , (GXvec3_t) { 1000.f, 1000.f, 1000.f } );
-			setShaderVec3(i->shader, "lightPositions[3]", (GXvec3_t) { 0.f, -4.f, 5.f } );
-			setShaderVec3(i->shader, "lightColors[3]"   , (GXvec3_t) { 1000.f, 1000.f, 1000.f } );
-			*/
 		}
-
-		// Assign a material
-		assignMaterial(i->material, i->shader);
 
 		// Actually draw the entity
 		drawEntity(i);
@@ -423,16 +318,21 @@ int drawScene ( GXScene_t* scene )
 	}
 
 	return 0;
+	invalidScene:
+	#ifndef NDEBUG
+		printf("Null pointer provided to %s.\n", __FUNCTION__);
+	#endif
+	return 0;
 }
 
 int computePhysics ( GXScene_t* scene, float deltaTime )
 {
 	// TODO: Compute physics
 	GXEntity_t* i = scene->entities;
-	while (i)
+	while (i && i->rigidbody)
 	{
 		// Summate forces 
-		sumVecs(i->rigidbody->forcesCount, i->rigidbody->forces);
+		SSESumVecs(i->rigidbody->forcesCount, i->rigidbody->forces);
 
 		// Calculate new acceleration, velocity, and position
 		calculateDerivativesOfDisplacement(i, deltaTime);
@@ -452,7 +352,7 @@ GXEntity_t* getEntity ( GXScene_t* scene, const char name[] )
 
 	// Sanity check
 	if (i == 0)
-		return (void*)0;
+		goto noEntities;
 	
 	// Iterate through list until we hit the entity we want, or zero
 	while (i)
@@ -463,7 +363,19 @@ GXEntity_t* getEntity ( GXScene_t* scene, const char name[] )
 	}
 	
 	// Unable to locate entity
-	return (void*) 0;
+	goto noMatch;
+
+	noEntities:
+	#ifndef NDEBUG
+		printf("There are no entities.\n");
+	#endif
+	return 0;	
+
+	noMatch:
+	#ifndef NDEBUG
+		printf("There is no entity named \"%s\".", name);
+	#endif
+	return 0;
 }
 
 GXCamera_t* getCamera(GXScene_t* scene, const char name[])
@@ -473,9 +385,9 @@ GXCamera_t* getCamera(GXScene_t* scene, const char name[])
 
 	// Sanity check
 	if (i == 0)
-		return (void*)0;
+		goto noCameras;
 
-	// Iterate through list until we hit the entity we want, or zero
+	// Iterate through list until we hit the camera we want, or zero
 	while (i)
 	{
 		if (strcmp(name, i->name) == 0)
@@ -483,8 +395,53 @@ GXCamera_t* getCamera(GXScene_t* scene, const char name[])
 		i = i->next;
 	}
 
-	// Unable to locate entity
-	return (void*)0;
+	// Unable to locate camera
+	goto noMatch;
+
+	noCameras:
+	#ifndef NDEBUG
+		printf("There are no cameras in \"%s\".\n", scene->name);
+	#endif
+	return 0;
+
+	noMatch:
+	#ifndef NDEBUG
+		printf("There is no camera in \"%s\" named \"%s\".", scene->name, name);
+	#endif
+	return 0;
+}
+
+GXLight_t* getLight(GXScene_t* scene, const char name[])
+{
+	// Create a pointer to the head of the list
+	GXLight_t* i = scene->lights;
+
+	// Sanity check
+	if (i == 0)
+		goto noLights;
+
+	// Iterate through list until we hit the light we want, or zero
+	while (i)
+	{
+		if (strcmp(name, i->name) == 0)
+			return i; // If able to locate the light in question, return a pointer
+		i = i->next;
+	}
+
+	// Unable to locate light
+	goto noMatch;
+
+	noLights:
+	#ifndef NDEBUG
+		printf("There are no lights in \"%s\".\n", scene->name);
+	#endif
+	return 0;
+
+	noMatch:
+	#ifndef NDEBUG
+		printf("There is no light in \"%s\" named \"%s\".", scene->name, name);
+	#endif
+	return 0;
 }
 
 int setActiveCamera ( GXScene_t* scene, const char name[] )
@@ -494,11 +451,11 @@ int setActiveCamera ( GXScene_t* scene, const char name[] )
 	
 	// Quick sanity check
 	if (i == 0)
-		return -1;
+		goto noCameras;
 
 	// Check the head
 	if (strcmp(name, i->name) == 0)
-		return 0;
+		goto noNeed;
 
 	// Find the named camera
 	while (i->next)
@@ -516,6 +473,22 @@ int setActiveCamera ( GXScene_t* scene, const char name[] )
 		}
 		i = i->next;
 	}
+
+	goto noMatch;
+	noCameras:
+	#ifndef NDEBUG
+		printf("There are no cameras, therefore no active camera.\n");
+	#endif
+	return 0;
+	noNeed:
+	#ifndef NDEBUG
+		printf("\"%s\" is already the active camera.\n", name);
+	#endif
+	return 0;
+	noMatch:
+	#ifndef NDEBUG
+		printf("There is no camera in \"%s\" named \"%s\".\n", scene->name, name);
+	#endif
 	return 0;
 }
 
@@ -526,7 +499,7 @@ int removeEntity ( GXScene_t* scene, const char name[] )
 	
 	// Quick sanity check
 	if (i == 0)
-		return -1;
+		goto noEntities;
 	
 	// Check the head
 	if (strcmp(name, i->name) == 0)
@@ -560,6 +533,18 @@ int removeEntity ( GXScene_t* scene, const char name[] )
 		i = i->next;
 	}
 
+	goto noMatch;
+
+noEntities:
+	#ifndef NDEBUG
+		printf("There are no entities in \"%s\".\n", scene->name);
+	#endif
+	return 0;
+
+noMatch:
+	#ifndef NDEBUG
+		printf("There is no entity in \"%s\" named \"%s\".\n", scene->name, name);
+	#endif
 	return 0;
 }
 
@@ -570,7 +555,7 @@ int removeCamera ( GXScene_t* scene, const char name[] )
 
 	// Quick sanity check
 	if (i == 0)
-		return -1;
+		goto noCameras;
 
 	// Check the head
 	if (strcmp(name, i->name) == 0)
@@ -581,19 +566,19 @@ int removeCamera ( GXScene_t* scene, const char name[] )
 		return 0;
 	}
 
-	// Destroy the named entity
+	// Destroy the named camera
 	while (i->next)
 	{
 		if (strcmp(name, i->next->name) == 0)
 		{
-			// Make a copy of the entity that is 2 positions ahead of the current entity
+			// Make a copy of the camera that is 2 positions ahead of the current camera
 			GXCamera_t* j = i->next->next;
 
-			// Delete the entity
+			// Delete the camera
 			destroyCamera(i->next);
 
 			// Verbose logging
-			#ifdef NDEBUG
+			#ifndef NDEBUG
 				printf("Destroyed Camera \"%s\"\n", name);
 			#endif		
 
@@ -604,11 +589,70 @@ int removeCamera ( GXScene_t* scene, const char name[] )
 		i = i->next;
 	}
 
+	goto noMatch;
+	noCameras:
+	#ifndef NDEBUG
+		printf("There are no cameras in \"%s\"", scene->name);
+	#endif
+	return 0;
+	noMatch:
+	#ifndef NDEBUG
+		printf("There is no camera in \"%s\" named \"%s\".", scene->name, name);
+	#endif
 	return 0;
 }
 
 int removeLight(GXScene_t* scene, const char name[])
 {
+	// Create a pointer to the head of the list
+	GXLight_t* i = scene->lights;
+
+	// Quick sanity check
+	if (i == 0)
+		goto noLights;
+
+	// Check the head
+	if (strcmp(name, i->name) == 0)
+	{
+		GXLight_t* j = i->next;
+		destroyLight(i);
+		i = j;
+		return 0;
+	}
+
+	// Destroy the named light
+	while (i->next)
+	{
+		if (strcmp(name, i->next->name) == 0)
+		{
+			// Make a copy of the light that is 2 positions ahead of the current light
+			GXLight_t* j = i->next->next;
+
+			// Delete the light
+			destroyLight(i->next);
+
+			// Verbose logging
+			#ifndef NDEBUG
+				printf("Destroyed light \"%s\"\n", name);
+			#endif		
+
+			// Stitch up the linked list 
+			i->next = j;
+			return 0;
+		}
+		i = i->next;
+	}
+	goto noMatch;
+
+	noLights:
+	#ifndef NDEBUG
+		printf("There are no lights in \"%s\"", scene->name);
+	#endif
+	return 0;
+	noMatch:
+	#ifndef NDEBUG
+		printf("There is no light in \"%s\" named \"%s\".", scene->name, name);
+	#endif
 	return 0;
 }
 
@@ -617,8 +661,11 @@ int destroyScene ( GXScene_t* scene )
 	// Set sceneID to zero;
 	GXEntity_t* i = scene->entities;
 	GXCamera_t* k = scene->cameras;
+	GXLight_t*  l = scene->lights;
 
-	// Destroy all entities in the scene
+	free(scene->name);
+
+  	// Destroy all entities in the scene
 	while (i)
 	{
 		GXEntity_t* j = i;
@@ -626,16 +673,30 @@ int destroyScene ( GXScene_t* scene )
 		destroyEntity(j);
 	}
 
-	// Zero set the head of the linked list
+	// Zero set the entites pointer
 	scene->entities   = (void*)0;
 
 	// Destroy the cameras
 	while (k)
 	{
-		GXCamera_t* l = k;
+		GXCamera_t* j = k;
 		k = k->next;
-		destroyCamera(l);
+		destroyCamera(j);
 	}
+
+	// Zero set the cameras pointer
+	scene->cameras = (void*)0;
+
+	// Destroy the lights
+	while (l)
+	{
+		GXLight_t* j = l;
+		l = l->next;
+		destroyLight(j);
+	}
+
+	// Zero set the lights pointer
+	scene->lights = (void*)0;
 
 	// Free up the scene
 	free(scene);

@@ -1,7 +1,6 @@
 #include <G10/G10.h>
 
-
-int gInit(SDL_Window* window ,SDL_GLContext glContext)
+int gInit(SDL_Window** window, SDL_GLContext* glContext)
 {
 	// Uninitialized data
 	SDL_Window*    lWindow;
@@ -13,28 +12,29 @@ int gInit(SDL_Window* window ,SDL_GLContext glContext)
 		// Initialize SDL
 		if (SDL_Init(SDL_INIT_EVERYTHING))
 		{
-			printf("Failed to initialize SDL\n");
-			return -1;
+			#ifndef NDEBUG
+				printf("Failed to initialize SDL\n");
+			#endif
+			return 0;
 		}
 
 		// Initialize the image loader library
 		if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
 		{
-			printf("Failed to initialize SDL Image\n");
-			return -1;
+			#ifndef NDEBUG
+				printf("Failed to initialize SDL Image\n");
+			#endif
+			return 0;
 		}
 
 		// Create the window
 		lWindow = SDL_CreateWindow("G10",
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
-			1280,
-			720,
-
-			SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE); //| SDL_WINDOW_FULLSCREEN
-		// 1920,1080,
-		// Create the OpenGL context
+			1280, 720,
+			SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE ); 
 		
+		// Create the OpenGL context
 		lGlContext = SDL_GL_CreateContext(lWindow);
 
 		// Check the window
@@ -43,7 +43,7 @@ int gInit(SDL_Window* window ,SDL_GLContext glContext)
 			#ifndef NDEBUG
 				printf("Failed to create a window\nSDL Says: %s", SDL_GetError());
 			#endif
-			return -1;
+			return 0;
 		}
 
 		// Check the OpenGL context
@@ -52,7 +52,7 @@ int gInit(SDL_Window* window ,SDL_GLContext glContext)
 			#ifndef NDEBUG
 				printf("Failed to create an OpenGL Context\nSDL Says: %s", SDL_GetError());
 			#endif
-			return -1;
+			return 0;
 		}
 
 		// Check the glad loader
@@ -62,23 +62,29 @@ int gInit(SDL_Window* window ,SDL_GLContext glContext)
 				printf("Failed to load OpenGL");
 			#endif 
 
-			return -1;
+			return 0;
 		}
+
 		// Enable VSync
 		SDL_GL_SetSwapInterval(1);
 
 		// Uncomment for mouse locking
-		//SDL_SetRelativeMouseMode(SDL_TRUE);
+		SDL_SetRelativeMouseMode(SDL_TRUE);
 
 		// OpenGL Commands
 		{
+			// Enable depth testing
 			glEnable(GL_DEPTH_TEST);
 			glDepthFunc(GL_LESS);
+
+			// Set the clear color to white
+			glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 	}
 
-	window = &lWindow;
-	glContext = &lGlContext;
+	*window    = lWindow;
+	*glContext = lGlContext;
+
 	return 0;
 }
 
@@ -91,5 +97,6 @@ int gExit(SDL_Window* window, SDL_GLContext glContext)
 		IMG_Quit();
 		SDL_Quit();
 	}
+
 	return 0;
 }

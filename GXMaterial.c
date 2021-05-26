@@ -24,11 +24,15 @@ GXMaterial_t* loadMaterial ( const char path[] )
     // Uninitialized data
     int          i;
     u8*          data;
+    size_t       len,
+                 rootTokenCount;
+    JSONValue_t* rootContents;
 
     // Initialized data
-    GXMaterial_t* ret = malloc(sizeof(GXMaterial_t));
-    FILE*         f   = fopen(path, "rb");
+    GXMaterial_t* ret          = malloc(sizeof(GXMaterial_t));
+    FILE*         f            = fopen(path, "rb");  
 
+    
     // Check allocated memory
     if (ret == 0)
         return ret;
@@ -58,12 +62,9 @@ GXMaterial_t* loadMaterial ( const char path[] )
     // We no longer need the file
     fclose(f);
 
-    data[i] = '\0';
-    // Initialized data
-    size_t        len          = strlen(data), rootTokenCount = GXParseJSON(data, len, 0, 0);
-    JSONValue_t*  rootContents = calloc(rootTokenCount, sizeof(JSONValue_t));
-
     // Parse JSON Values
+    len          = strlen(data), rootTokenCount = GXParseJSON(data, len, 0, 0);
+    rootContents = calloc(rootTokenCount, sizeof(JSONValue_t));
     GXParseJSON(data, len, rootTokenCount, rootContents);
 
     // Find and load the textures
@@ -88,12 +89,14 @@ GXMaterial_t* loadMaterial ( const char path[] )
 
 int assignMaterial ( GXMaterial_t* material, GXShader_t* shader )
 {
+    // TODO: Dynamically change the names of the uniforms using the key/value pairs defined in the shader
+    
     // Set the texture uniforms
-    setShaderInt(shader, "albedoMap", 0);
-    setShaderInt(shader, "normalMap", 1);
-    setShaderInt(shader, "metallicMap", 2);
+    setShaderInt(shader, "albedoMap"   , 0);
+    setShaderInt(shader, "normalMap"   , 1);
+    setShaderInt(shader, "metallicMap" , 2);
     setShaderInt(shader, "roughnessMap", 3);
-    setShaderInt(shader, "aoMap", 4);
+    setShaderInt(shader, "aoMap"       , 4);
 
     // Bind the texture units to the textureIDs
     glActiveTexture(GL_TEXTURE0);
@@ -110,7 +113,7 @@ int assignMaterial ( GXMaterial_t* material, GXShader_t* shader )
 
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, material->AO);
-
+    
     return 0;
 }
 
