@@ -13,8 +13,8 @@ GXMaterial_t* createMaterial ( )
     ret->albedo    = (void*)0;
     ret->normal    = (void*)0;
     ret->roughness = (void*)0;
-	ret->metallic  = (void*)0;
-	ret->AO        = (void*)0;
+    ret->metallic  = (void*)0;
+    ret->AO        = (void*)0;
 
     return ret;
 }
@@ -37,30 +37,32 @@ GXMaterial_t* loadMaterial ( const char path[] )
     if (ret == 0)
         return ret;
 
-    // Check if file is valid
-    if (f == NULL)
     {
-        printf("Failed to load file %s\n", path);
-        return (void*)0;
+        // Check if file is valid
+        if (f == NULL)
+        {
+            printf("Failed to load file %s\n", path);
+            return (void*)0;
+        }
+
+        // Find file size and prep for read
+        fseek(f, 0, SEEK_END);
+        i = ftell(f);
+        fseek(f, 0, SEEK_SET);
+
+        // Allocate data and read file into memory
+        data = malloc(i);
+
+        // Check if data is valid
+        if (data == 0)
+            return (void*)0;
+
+        // Read to data
+        fread(data, 1, i, f);
+
+        // We no longer need the file
+        fclose(f);
     }
-
-    // Find file size and prep for read
-    fseek(f, 0, SEEK_END);
-    i = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    // Allocate data and read file into memory
-    data = malloc(i);
-
-    // Check if data is valid
-    if (data == 0)
-        return (void*)0;
-
-    // Read to data
-    fread(data, 1, i, f);
-
-    // We no longer need the file
-    fclose(f);
 
     // Parse JSON Values
     len          = strlen(data), rootTokenCount = GXParseJSON(data, len, 0, 0);
@@ -89,30 +91,31 @@ GXMaterial_t* loadMaterial ( const char path[] )
 
 int assignMaterial ( GXMaterial_t* material, GXShader_t* shader )
 {
-    // TODO: Dynamically change the names of the uniforms using the key/value pairs defined in the shader
-    
-    // Set the texture uniforms
-    setShaderInt(shader, "albedoMap"   , 0);
-    setShaderInt(shader, "normalMap"   , 1);
-    setShaderInt(shader, "metallicMap" , 2);
-    setShaderInt(shader, "roughnessMap", 3);
-    setShaderInt(shader, "aoMap"       , 4);
+
+    // Set the texture uniforms from the shader requested data
+    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Albedo) ,0);
+    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Normal), 1);
+    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Rough) , 2);
+    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Metal) , 3);
+    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_AO)    , 4);
 
     // Bind the texture units to the textureIDs
-    glActiveTexture(GL_TEXTURE0);
+    // loadTextureToTextureUnit(material->albedo, )
+
+    glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, material->albedo->textureID);
 
-    glActiveTexture(GL_TEXTURE1);
+    glActiveTexture(GL_TEXTURE0 + 1);
     glBindTexture(GL_TEXTURE_2D, material->normal->textureID);
 
-    glActiveTexture(GL_TEXTURE2);
+    glActiveTexture(GL_TEXTURE0 + 2);
     glBindTexture(GL_TEXTURE_2D, material->metallic->textureID);
 
-    glActiveTexture(GL_TEXTURE3);
+    glActiveTexture(GL_TEXTURE0 + 3);
     glBindTexture(GL_TEXTURE_2D, material->roughness->textureID);
 
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, material->AO);
+    glActiveTexture(GL_TEXTURE0 + 4);
+    glBindTexture(GL_TEXTURE_2D, material->AO->textureID);
     
     return 0;
 }

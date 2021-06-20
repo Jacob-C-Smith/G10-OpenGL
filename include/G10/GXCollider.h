@@ -2,7 +2,7 @@
 
 struct GXCollider_s
 {
-	unsigned a;
+    unsigned a;
 };
 
 typedef struct GXCollider_s GXCollider_t;

@@ -56,16 +56,16 @@
 
 struct GXEntity_s
 {
-	size_t             flags;     // Tells G10 how to handle the entity
-	char*              name;      // An identifier for the entity
-	GXMesh_t*          mesh;      // A mesh
-	GXShader_t*        shader;    // A shader
-	GXMaterial_t*      material;  // A PBR material
-	GXTransform_t*     transform; // A transform
-	GXRigidbody_t*     rigidbody; // A rigidbody
-	GXCollider_t*      collider;  // A collider
+    size_t             flags;     // Tells G10 how to handle the entity
+    char*              name;      // An identifier for the entity
+    GXMesh_t*          mesh;      // A mesh
+    GXShader_t*        shader;    // A shader
+    GXMaterial_t*      material;  // A PBR material
+    GXTransform_t*     transform; // A transform
+    GXRigidbody_t*     rigidbody; // A rigidbody
+    GXCollider_t*      collider;  // A collider
 
-	struct GXEntity_s* next;      // Points to the next entity.
+    struct GXEntity_s* next;      // Points to the next entity.
 };
 typedef struct GXEntity_s GXEntity_t;
 

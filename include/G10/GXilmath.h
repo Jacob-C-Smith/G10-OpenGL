@@ -7,10 +7,10 @@
 
 static inline float toDegrees ( float radians ) // ✅ converts radians to degrees
 {
-	return radians * (180 / (float)M_PI);
+    return radians * (180 / (float)M_PI);
 }
 
 static inline float toRadians ( float degrees ) // ✅ converts degrees to radians
 {
-	return  degrees * ((float)M_PI / 180);
+    return  degrees * ((float)M_PI / 180);
 }

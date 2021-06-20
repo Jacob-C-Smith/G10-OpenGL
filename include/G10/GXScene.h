@@ -13,10 +13,10 @@
 
 // Contains information about a scene
 struct GXScene_s {
-	char*       name;
-	GXEntity_t* entities;
-	GXCamera_t* cameras;
-	GXLight_t*  lights;
+    char*       name;
+    GXEntity_t* entities;
+    GXCamera_t* cameras;
+    GXLight_t*  lights;
 };
 typedef struct GXScene_s GXScene_t;
 

@@ -1,13 +1,13 @@
 #include <G10/GXJSON.h>
 
+// TODO: Rewrite the JSON parser in assembly with SIMD string instructions.
+//       That ought to be a fun challenge.
 int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
 {
     // Initialized data.
     size_t currentWhere = 0,
            ret          = 0,
            i            = 1;
-
-    // TODO: FIX?: Determine wether or not a string within an object within an array will break the preparser
 
     // If we aren't passed a count, we figure out how many top level items there are in the JSON file. 
     if (count == 0)
@@ -42,7 +42,8 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
     
     while (*++text)                                                                                // This is the main loop. It searches for key / value pairs and extracts data.
     {
-        if (*text == '\"')                                                                         // We've found a key.
+        // We've found a key.
+        if (*text == '\"')
         {
             where[currentWhere].name = text + 1;                                                   // Set a pointer to the start of the key.
             while (*++text != '\"');                                                               // Go to the end of the string.
@@ -52,13 +53,16 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
             while (*text++ != ':');                                                                // Till the ':'.
             while (*++text == ' ');                                                                // and past any whitespaces.
 
+            // Parse out a string
             if (*text == '\"')                                                                     // Parse out a string
             {
-                where[currentWhere].content.nWhere = ++text;                                       // Set the value pointer to one past the current text location, as to skip past the \"
+                where[currentWhere].content.nWhere = text+1;                                       // Set the value pointer to one past the current text location, as to skip past the \"
                 where[currentWhere].type           = GXJSONstring;                                 // Set the type as a string
                 while (*++text != '\"');                                                           // Skip past all the contents of the string to the '\"'
                 *text = 0;                                                                         // Replace the closing quote with a null terminator
             }
+
+            // Parse out an object
             else if (*text == '{')                                                                 // Parse out an object
             {
                 // Initialized data
@@ -78,6 +82,8 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
                         while (*++text != '\"');
                 }
             }
+
+            // Parse out an array
             else if (*text == '[')                                                                 // Parse out an array.
             {
                 // Initialized data

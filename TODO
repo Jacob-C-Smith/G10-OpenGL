@@ -1,25 +1,36 @@
 ﻿TODO File, place TODOs here
 
+=== Debugger goals ===
+ - ❌ Increase the specificity of error messages while in debugger mode
+ - ❌ Only check for errors in debug mode 
+ - ❌ Make debug mode more granular
+
 === Framework goals ===
- - ✅ Write a JSON parser to read scenes and entities from the game.
- - ✅ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
- - ✅ Parse arrays in JSON parser.
  - ✅ Develop an expandable schematic for entities and scenes.
  - ✅ Use JSON parser to read entities for the game engine.
  - ✅ Use JSON parser to read scenes for the game engine.
- - ❌ Fully document the JSON parser
  - ❌ Parse rigidbody files as paths
- - ❌ Parse camera files as paths
- - ❌ Parse light files as paths
- - ❌ Parse rigidbody files as paths
- 
+ - ✅ Parse camera files as paths
+ - ✅ Parse light files as paths
+ - ❌ Normalize return values across all functions. 0 is bad and 1 is good.
+ - ❌ Improve granularity and specificity of the mesh system
+
+=== JSON Parser goals === 
+ - ✅ Write a JSON parser to read scenes and entities from the game.
+ - ✅ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
+ - ✅ Parse arrays in JSON parser.
+ - ✅ Fully document the JSON parser
+ - ❌ Deduce what is causing the seemingly random preparser errors.
+ - ❌ Rewrite the JSON parser in assembly with SIMD string instructions. That ought to be a fun challenge. 
+ - ❌ Make the SIMD JSON parser branchless.
+
 === Renderer goals ===
  - ✅ PBR model
- - ❌ Implement a key/value pairs system to associate scene information with uniform variables in glsl
- - ❌ Handle multiple albedo images in one material
- - ❌ Process out lights
- - ❌ Linearly assign lights
- - ❌ Implement a method that periodically reprioritizes  lights based on how far they are from a camera
+ - ✅ Implement a key/value pairs system to associate scene information with uniform variables in glsl
+ - ❌ Handle multiple albedo images in one material. 
+ - ✅ Process lights out of a scene file
+ - ✅ Dynamically assign lights
+ - ❌ Implement a method that periodically reprioritizes lights based on how far they are from a camera
 
 === Physics goals ===
  - ✅ Summate and apply forces on an entity

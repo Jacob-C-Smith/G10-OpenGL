@@ -15,7 +15,7 @@
 struct GXPLYproperty_s
 {
     size_t typeSize;
-    char* name;
+    char*  name;
 };
 typedef struct GXPLYproperty_s GXPLYproperty_t;
 
@@ -48,4 +48,4 @@ struct GXPLYindex_s {
 #pragma pack (pop)
 typedef struct GXPLYindex_s GXPLYindex_t;
 
-GXMesh_t* loadPLYMesh ( const char path[] ); // ✅ Loads a PLY file from path and returns a pointer to GXMesh_t
+GXPart_t* loadPLY( const char path[], GXPart_t* part ); // ✅ Loads a PLY file from path and returns a pointer to GXMesh_t

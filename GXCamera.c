@@ -47,10 +47,7 @@ GXCamera_t* loadCamera( const char* path )
     {
         // Check if file is valid
         if (f == NULL)
-        {
-            printf("Failed to load file %s\n", path);
-            return (void*)0;
-        }
+            goto invalidFile;
 
         // Find file size and prep for read
         fseek(f, 0, SEEK_END);
@@ -63,9 +60,9 @@ GXCamera_t* loadCamera( const char* path )
             return (void*)0;
         fread(data, 1, i, f);
     
-		// We no longer need the file
-		fclose(f);
-	}
+        // We no longer need the file
+        fclose(f);
+    }
 
     // Load the camera from data
     ret = loadCameraAsJSON(data);
@@ -74,6 +71,11 @@ GXCamera_t* loadCamera( const char* path )
     free(data);
 
     return ret;
+    invalidFile:
+    #ifndef NDEBUG
+        printf("Failed to load file %s\n", path);
+    #endif
+    return 0;
 }
 
 GXCamera_t* loadCameraAsJSON( char* token )

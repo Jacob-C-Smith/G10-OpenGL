@@ -2,74 +2,96 @@
 
 GXTexture_t* loadBMPImage ( const char path[] )
 {
-	// Uninitialized data
-	int          i;
-	u8*          data;
+    // Argument check
+    {
+        #ifndef NDEBUG
+        if (path == 0)
+            goto noPath;
+        #endif
+    }
 
-	// Initialized data
-	GXTexture_t* ret = malloc(sizeof(GXTexture_t));
-	FILE*        f   = fopen(path, "rb");
+    // Uninitialized data
+    int          i;
+    u8*          data;
 
-	// Check allocated memory
-	if (ret == 0)
-		return ret;
+    // Initialized data
+    GXTexture_t* ret = malloc(sizeof(GXTexture_t));
+    FILE*        f   = fopen(path, "rb");
 
-	// Load the file
-	{
-		// Check if file is valid
-		if (f == NULL)
-		{
-			// Error handling
-			#ifndef NDEBUG
-				printf("Failed to load file %s\n", path);
-			#endif 
-			return (void*)0;
-		}
+    // Check allocated memory
+    if (ret == 0)
+        return ret;
 
-		// Find file size and prep for read
-		fseek(f, 0, SEEK_END);
-		i = ftell(f);
-		fseek(f, 0, SEEK_SET);
+    // Load the file
+    {
+        // Check if file is valid
+        if (f == NULL)
+            goto invalidFile;
 
-		// Allocate data and read file into memory
-		data = malloc(i);
+        // Find file size and prep for read
+        fseek(f, 0, SEEK_END);
+        i = ftell(f);
+        fseek(f, 0, SEEK_SET);
 
-		// Check if data is valid
-		if (data == 0)
-			return (void*)0;
+        // Allocate data and read file into memory
+        data = malloc(i);
 
-		// Read to data
-		fread(data, 1, i, f);
+        // Check if data is valid
+        if (data == 0)
+            return (void*)0;
 
-		// We no longer need the file
-		fclose(f);
-	}
+        // Read to data
+        fread(data, 1, i, f);
 
-	// Fill out width and height information
-	ret->width  = *(size_t*)&data[0x12];
-	ret->height = *(size_t*)&data[0x16];
+        // We no longer need the file
+        fclose(f);
+    }
 
-	// Create a texture ID
-	glGenTextures(1, &ret->textureID);
-	glBindTexture(GL_TEXTURE_2D, ret->textureID);
+    // Fill out width and height information
+    ret->width  = *(size_t*)&data[0x12];
+    ret->height = *(size_t*)&data[0x16];
 
-	// Point it to the right place
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
-	
-	// Bilinear texture filtering
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // Set up the OpenGL texture 
+    {
+        // Create a texture ID
+        glGenTextures(1, &ret->textureID);
+        glBindTexture(GL_TEXTURE_2D, ret->textureID);
 
-	// Create mipmaps
-	glGenerateMipmap(GL_TEXTURE_2D);
+        // Point it to the right place
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
 
-	// Free data. We don't really need the header anymore. 
-	free(data);
+        // Bilinear texture filtering
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	// Debugger logging
-	#ifndef NDEBUG
-		printf("Loaded file \"%s\"\n\n", path);
-	#endif 
+        // Create mipmaps
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 
-	return ret;
+    // Free data. We don't really need the header anymore. 
+    free(data);
+
+    // Debugger logging
+    #ifndef NDEBUG
+        printf("[G10] Loaded file \"%s\"\n\n", path);
+    #endif 
+
+    return ret;
+
+    // Error handling
+    {
+        // No path supplied
+        noPath:
+            #ifndef NDEBUG
+                printf("[G10] No path supplied to \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+
+        // Invalid file
+        invalidFile:
+            #ifndef NDEBUG
+                printf("[G10] Failed to load file %s\n", path);
+            #endif
+            return 0;
+    }
 }

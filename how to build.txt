@@ -1,0 +1,48 @@
+﻿Your build directory should look like this
+
+.
+├── include
+│   ├── G10
+│   │   ├── G10.h
+│   │   └── ...
+│   ├── KHR
+│   │   └── khrplatform.h
+│   ├── SDL2
+│   │   ├── SDL.h
+│   │   └── ...
+│   └── glad
+│       └── glad.h
+├── lib
+│   ├── SDL2.lib
+│   ├── SDL2_image.lib
+│   ├── SDL2_net.lib
+│   ├── SDL2main.lib
+│   └── SDL2test.lib
+├── x64
+│    ├── Debug
+│    │   ├── G10.exe
+│    │   ├── SDL2.dll
+│    │   ├── SDL2_image.dll
+│    │   ├── SDL2_net.dll
+│    │   ├── libjpeg-9.dll
+│    │   ├── libpng16-16.dll
+│    │   ├── libtiff-5.dll
+│    │   ├── zlib1.dll
+│    │   └── ...
+│    └── Release
+│        ├── G10.exe
+│        ├── SDL2.dll
+│        ├── SDL2_image.dll
+│        ├── SDL2_net.dll
+│        ├── libjpeg-9.dll
+│        ├── libpng16-16.dll
+│        ├── libtiff-5.dll
+│        ├── libwebp-7.dll
+│        ├── zlib1.dll
+│        └── ...
+├── G10.c
+├── glad.c
+├── G10.sln
+├── G10.vcxproj
+├── main.c
+└── ...

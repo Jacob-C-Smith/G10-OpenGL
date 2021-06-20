@@ -123,7 +123,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -144,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -164,13 +164,16 @@
     <ClCompile Include="GXLight.c" />
     <ClCompile Include="GXMaterial.c" />
     <ClCompile Include="GXMesh.c" />
+    <ClCompile Include="GXNetworking.c" />
     <ClCompile Include="GXPLY.c" />
     <ClCompile Include="GXPNG.c" />
+    <ClCompile Include="GXRig.c" />
     <ClCompile Include="GXRigidbody.c" />
     <ClCompile Include="GXScene.c" />
     <ClCompile Include="GXShader.c" />
     <ClCompile Include="GXTexture.c" />
     <ClCompile Include="GXTransform.c" />
+    <ClCompile Include="include\G10\arch\x86_64\GXAVX.h\GXAVX2.h" />
     <ClCompile Include="include\G10\GXKeyValue.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
@@ -189,9 +192,11 @@
     <ClInclude Include="include\G10\GXLinear.h" />
     <ClInclude Include="include\G10\GXMaterial.h" />
     <ClInclude Include="include\G10\GXMesh.h" />
+    <ClInclude Include="include\G10\GXNetworking.h" />
     <ClInclude Include="include\G10\GXPLY.h" />
     <ClInclude Include="include\G10\GXPNG.h" />
     <ClInclude Include="include\G10\GXQuaternion.h" />
+    <ClInclude Include="include\G10\GXRig.h" />
     <ClInclude Include="include\G10\GXRigidbody.h" />
     <ClInclude Include="include\G10\GXScene.h" />
     <ClInclude Include="include\G10\GXShader.h" />
@@ -204,12 +209,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <MASM Include="..\GXAVX_x86_64.asm" />
     <MASM Include="GXCamera_x86_64.asm" />
+    <MASM Include="GXRig.asm" />
     <MASM Include="GXRigidbody_x86_64.asm" />
     <MASM Include="GXMath_x86_64.asm" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="acknowledgements.txt" />
     <Text Include="benchmarks.txt" />
+    <Text Include="how to build.txt" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

@@ -31,11 +31,11 @@
 // Contains information about a shader
 struct GXShader_s
 {
-	char*         name;
-	unsigned int  shaderProgramID;
-	size_t        requestedDataFlags;
-	size_t        requestedDataCount;
-	GXKeyValue_t* requestedData;
+    char*         name;
+    unsigned int  shaderProgramID;
+    size_t        requestedDataFlags;
+    size_t        requestedDataCount;
+    GXKeyValue_t* requestedData;
 };
 typedef struct GXShader_s GXShader_t;
 
