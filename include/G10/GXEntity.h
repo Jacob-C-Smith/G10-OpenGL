@@ -27,10 +27,9 @@
 #include <G10/GXMaterial.h>
 
 #include <G10/GXRigidbody.h>
-
 #include <G10/GXCollider.h>
 
-#include <G10/arch/x86_64/GXSSEmath.h>
+#include <G10/arch/x86_64/GXAVXmath.h>
 
 // G10 uses bitflags to recognize the features of an entity, as well as how it should be interfaced with by the engine
 
@@ -56,22 +55,26 @@
 
 struct GXEntity_s
 {
-    size_t             flags;     // Tells G10 how to handle the entity
-    char*              name;      // An identifier for the entity
-    GXMesh_t*          mesh;      // A mesh
-    GXShader_t*        shader;    // A shader
-    GXMaterial_t*      material;  // A PBR material
-    GXTransform_t*     transform; // A transform
-    GXRigidbody_t*     rigidbody; // A rigidbody
-    GXCollider_t*      collider;  // A collider
+    size_t         flags;     // Tells G10 how to handle the entity
+    char          *name;      // An identifier for the entity
+    GXMesh_t      *mesh;      // A mesh
+    GXShader_t    *shader;    // A shader
+    GXTransform_t *transform; // A transform
+    GXRigidbody_t *rigidbody; // A rigidbody
+    GXCollider_t  *collider;  // A collider
 
     struct GXEntity_s* next;      // Points to the next entity.
 };
 typedef struct GXEntity_s GXEntity_t;
 
 GXEntity_t* createEntity     ( );                                          // ✅ Creates an entity, assigns flags, and returns pointer to it
-int         drawEntity       ( GXEntity_t* entity );                       // ✅ Draws an entity if draw flag is set
-GXEntity_t* loadEntity       ( const char path[] );                        // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
-GXEntity_t* loadEntityAsJSON ( char* token );                              // ✅ Loads an entity as a JSON object
-int         assignTexture    ( GXShader_t* shader, const char uniform[] ); // ✅ Assigns a texture to a glsl uniform
-int         destroyEntity    ( GXEntity_t* entity );                       // ✅ Destroys the entity and all its contents
+
+GXEntity_t* loadEntity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
+GXEntity_t* loadEntityAsJSON ( char       *token  );                       // ✅ Loads an entity as a JSON object
+
+int         drawEntity       ( GXEntity_t *entity );                       // ✅ Draws an entity if draw flag is set
+
+// TODO: Find a better home for this function
+int         assignTexture    ( GXShader_t *shader, const char uniform[] ); // ✅ Assigns a texture to a glsl uniform
+
+int         destroyEntity    ( GXEntity_t *entity );                       // ✅ Destroys the entity and all its contents

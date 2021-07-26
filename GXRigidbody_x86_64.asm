@@ -14,13 +14,21 @@
 ; 
 ; Offset for GXRigidbody_t
 ;
-; GXvec3_t  velocity     - 0x00
-; GXvec3_t  acceleration - 0x10
-; float     mass         - 0x20
-; GXvec3_t* forces       - 0x28
-; size_t  forcesCount  - 0x30
-; bool      useGravity   - 0x34
+;    float                 mass                  0x00
+;    float                 radius                0x04
+;    bool                  useGravity            0x05
 ;
+;    GXvec3_t              acceleration          0x08
+;    GXvec3_t              velocity              0x18
+;    
+;    GXvec3_t              angularAcceleration   0x28
+;    GXvec3_t              angularVelocity       0x38
+;    
+;    GXvec3_t*             forces                0x40
+;    size_t                forcesCount           0x48
+;
+;    struct GXRigidbody_s* touching              0x50
+
 
 
 
@@ -62,6 +70,40 @@ calculateDerivativesOfDisplacement PROC
     mov rcx, [rcx+30h]            ; rcx = rigid body
 
     mov r9, rcx                   ; Copy the rigid body pointer into r9
+    add r9, 50h                   ; Go to the offset for force
+    mov r9, [r9]                  ; Dereference
+
+    ; load everything in to xmm registers
+    vmovaps      xmm0, [r9]	      ; xmm0  = force
+    vbroadcastss xmm1, xmm1       ; xmm1  = delta time (scalar)
+    vmovaps      xmm2, [rcx]      ; xmm2  = mass (scalar)
+    vbroadcastss xmm2, xmm2     
+    vmovaps      xmm3, xmm0       ; xmm3  = acceleration 
+    vdivps       xmm3, xmm3, xmm2 ; force = mass*acceleration => acceleration = force / mass
+    vmovups      xmm4, [rcx+1Ch]  ; xmm4  = last velocity
+    vmovups      xmm5, [rdx]	  ; xmm5  = last position
+
+    ; Calculate a new velocity from the old velocity, acceleration, and delta time
+    vfmadd231ps  xmm4, xmm1, xmm3 ; last velocity += acceleraiton * delta time
+    vmovups      [rcx+1Ch], xmm4      ; store the result
+
+    ; Calculate a new position from the old position, velocity, and delta time 
+    vfmadd231ps  xmm5, xmm1, xmm4 ; last position += last velocity * delta time 
+    vmovups      [rdx], xmm5      ; again store the result
+    
+    ; Done
+    ret
+
+calculateDerivativesOfDisplacement ENDP
+
+PUBLIC calculateDerivativesOfRotation
+    mov rdx, rcx                  ; Copy the pointer to the entity
+
+    ; Dereference both of the pointers
+    mov rdx, [rdx+28h]            ; rdx = transform
+    mov rcx, [rcx+30h]            ; rcx = rigid body
+
+    mov r9, rcx                   ; Copy the rigid body pointer into r9
     add r9, 28h                   ; Go to the offset for force
     mov r9, [r9]                  ; Dereference
 
@@ -77,15 +119,17 @@ calculateDerivativesOfDisplacement PROC
 
     ; Calculate a new velocity from the old velocity, acceleration, and delta time
     vfmadd231ps  xmm4, xmm1, xmm3 ; last velocity += acceleraiton * delta time
-    vmovaps      [rcx], xmm4      ; store the result
+    vmovups      [rcx+18h], xmm4      ; store the result
 
     ; Calculate a new position from the old position, velocity, and delta time 
     vfmadd231ps  xmm5, xmm1, xmm4 ; last position += last velocity * delta time 
-    vmovaps      [rdx], xmm5      ; again store the resukt
+    vmovups      [rdx], xmm5      ; again store the resukt
     
     ; Done
-    leave
     ret
 
-calculateDerivativesOfDisplacement ENDP
+calculateDerivativesOfRotation PROC
+
+calculateDerivativesOfRotation ENDP
+
 END

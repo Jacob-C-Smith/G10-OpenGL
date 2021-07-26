@@ -73,7 +73,7 @@ GXCamera_t* loadCamera( const char* path )
     return ret;
     invalidFile:
     #ifndef NDEBUG
-        printf("Failed to load file %s\n", path);
+        printf("[G10] [Camera] Failed to load file %s\n", path);
     #endif
     return 0;
 }
@@ -168,7 +168,7 @@ GXCamera_t* loadCameraAsJSON( char* token )
 void computeProjectionMatrix ( GXCamera_t* camera )
 {
     // Compute and set the projection matrix for the camera
-    camera->projection = perspective(camera->fov, camera->aspectRatio, camera->near, camera->far);
+    camera->projection = perspective(toRadians(camera->fov), camera->aspectRatio, camera->near, camera->far);
 }
 
 int destroyCamera ( GXCamera_t* camera )

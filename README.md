@@ -6,19 +6,36 @@ A scene is the highest level object in G10.
 ```c
 // Scene definintion in G10
 struct GXScene_s {
-	GXEntity_t* head;
-	GXCamera_t* camera;
+    char       *name;
+    GXEntity_t *entities;
+    GXCamera_t *cameras;
+    GXLight_t  *lights;
 };
 typedef struct GXScene_s GXScene_t;
 
 // Scene functions
-GXScene_t*  createScene  ( );
-GXScene_t*  loadScene    ( const char path[] );
-int         appendEntity ( GXScene_t* scene, GXEntity_t* entity );
-int         drawScene    ( GXScene_t* scene );
-GXEntity_t* getEntity    ( GXScene_t* scene, const char name[] );
-int         removeEntity ( GXScene_t* scene, const char name[] );
-int         destroyScene ( GXScene_t* scene );
+GXScene_t  *createScene         ( );                                    
+GXScene_t  *loadScene           ( const char path[] );                  
+
+int         appendEntity        ( GXScene_t *scene, GXEntity_t *entity );
+int         appendCamera        ( GXScene_t *scene, GXCamera_t *camera );
+int         appendLight         ( GXScene_t *scene, GXLight_t  *light  );
+
+int         drawScene           ( GXScene_t *scene );                    
+
+int         computePhysics      ( GXScene_t *scene, float deltaTime );
+
+GXEntity_t *getEntity           ( GXScene_t *scene, const char name[] ); 
+GXCamera_t *getCamera           ( GXScene_t *scene, const char name[] ); 
+GXLight_t  *getLight            ( GXScene_t *scene, const char name[] ); 
+
+int         setActiveCamera     ( GXScene_t *scene, const char name[] );
+
+GXEntity_t *removeEntity        ( GXScene_t *scene, const char name[] );
+GXCamera_t *removeCamera        ( GXScene_t *scene, const char name[] );
+GXLight_t  *removeLight         ( GXScene_t *scene, const char name[] );
+
+int         destroyScene        ( GXScene_t *scene );                   
 ```
 #### ⌠createScene⌡
 ```createScene()``` will create an empty scene.
@@ -43,52 +60,87 @@ A camera is an object that contains information on how to render a scene.
 ```c
 // Camera definition in G10
 struct GXCamera_s {
-	
-	// View
-	GXvec3_t where;
-	GXvec3_t target;
-	GXvec3_t up;
 
-	// Projection
-	float fov;
-	float near;
-	float far;
-	float aspectRatio;
+    //Name
+    char              *name;
 
-	// Matricies
-	GXmat4_t view;
-	GXmat4_t projection;
+    // View
+    GXvec3_t           where;
+    GXvec3_t           target;
+    GXvec3_t           up;
+
+    // Projection
+    float              fov;
+    float              near;
+    float              far;
+    float              aspectRatio;
+
+    // Matricies
+    GXmat4_t           view;
+    GXmat4_t           projection;
+
+    // Next
+    struct GXCamera_s *next;
 };
 typedef struct GXCamera_s GXCamera_t;
 
 // Camera functions
-GXCamera_t* createCamera( GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio )
+GXCamera_t*     createCamera            ( );
+GXCamera_t*     loadCamera              ( const char *path );
+GXCamera_t*     loadCameraAsJSON        ( char       *token );
+GXmat4_t        perspective             ( float       fov,    float aspect,     float near,   float far );
+extern void     AVXPerspective          ( GXmat4_t   *ret,    float fov,        float aspect, float near, float far );
+void            computeProjectionMatrix ( GXCamera_t *camera );
+extern void     AVXView                 ( GXvec3_t   *eye,    GXvec3_t *target, GXvec3_t *up, GXmat4_t *result );
+inline GXmat4_t lookAt                  ( GXvec3_t    eye,    GXvec3_t target,  GXvec3_t up );
+inline void     computeViewMatrix       ( GXCamera_t *camera );
+int             destroyCamera           ( GXCamera_t *camera );
 ```
 #### ⌠createCamera⌡
 ```GXCamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio)``` will create a camera with the specified arguments.
+### ≡ Light ≡
+A light is used to calculate lighting.
+```c
+struct GXLight_s
+{
+    const char       *name;
+    GXvec4_t          color;    
+    GXvec4_t          location; 
+    struct GXLight_s *next;
+};
+typedef struct GXLight_s GXLight_t;
+
+GXLight_t *createLight     (  );
+GXLight_t *loadLight       ( const char  path [] );
+GXLight_t *loadLightAsJSON ( char       *token   ); 
+int        destroyLight    ( GXLight_t*  light   ); 
+```
+
 ### ≡ Entities ≡
 An entity is any object contained within a scene.
 ```c
 // Entity definition in G10
 struct GXEntity_s
 {
-	size_t           flags;
-	char*              name;
-	GXMesh_t*          mesh;
-	GXShader_t*        shader;
-	GXMaterial_t*      material;
-	GXTransform_t*     transform;
+    size_t         flags;     // Tells G10 how to handle the entity
+    char          *name;      // An identifier for the entity
+    GXMesh_t      *mesh;      // A mesh
+    GXShader_t    *shader;    // A shader
+    GXTransform_t *transform; // A transform
+    GXRigidbody_t *rigidbody; // A rigidbody
+    GXCollider_t  *collider;  // A collider
 
-	struct GXEntity_s* next;
+    struct GXEntity_s* next;  // Points to the next entity.
 };
 typedef struct GXEntity_s GXEntity_t;
 
 // Entity functions
-GXEntity_t* createEntity  ( );
-int         drawEntity    ( GXEntity_t* entity );
-GXEntity_t* loadEntity    ( const char path[] );
-int         assignTexture ( GXEntity_t* entity, const char uniform[] );
-int         destroyEntity ( GXEntity_t* entity );
+GXEntity_t* createEntity     ( );
+GXEntity_t* loadEntity       ( const char  path[] );
+GXEntity_t* loadEntityAsJSON ( char       *token  );
+int         drawEntity       ( GXEntity_t *entity );
+int         assignTexture    ( GXShader_t *shader, const char uniform[] );
+int         destroyEntity    ( GXEntity_t *entity );
 ```
 #### ⌠createEntity⌡
 ```GXEntity_t* createEntity ( )``` will create an empty entity.
@@ -105,25 +157,55 @@ Returns a pointer to the created entity.
 ### ≡ Mesh ≡
 A mesh is a container for sets of points used in rendering.
 ```c
-// Mesh definition in G10
+
+// Stores information about a part of a mesh
+struct GXPart_s
+{
+    char               *name;
+
+    GXMaterial_t       *material;
+
+    size_t              vertexGroups;
+
+    GLuint              vertexArray;
+
+    GLuint              vertexBuffer;
+    GLuint              elementBuffer;
+
+    GLuint              elementsInBuffer;
+
+    struct GXPart_s    *next;
+};
+typedef struct GXPart_s GXPart_t;
+
+// Stores information about a mesh
 struct GXMesh_s
 {
-	// Array
-	GLuint    vertexArray;
-
-	// Geometric vertecies
-	GLuint    vertexBuffer;
-	GLuint    elementBuffer;
-
-	// Counts
-	GLuint    elementsInBuffer;
+    char        *name;
+    GXPart_t    *parts;
 };
 typedef struct GXMesh_s GXMesh_t;
 
-// Mesh functions
-GXMesh_t* createMesh ( );
-GXMesh_t* loadMesh   ( const char path[] );
-int       unloadMesh ( GXMesh_t* mesh );
+GXMesh_t    *createMesh       ( );
+GXPart_t    *createPart       ( );
+
+GXMesh_t    *loadMesh         ( const char   path[] );
+GXMesh_t    *loadMeshAsJSON   ( char        *token );
+
+GXPart_t    *loadPart         ( const char   path[] );
+GXPart_t    *loadPartAsJSON   ( char        *token );
+
+GXPart_t    *getPart          ( GXMesh_t    *mesh, const char  name[] );
+
+int          appendPart       ( GXMesh_t    *mesh, GXPart_t   *part );
+
+int          drawMesh         ( GXMesh_t    *mesh, GXShader_t *shader );
+int          drawPart         ( GXPart_t    *part );
+
+int          removePart       ( GXMesh_t    *mesh, const char  name [] );
+
+int          destroyMesh      ( GXMesh_t    *mesh );
+int          destroyPart      ( GXPart_t    *part );
 ```
 #### ⌠unloadMesh⌡
 ```int unloadMesh(GXMesh_t* mesh)``` will depopulate all members of ```mesh```, and deallocate ```mesh```
@@ -131,20 +213,26 @@ int       unloadMesh ( GXMesh_t* mesh );
 A shader is a program used by OpenGL to render an object.
 ```c
 // Shader definition in G10
+// Contains information about a shader
 struct GXShader_s
 {
-	unsigned int shaderProgramID;
+    char         *name;
+    unsigned int  shaderProgramID;
+    size_t        requestedDataFlags;
+    size_t        requestedDataCount;
+    GXKeyValue_t *requestedData;
 };
 typedef struct GXShader_s GXShader_t;
 
-// Shader functions
-GXShader_t* loadShader     ( const char vertexShaderPath[], const char fragmentShaderPath[] );
-int         useShader      ( GXShader_t* shader );                                             
-void        setShaderInt   ( GXShader_t* shader, const char name[], int value );               
-void        setShaderFloat ( GXShader_t* shader, const char name[], float value );   
-void        setShaderVec3  ( GXShader_t* shader, const char name[], GXvec3_t vector );          
-void        setShaderMat4  ( GXShader_t* shader, const char name[], GXmat4_t* m );             
-int         unloadShader   ( GXShader_t* shader );           
+GXShader_t *loadShader        ( const char  shaderPath[] );
+GXShader_t *loadShaderAsJSON  ( char       *token );
+GXShader_t *loadCompileShader ( const char  vertexShaderPath[], const char fragmentShaderPath[], const char shaderName[] );
+int         useShader         ( GXShader_t *shader );
+void        setShaderInt      ( GXShader_t *shader, const char name[], int       value );
+void        setShaderFloat    ( GXShader_t *shader, const char name[], float     value );
+void        setShaderVec3     ( GXShader_t *shader, const char name[], GXvec3_t  vector );
+void        setShaderMat4     ( GXShader_t *shader, const char name[], GXmat4_t *m );
+int         unloadShader      ( GXShader_t *shader );
 ```
 
 #### ⌠loadShader⌡
@@ -165,19 +253,39 @@ Returns a pointer to the loaded ```GXShader_t```.
 ### ≡ Textures ≡
 A texture is an image that is mapped onto a mesh.
 ```c
-// Texture definition in G10
+// Contains information about a texture
 struct GXTexture_s
 {
-	unsigned int textureID;
-	size_t width;
-	size_t height;
+    char        *name;
+
+    unsigned int textureID;
+    unsigned int textureUnitIndex;
+
+    size_t       width;
+    size_t       height;
 };
 typedef struct GXTexture_s GXTexture_t;
 
-// Texture functions
-GXTexture_t* createTexture ( );
-GXTexture_t* loadTexture   ( const char path[] );
-int          unloadTexture ( GXTexture_t* image ); 
+// Keeps track of what textures are being used by the GPU
+struct GXTextureUnit_s
+{
+    GXTexture_t **activeTextureBlock;
+    unsigned int  activeTextureCount;
+};
+typedef struct GXTextureUnit_s GXTextureUnit_t;
+
+
+// Constructors
+GXTexture_t *createTexture            ( );                    // ✅ Creates an empty texture
+GXTexture_t *loadTexture              ( const char path[] );  // ✅ Loads a texture from the disk
+
+// Texture streaming
+unsigned int loadTextureToTextureUnit ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit
+
+// Destructors
+int          unloadTexture            ( GXTexture_t *image ); // ✅ Unloads a texture and all of its contents
+
+
 ```
 #### ⌠createTexture⌡
 ```GXTexture_t* createTexture ( )``` will create an empty texture.

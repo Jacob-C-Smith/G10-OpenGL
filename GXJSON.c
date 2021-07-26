@@ -191,7 +191,7 @@ int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
     // If we have exited the loop this way, we haven't exited the right way. 
     exitNotAllParsed:
         #ifndef NDEBUG
-            printf("Not all JSON tokens were parsed. Only %lld out of %lld were parsed", currentWhere, count);
+            printf("[G10] [JSON] Not all JSON tokens were parsed. Only %lld out of %lld were parsed", currentWhere, count);
         #endif
         return 0;
     exitAllParsed:

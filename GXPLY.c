@@ -1,48 +1,114 @@
 ﻿#include <G10/GXPLY.h>
 
-// TODO: Document
+GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
+    
+    // Commentary
+    {
+        /* 
+         * The PLY loaders job is essentially to turn a PLY file header into a 64 bit metadata 
+         * value. It is written to recognize vertex properties and parse them into common vertex
+         * groups. Each vertex property in a vertex group should appear concurrently. Each 
+         * group has an associated code. The vertex groups metadata value is used to create a 
+         * vertex array object, vertex buffer object, and element buffer object.  
+         * 
+         * ┌─────────────────────┬──────────────────────────────────────────────────┬──────┐
+         * │ Vertex group name   │ Vertex properties as they appear in the PLY file │ Code │                                                   
+         * ├─────────────────────┼──────────────────────────────────────────────────┼──────┤
+         * │ Geometric vertices  │ ( x, y, z )                                      │ 0x01 │
+         * │ Texture coordinates │ ( u, v ) or ( s, t )                             │ 0x02 │
+         * │ Vertex normals      │ ( nx, ny, nz )                                   │ 0x04 │
+         * │ Vertex colors       │ ( red, green, blue, alpha ) or ( r, g, b, a )    │ 0x08 │
+         * │ Bone groups         │ ( b0, b1, b2, b3 )                               │ 0x10 │
+         * │ Bone weights        │ ( w0, w1, w2, w3 )                               │ 0x20 │
+         * └─────────────────────┴──────────────────────────────────────────────────┴──────┘
+         * 
+         * NOTE: The function can be modified to read two more vertex groups, supporting a 
+         * maximum of 8 vertex groups.
+         * 
+         * The parser makes several passes through the header, populating more and more data each 
+         * time. Each pass and its purpose is listed below
+         * 
+         * Pass 1.
+         *     On pass 1, the function counts all the elements in the header. It will also print
+         *     any comments it encounters. After this pass, the elements are allocated for.
+         * 
+         * Pass 2.
+         *     On pass 2, the elements are populated and the properties are counted up and 
+         *     allocated for.
+         * 
+         * Pass 3. 
+         *     On pass 3, the properties are populated and the stride of the element is computed.
+         *     Each property is kept track of using bitflags and a temporary value. The temporary 
+         *     value is then tested with various AND masks to deduce what vertex groups are 
+         *     present and which are absent. 
+         * 
+         *     All this work to determine the vertex groups is integrated when the function creates
+         *     the vertexGroups variable. This 64 bit number is an especially compact way to 
+         *     represent both the type and position of each vertex group we have encountered. Each 
+         *     code is packed into  the 64 bit number, such that the last vertex group occupies 
+         *     the eight least significant bits. For comprehension and completeness, here are a 
+         *     few examples and how they should be interpreted.
+         * 
+         *        63......................................0
+         *     A. | 00 | 00 | 00 | 00 | 00 | 01 | 04 | 08 |
+         *     B. | 00 | 00 | 00 | 00 | 00 | 04 | 02 | 01 |
+         *     C. | 00 | 00 | 01 | 02 | 04 | 08 | 10 | 20 |
+         * 
+         *     A. First is geometric, second is normals, third is colors 
+         *     B. First is normals, second is texture coordinates, third is geometric
+         *     C. First is geometric, second is texture coordinates, third is normals, fourth is 
+         *        colors, fifth is bone groups, sixth is bone weights.
+         * 
+         * After the third pass, we have extracted all of the valuable information we can from the
+         * header. We are now prepared to start making the VAO, and VBO. The last meaningful byte
+         * of the vertex groups variable is masked off, and switch()ed against known vertex groups. 
+         * Vertex attribute pointers are created for the specific offset and stride of the vertex
+         * group automatically. The first vertex group will be at layout position 0, the second at
+         * 1, the third at 2, soforth. 
+         */
+    }
 
-GXPart_t* loadPLY ( const char path[], GXPart_t* part )
-{
+    // Argument checking
+    {
+        #ifndef NDEBUG
+            if (part == 0)
+                goto noPart;
+            if (path == 0)
+                goto noPath;
+        #endif
+    }
+
     // Uninitialized data
     size_t         l,
                    verticesInBuffer;
-    char*          data;
-    float*         vertexArray;
-    GXPLYindex_t*  indices;
-    unsigned long* correctedIndicies;
+    char          *data;
+    char          *cData;
+    float         *vertexArray;
+    GXPLYindex_t  *indices;
+    u32           *correctedIndicies;
 
     // Initialized data
-    size_t         i       = 0,
-                   j       = 0,
-                   k       = 0;
-    FILE*          f       = fopen(path, "rb");
-    GXPLYfile_t*   plyFile = calloc(1,sizeof(GXPLYfile_t));
-
-    // TODO: Argument check
-    if (part == 0)
-        return 0;
-
-    plyFile->nElements   = 0;
-    plyFile->elements    = (void*)0;
-    plyFile->flags       = 0;
+    size_t         i                  = 0,
+                   j                  = 0,
+                   k                  = 0,
+                   vertexGroupCount   = 0,
+                   vertexAttribOffset = 0;
+    FILE          *f                  = fopen(path, "rb");
+    GXPLYfile_t   *plyFile            = calloc(1, sizeof(GXPLYfile_t));
 
     // Load the file
     {
         // Check if file is valid
         if (f == NULL)
-        {
-            printf("Failed to load file %s\n", path);
-            return (void*)0;
-        }
-        
+            goto noFile;
+
         // Find file size and prep for read
         fseek(f, 0, SEEK_END);
         l = ftell(f);
         fseek(f, 0, SEEK_SET);
 
         // Allocate data and read file into memory
-        data = malloc(l+1);
+        data = malloc(l + 1);
         if (data == 0)
             return (void*)0;
 
@@ -57,350 +123,452 @@ GXPart_t* loadPLY ( const char path[], GXPart_t* part )
         fclose(f);
     }
 
-    // Debugger logging
-    #ifndef NDEBUG
-        printf("Loaded file %s\n", path);
-    #endif
-
-    // Check signature
-    if ((data[0] == 'p' && data[1] == 'l' && data[2] == 'y') == 0)
-        return (void*)0;
-
-    // Count up elements
-    while (strncmp(&data[i], "end_header", 10))
+    // Populate the PLY file
     {
-        if (strncmp(&data[i], "element", 7) == 0)
-            plyFile->nElements++;
-        while (data[i++] != '\n');
-    }
+        // Make sure the header isn't corrupted
+        if (*(u32*)data != GXPLY_HSignature)
+            goto invalidHeader;
 
-    // Allocate space for elements, zero out i.
-    plyFile->elements = calloc(plyFile->nElements, sizeof(GXPLYelement_t));
-    i ^= i;
+        // Copy of data pointer
+        cData = data;
 
-    // Fill out names, counts, and property counts of elements
-    while (strncmp(&data[i], "end_header", 10))
-    {
-        if (strncmp(&data[i], "element", 7) == 0)
+
+        // Pass 1
+        while (*(u32*)cData != GXPLY_HEnd)
         {
-            // Initialized data
-            size_t m = 0;
+            // Check the first four bytes of the line
+            if(*(u32*)cData == GXPLY_HElement)
+                plyFile->nElements++;
 
-            i += 8;
-
-            while (data[i + m] != ' ')
-                m++;
-            plyFile->elements[j].name = malloc(m);
-            plyFile->elements[j].name[m] = '\0';
-            strncpy(plyFile->elements[j].name, &data[i], m);
-
-            plyFile->elements[j].nProperties = 0;
-
-            i += m++;
-            plyFile->elements[j].nCount = atoi(&data[i]);
-            while (data[i++] != '\n');
-            while (strncmp(&data[i], "property", 8) == 0)
-            {
-                plyFile->elements[j].nProperties++;
-                while (data[i++] != '\n');
-            }
-            plyFile->elements[j].properties = calloc(plyFile->elements[j].nProperties,sizeof(GXPLYproperty_t));
-            j++, i--;
-        }
-        while (data[i++] != '\n');
-    }
-
-    // Zero out i and j
-    i ^= i;
-    j ^= j;
-
-    // Fill out names, of properties
-    while (strncmp(&data[i], "end_header", 10))
-    {
-        if (strncmp(&data[i], "element", 7) == 0)
-        {
-            size_t m = 0;
-            i += 8;
-
-            while (data[i + m] != ' ')
-                m++;
-
-            plyFile->elements[j].name = malloc(m);
-            strncpy(plyFile->elements[j].name, &data[i], m);
-            plyFile->elements[j].name[m] = '\0';
-
-            plyFile->elements[j].nProperties = 0;
-            i += m++;
-            plyFile->elements[j].nCount = atoi(&data[i]);
-            while (data[i++] != '\n');
-            while (strncmp(&data[i], "property", 8) == 0)
-            {
-                int n = 0;
-                i += 9;
-                if (strncmp(&data[i], "float", 5) == 0)
+            // Here is as good a place as any to look for comments
+            #ifndef NDEBUG
+                if(*(u32*)cData == GXPLY_HComment)
                 {
-                    i += 6;
-                    plyFile->elements[j].properties[k].typeSize = sizeof(float);
+                    i = 0;
+                    while (cData[++i] != '\n');
+                    printf("[G10] [PLY] Comment in file \"%s\" : %.*s\n", path, i-8, &cData[8]);
+                }
+            #endif
+
+            // Zero set the index
+            i = 0;
+            while (cData[++i] != '\n'); // Skip to the end of the line
+            cData = &cData[i + 1];      // Set the pointer
+        }
+
+        // Allocate for PLY file elements
+        plyFile->elements = calloc(plyFile->nElements+1, sizeof(GXPLYelement_t));
+
+        // Copy the data pointer again
+        cData = data;
+
+        // Pass 2
+        {
+            while (*(u32*)cData != GXPLY_HEnd)
+            {
+
+                // Check if we are on an element
+                if (*(u32*)cData == GXPLY_HElement)
+                {
+                    // TODO: Dynamically determine size. 
+
+                    plyFile->elements[j].name = calloc(65, sizeof(u8));
+                    sscanf(cData, "element %s %d\n", plyFile->elements[j].name, &plyFile->elements[j].nCount);
+
+
+                    i = 0;
+                    while (cData[++i] != '\n'); // Skip to the end of the line
+                    cData = &cData[i + 1];      // Set the pointer
+
+                    // Check if we are on a property
+                    while (*(u32*)cData == GXPLY_HProperty)
+                    {
+                        // Increment properties
+                        plyFile->elements[j].nProperties += 1;
+
+                        // Zero set the index
+                        i = 0;
+                        while (cData[++i] != '\n'); // Skip to the end of the line
+                        cData = &cData[i + 1];      // Set the pointer
+                    }
+                    goto p2propertyExit;
+
+                    // TODO: Copy out the name, count, and veretx count
                 }
 
-                m = 0;
-                while (data[i + m] != '\n')
-                    m++;
+                // Zero set the index
+                i = 0;
+                while (cData[++i] != '\n'); // Skip to the end of the line
+                cData = &cData[i + 1];      // Set the pointer
+                continue;
 
-                while (data[i + m + n] != ' ')
-                    n--;
-                n++;
-                n *= -1;
-
-                plyFile->elements[j].properties[k].name = malloc(n);
-                strncpy(plyFile->elements[j].properties[k].name, &data[i + m - n], n);
-                plyFile->elements[j].properties[k].name[n] = '\0';
-                plyFile->elements[j].nProperties++;
-                k++;
-                while (data[i++] != '\n');
+                // Allocate the space we need for the properties on the way out
+            p2propertyExit:
+                plyFile->elements[j].properties = calloc(plyFile->elements[j].nProperties, sizeof(GXPLYproperty_t));
+                j++;
             }
-            j++, i--, k ^= k;
-            plyFile->elements[j].properties = calloc(plyFile->elements[j].nProperties, sizeof(GXPLYproperty_t));
         }
-        while (data[i++] != '\n');
-    }
-    i ^= i;
-    j ^= j;
+        
+        // Zero set j
+        j ^= j;
+        
+        // Copy data pointer again
+        cData = data;
 
-    // Fill out sizeof of properties
-    while (strncmp(&data[i], "end_header", 10))
-    {
-        if (strncmp(&data[i], "element", 7) == 0)
+        // Pass 3
         {
-            
-            size_t namelen   = 0,
-                   y         = 0,
-                   x         = 0,
-                   listItems = 0;
-
-            i += 8;
-            while (data[i++ + namelen] != ' ');
-            y = atoi(&data[i]);
-            while (data[i++] != '\n');
-            while (strncmp(&data[i], "property", 8) == 0)
+            while (*(u32*)cData != GXPLY_HEnd)
             {
-                i += 9;
-                if (strncmp(&data[i], "char", 4 == 0))
-                    x += sizeof(s8);
-                else if (strncmp(&data[i], "uchar", 5) == 0)
-                    x += sizeof(u8);
-                else if (strncmp(&data[i], "short", 5) == 0)
-                    x += sizeof(s16);
-                else if (strncmp(&data[i], "ushort", 6) == 0)
-                    x += sizeof(u16);
-                else if (strncmp(&data[i], "int", 3) == 0)
-                    x += sizeof(s32);
-                else if (strncmp(&data[i], "uint", 4) == 0)
-                    x += sizeof(u32);
-                else if (strncmp(&data[i], "float", 5) == 0)
-                    x += sizeof(float);
-                else if (strncmp(&data[i], "double", 6) == 0)
-                    x += sizeof(double);
-                else if (strncmp(&data[i], "list", 4) == 0)
+
+                // Check if we are on an element
+                if (*(u32*)cData == GXPLY_HElement)
                 {
-                    i += 5;
-                    // First size of list
+                    // TODO: Dynamically determine size. 
+
+                    i = 0;
+                    while (cData[++i] != '\n'); // Skip to the end of the line
+                    cData = &cData[i + 1];      // Set the pointer
+
+                    // Check if we are on a property
+                    while (*(u32*)cData == GXPLY_HProperty)
                     {
-                        if (strncmp(&data[i], "char", 4 == 0)) {
-                            listItems = sizeof(s8);
-                            i += 4;
+                        // Increment properties
+                        cData += 9;
+
+                        // Compute stride and type size for each element and property respectively
+                        switch (*(u32*)cData)
+                        {
+                        case GXPLY_char:
+                        case GXPLY_uchar:
+                            plyFile->elements[j].sStride                += 1;
+                            plyFile->elements[j].properties[k].typeSize =  1;
+                            break;
+                        case GXPLY_short:
+                        case GXPLY_ushort:
+                            plyFile->elements[j].sStride                += 2;
+                            plyFile->elements[j].properties[k].typeSize =  2;
+                            break;
+                        case GXPLY_int:
+                        case GXPLY_uint:
+                        case GXPLY_float:
+                            plyFile->elements[j].sStride                += 4;
+                            plyFile->elements[j].properties[k].typeSize =  4;
+                            break;
+                        case GXPLY_list:
+                            goto p3propertyExit;
+                            break;
+                        case GXPLY_double:
+                            goto noDoubleSupport;
+                            break;
+                        default:
+                            goto unrecognizedPropertyType;
+                            break;
+
                         }
-                        else if (strncmp(&data[i], "uchar", 5) == 0) {
-                            listItems = sizeof(u8);
-                            i += 5;
-                        }
-                        else if (strncmp(&data[i], "short", 5) == 0) {
-                            listItems = sizeof(s16);
-                            i += 5;
-                        }
-                        else if (strncmp(&data[i], "ushort", 6) == 0) {
-                            listItems = sizeof(u16);
-                            i += 6;
-                        }
-                        else if (strncmp(&data[i], "int", 3) == 0) {
-                            listItems = sizeof(s32);
-                            i += 3;
-                        }
-                        else if (strncmp(&data[i], "uint", 4) == 0) {
-                            listItems = sizeof(u32);
-                            i += 4;
-                        }
+
+                        cData                 = strchr(cData, ' ') + 1;
+                        size_t propertyLength = strchr(cData, '\n') - cData;
+
+                        plyFile->elements[j].properties[k].name = calloc(propertyLength + 1, sizeof(u8));
+                        strncpy(plyFile->elements[j].properties[k].name, cData, propertyLength);
+
+                        // Zero set the index
+                        i = 0;
+                        while (cData[++i] != '\n'); // Skip to the end of the line
+                        cData = &cData[i + 1];      // Set the pointer
+                        k++;
                     }
-                    i++;
-                    // Second size of list
-                    {
-                        if (strncmp(&data[i], "char", 4 == 0)) {
-                            listItems = sizeof(s8);
-                            i += 4;
-                        }
-                        else if (strncmp(&data[i], "uchar", 5) == 0) {
-                            listItems = sizeof(u8);
-                            i += 5;
-                        }
-                        else if (strncmp(&data[i], "short", 5) == 0) {
-                            listItems = sizeof(s16);
-                            i += 5;
-                        }
-                        else if (strncmp(&data[i], "ushort", 6) == 0) {
-                            listItems = sizeof(u16);
-                            i += 6;
-                        }
-                        else if (strncmp(&data[i], "int", 3) == 0) {
-                            listItems = sizeof(s32);
-                            i += 3;
-                        }
-                        else if (strncmp(&data[i], "uint", 4) == 0) {
-                            listItems = sizeof(u32);
-                            i += 4;
-                        }
-                    }
+                    goto p3propertyExit;
 
                 }
-                while (data[i++] != '\n');
+
+                // Zero set the index
+                i = 0;
+                while (cData[++i] != '\n'); // Skip to the end of the line
+                cData = &cData[i + 1];      // Set the pointer
+                continue;
+
+                p3propertyExit:j++;
             }
-            plyFile->elements[j].sStride = x;
-            j++, i--;
         }
-        else if (strncmp(&data[i], "comment", 7) == 0)
-        {
-            i += 7;
-            #ifndef NDEBUG
-                printf("Comment: ");
-                while (data[i++] != '\n')
-                    putchar(data[i]);
-                data--;
-            #endif
-        }
-        else if (strncmp(&data[i], "format", 6) == 0)
-        {
-            i += 6;
-            #ifndef NDEBUG
-                printf("Format: ");
-                while (data[i++] != '\n')
-                    putchar(data[i]);
-                data--;
-            #endif
-        }
-        while (data[i++] != '\n');
     }
 
-    // Log elements and properties
-    #ifndef NDEBUG
-        for (int a = 0; a < plyFile->nElements; a++)
-        {
-            printf("element: \"%s\"\n", plyFile->elements[a].name);
-            for (int b = 0; b < plyFile->elements[a].nProperties; b++)
-                printf("\tproperty: \"%s\"\n", plyFile->elements[a].properties[b].name);
-        }
-    #endif
-    
     // Create flags
     {
         int tflags = 0;
         // Determine what properties are in the file
         {
-            for (int a = 0; a < plyFile->nElements; a++)
+            for (int a = 0; a < 1; a++)
                 for (int b = 0; b < plyFile->elements[a].nProperties; b++)
-                    if (strncmp(plyFile->elements[a].properties[b].name, "x", 1) == 0)
-                        tflags |= 0x01;
-                    else if (strncmp(plyFile->elements[a].properties[b].name, "y", 1) == 0)
-                        tflags |= 0x002;
-                    else if (strncmp(plyFile->elements[a].properties[b].name, "z", 1) == 0)
-                        tflags |= 0x004;
-                    else if (strncmp(plyFile->elements[a].properties[b].name, "s", 1) == 0)
-                        tflags |= 0x008;
-                    else if (strncmp(plyFile->elements[a].properties[b].name, "t", 1) == 0)
-                        tflags |= 0x010;
+                    if (*plyFile->elements[a].properties[b].name == 'x')
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags  |= (GXPLY_Geometric);
+                        tflags          |= GXPLY_X;
+                        vertexGroupCount++;
+                    }
+                    else if (*plyFile->elements[a].properties[b].name == 'y')
+                        tflags |= GXPLY_Y;
+                    else if (*plyFile->elements[a].properties[b].name == 'z')
+                        tflags |= GXPLY_Z;
+                    else if (*plyFile->elements[a].properties[b].name == 's')
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags  |= (GXPLY_Texture);
+                        tflags          |= GXPLY_S;
+                        vertexGroupCount++;
+                    }
+                    else if (*plyFile->elements[a].properties[b].name == 't')
+                        tflags |= GXPLY_T;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "nx", 2) == 0)
-                        tflags |= 0x020;
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags |= (GXPLY_Normal);
+                        tflags |= GXPLY_NX;
+                        vertexGroupCount++;
+                    }
                     else if (strncmp(plyFile->elements[a].properties[b].name, "ny", 2) == 0)
-                        tflags |= 0x040;
+                        tflags |= GXPLY_NY;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "nz", 2) == 0)
-                        tflags |= 0x080;
+                        tflags |= GXPLY_NZ;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "red", 3) == 0)
-                        tflags |= 0x100;
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags  |= (GXPLY_Color);
+                        tflags          |= GXPLY_R;
+                        vertexGroupCount++;
+                    }
                     else if (strncmp(plyFile->elements[a].properties[b].name, "green", 5) == 0)
-                        tflags |= 0x200;
+                        tflags |= GXPLY_G;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "blue", 4) == 0)
-                        tflags |= 0x400;
+                        tflags |= GXPLY_B;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "alpha", 5) == 0)
-                        tflags |= 0x800;
+                        tflags |= GXPLY_A;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "b0", 2) == 0)
+                    {
+                        if (tflags & GXPLY_B1 || tflags & GXPLY_B2 || tflags & GXPLY_B3)
+                            goto irregularVertices;
+                        plyFile->flags <<= 8;
+                        plyFile->flags  |= (GXPLY_Bones);
+                        tflags          |= GXPLY_B0;
+                        vertexGroupCount++;
+                    }
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "b1", 2) == 0)
+                        tflags |= GXPLY_B1;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "b2", 2) == 0)
+                        tflags |= GXPLY_B2;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "b3", 2) == 0)
+                        tflags |= GXPLY_B3;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "w0", 2) == 0)
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags  |= (GXPLY_Weights);
+                        tflags          |= GXPLY_BW1;
+                        vertexGroupCount++;
+                    }
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "w1", 2) == 0)
+                        tflags |= GXPLY_BW1;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "w2", 2) == 0)
+                        tflags |= GXPLY_BW2;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "w3", 2) == 0)
+                        tflags |= GXPLY_BW3;
         }
-        {
-            if (tflags & 0x001 && tflags & 0x002 && tflags & 0x004)
-                plyFile->flags |= GXPLY_Geometric;
-            if (tflags & 0x008 && tflags & 0x010)
-                plyFile->flags |= GXPLY_Texture;
-            if (tflags & 0x020 && tflags & 0x040 && tflags & 0x080)
-                plyFile->flags |= GXPLY_Normal;
-            if (tflags & 0x100 && tflags & 0x200 && tflags & 0x400)
-                plyFile->flags |= GXPLY_Color;
-        }
-    }
 
-    while (strncmp(&data[i], "end_header", 10));
+                // Check the integrity of the mesh
+        #ifndef NDEBUG
+        {
+            if (plyFile->flags & GXPLY_Geometric &&
+                !( tflags & GXPLY_X &&
+                   tflags & GXPLY_Y &&
+                   tflags & GXPLY_Z ))
+                goto missingVerts;
+
+            if (plyFile->flags & GXPLY_Texture &&
+                !( tflags & GXPLY_S &&
+                   tflags & GXPLY_T ))
+                goto missingVerts;
+
+            if (plyFile->flags & GXPLY_Normal &&
+                !( tflags & GXPLY_NX &&
+                   tflags & GXPLY_NY &&
+                   tflags & GXPLY_NZ ))
+                goto missingVerts;
+
+            if (plyFile->flags & GXPLY_Color &&
+                !( tflags & GXPLY_R &&
+                   tflags & GXPLY_G &&
+                   tflags & GXPLY_B ))
+                goto missingVerts;
+
+            if (plyFile->flags & GXPLY_Bones &&
+                !( tflags & GXPLY_B0 &&
+                   tflags & GXPLY_B1 &&
+                   tflags & GXPLY_B2 &&
+                   tflags & GXPLY_B3 ))
+                goto missingVerts;
+
+            if (plyFile->flags & GXPLY_Weights &&
+                !( tflags & GXPLY_BW0 &&
+                   tflags & GXPLY_BW1 &&
+                   tflags & GXPLY_BW2 &&
+                   tflags & GXPLY_BW3 ))
+                goto missingVerts;
+        }
+        #endif
+        goto processVAO;
+        missingVerts:
+            printf("[G10] [PLY] Missing vertex attributes detected in \"%s\"\n",path);
+            goto processVAO;
+        irregularVertices:
+            printf("[G10] [PLY] Detected irregular vertex attribute grouping in \"%s\"\n", path);
+            goto processVAO;
+    }
+    processVAO:
+    while (strncmp(&data[++i], "end_header", 10));
     i += 11;
 
+    // Here we set a few variables
     vertexArray            = (float*)&data[i];
     verticesInBuffer       = plyFile->elements[0].nCount * plyFile->elements[0].sStride;
     indices                = (void*)&data[i + verticesInBuffer];
-    part->elementsInBuffer = plyFile->elements[1].nCount * 3 * sizeof(unsigned int);
+    part->elementsInBuffer = ((GLuint)plyFile->elements[1].nCount * (GLuint)3);
 
-    correctedIndicies = malloc(part->elementsInBuffer);
+    correctedIndicies      = calloc((size_t)part->elementsInBuffer+2, sizeof(float));
+
     if (correctedIndicies == (void*)0)
         return correctedIndicies;
+    
+    size_t indcnt = 0;
 
+    // Fixes the indices
     for (i = 0; i < plyFile->elements[1].nCount; i++)
     {
         correctedIndicies[i * 3 + 0] = indices[i].a;
         correctedIndicies[i * 3 + 1] = indices[i].b;
         correctedIndicies[i * 3 + 2] = indices[i].c;
+        #ifndef NDEBUG
+            indcnt += indices[0].count;
+        #endif
     }
 
-    // Generate the vertex array and all of its contents, as well as the element buffer
-    glGenVertexArrays(1, &part->vertexArray);
-    glGenBuffers(1, &part->vertexBuffer);
-    glGenBuffers(1, &part->elementBuffer);
+    #ifndef NDEBUG
+        if (indcnt % 3 != 0)
+            goto nonTriangulated;
+    #endif
 
-    glBindVertexArray(part->vertexArray);
-
-    // Populate and enable the vertex buffer, element buffer, and UV coordinates
-    glBindBuffer(GL_ARRAY_BUFFER, part->vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, verticesInBuffer, vertexArray, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, part->elementBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, part->elementsInBuffer, correctedIndicies, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, plyFile->elements[0].nProperties * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, plyFile->elements[0].nProperties * sizeof(float), (void*)(6*sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-
-    // Cleanup
-    for (i = 0; i < plyFile->nElements; i++)
+    // Create buffers
     {
-        plyFile->elements[i].properties[j].name     = (void*)0;
-        plyFile->elements[i].properties[j].typeSize = 0;
+        // Generate the vertex array and all of its contents, as well as the element buffer
+        glGenVertexArrays(1, &part->vertexArray);
+        glGenBuffers(1, &part->vertexBuffer);
+        glGenBuffers(1, &part->elementBuffer);
 
-        free(plyFile->elements[i].properties);
-        
-        plyFile->elements[i].name                   = (void*)0;
-        plyFile->elements[i].nCount                 = 0;
-        plyFile->elements[i].nProperties            = 0;
-        plyFile->elements[i].sStride                = 0;
+        glBindVertexArray(part->vertexArray);
+
+        // Populate and enable the vertex buffer, element buffer, and UV coordinates
+        glBindBuffer(GL_ARRAY_BUFFER, part->vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, verticesInBuffer, vertexArray, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, part->elementBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, part->elementsInBuffer * sizeof(u32), correctedIndicies, GL_STATIC_DRAW);
+    }
+    
+    for (size_t i = 0; vertexGroupCount > i; i++)
+    {
+        size_t g = (0xFF << (8*(vertexGroupCount - 1)));
+        char   h = (plyFile->flags & g) >> (8 * (vertexGroupCount - 1));
+        plyFile->flags <<= 8;
+        switch (h)
+        {
+        case GXPLY_Geometric:
+        case GXPLY_Normal:
+        case GXPLY_Color:
+            glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
+            vertexAttribOffset += 3;
+            glEnableVertexAttribArray(i);
+            break;
+
+        case GXPLY_Texture:
+            glVertexAttribPointer(i, 2, GL_FLOAT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
+            vertexAttribOffset += 2;
+            glEnableVertexAttribArray(i);
+            break;
+
+        case GXPLY_Bones:
+        case GXPLY_Weights:
+            glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
+            vertexAttribOffset += 4;
+            glEnableVertexAttribArray(i);
+            break;
+
+        }
+    }
+    i ^= i;
+
+    // Destroy the PLY File
+    {
+        // Depopulate all elements
+        for (size_t i = 0; i < plyFile->nElements; i++)
+        {
+            // Depopulate all properties of an element
+            for (size_t j = 0; j < plyFile->elements[i].nProperties; j++)
+            {
+               // Free the name of the property
+               free(plyFile->elements[i].properties[j].name);
+
+               // Zero set the typesize
+               plyFile->elements[i].properties[j].typeSize = 0;
+            }
+
+            // Free the properties
+            free(plyFile->elements[i].properties);
+            
+            // Free the name of the element
+            free(plyFile->elements[i].name);
+
+            // Zero set all the primatives
+            plyFile->elements[i].nCount = 0;
+            plyFile->elements[i].nProperties = 0;
+            plyFile->elements[i].sStride = 0;
+        }
+
+        // Free the elements
+        free(plyFile->elements);
+
+        // Zero set all the primatives
+        plyFile->flags = 0;
+        plyFile->format = 0;
+        plyFile->nElements = 0;
+
+        // Free the plyFile
+        free(plyFile);
     }
 
-    free(plyFile->elements);
-    plyFile->flags     = 0;
-    plyFile->nElements = 0;
-    free(plyFile);
+    // Count up properties
+    return part;
 
-    return 1;
+    // Error handling
+    {
+        noFile:
+            printf("[G10] [PLY] Failed to load file %s\n", path);
+            return 0;
+        noPart:
+            printf("[G10] [PLY] Null pointer provided for parameter part in call to %s\n", __FUNCSIG__); 
+            return 0;
+        noPath:
+            printf("[G10] [PLY] Null pointer provided for parameter path in call to %s\n", __FUNCSIG__);
+            return 0;
+        invalidHeader:
+            printf("[G10] [PLY] Invalid header detected in file \"%s\"\n",path);
+            return 0;
+        noDoubleSupport:
+            printf("[G10] [PLY] Double detected in element \"%s\" in file \"%s\"\n", plyFile->elements[j].name, path);
+            return 0;
+        unrecognizedPropertyType:
+            printf("[G10] [PLY] Unrecognized property type detected in file \"%s\"\n", path);
+            return 0;
+        nonTriangulated:
+            printf("[G10] [PLY] Detected non triangulated faces in file \"%s\"\n", path);
+            return 0;
+    }
 }

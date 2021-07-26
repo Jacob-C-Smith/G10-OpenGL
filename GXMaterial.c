@@ -26,7 +26,6 @@ GXMaterial_t* loadMaterial ( const char path[] )
     u8*          data;
     size_t       len,
                  rootTokenCount;
-    JSONValue_t* rootContents;
 
     // Initialized data
     GXMaterial_t* ret          = malloc(sizeof(GXMaterial_t));
@@ -41,7 +40,7 @@ GXMaterial_t* loadMaterial ( const char path[] )
         // Check if file is valid
         if (f == NULL)
         {
-            printf("Failed to load file %s\n", path);
+            printf("[G10] [Material] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -64,59 +63,92 @@ GXMaterial_t* loadMaterial ( const char path[] )
         fclose(f);
     }
 
-    // Parse JSON Values
-    len          = strlen(data), rootTokenCount = GXParseJSON(data, len, 0, 0);
-    rootContents = calloc(rootTokenCount, sizeof(JSONValue_t));
-    GXParseJSON(data, len, rootTokenCount, rootContents);
+    ret = loadMaterialFromJSON(data);
 
-    // Find and load the textures
-    for (size_t k = 0; k < rootTokenCount; k++)
-        if (strcmp("albedo", rootContents[k].name) == 0)
-            ret->albedo = loadTexture(rootContents[k].content.nWhere);
-        else if (strcmp("normal", rootContents[k].name) == 0)
-            ret->normal = loadTexture(rootContents[k].content.nWhere);
-        else if (strcmp("metallic", rootContents[k].name) == 0)
-            ret->metallic = loadTexture(rootContents[k].content.nWhere);
-        else if (strcmp("roughness", rootContents[k].name) == 0)
-            ret->roughness = loadTexture(rootContents[k].content.nWhere);
-        else if (strcmp("AO", rootContents[k].name) == 0)
-            ret->AO = loadTexture(rootContents[k].content.nWhere);
-
-    // Free root contents
-    free(rootContents);
+    free(data);
 
     // Return the material
     return ret;
 }
 
+GXMaterial_t* loadMaterialFromJSON(char* token)
+{
+    // Uninitialized data
+    size_t        len,
+                  rootTokenCount;
+    JSONValue_t  *tokens;
+
+    // Initialized data
+    GXMaterial_t* ret = createMaterial();
+
+    // Parse JSON Values
+    {
+        len = strlen(token), rootTokenCount = GXParseJSON(token, len, 0, 0);
+        tokens = calloc(rootTokenCount, sizeof(JSONValue_t));
+        GXParseJSON(token, len, rootTokenCount, tokens);
+    }
+
+    // TODO: Write code to load many albedos     
+
+    // Find and load the textures
+    for (size_t k = 0; k < rootTokenCount; k++)
+    {
+        if (strncmp("name", tokens[k].name, 4) == 0)
+        {
+            size_t nameLen = strlen(tokens[k].content.nWhere);
+            ret->name = calloc(nameLen + 1, sizeof(u8));
+            strncpy(ret->name, tokens[k].content.nWhere, nameLen);
+            continue;
+        }
+        if (strncmp("albedo", tokens[k].name, 6) == 0)
+        {
+            ret->albedo = loadTexture(tokens[k].content.nWhere);
+            continue;
+        }
+        else if (strncmp("normal", tokens[k].name, 6) == 0)
+        {
+            ret->normal = loadTexture(tokens[k].content.nWhere);
+            continue;
+        }
+        else if (strncmp("metal", tokens[k].name, 5) == 0)
+        {
+            ret->metallic = loadTexture(tokens[k].content.nWhere);
+            continue;
+        }
+        else if (strncmp("rough", tokens[k].name, 5) == 0)
+        {
+            ret->roughness = loadTexture(tokens[k].content.nWhere);
+            continue;
+        }
+        else if (strncmp("AO", tokens[k].name, 2) == 0)
+        {
+            ret->AO = loadTexture(tokens[k].content.nWhere);
+            continue;
+        }
+    }
+    
+    // Free root contents
+    free(tokens);
+
+    return ret;
+}
+
 int assignMaterial ( GXMaterial_t* material, GXShader_t* shader )
 {
+    //Bind the texture units to the textureIDs
+    size_t albedoIndex = loadTextureToTextureUnit(material->albedo);
+    size_t normalIndex = loadTextureToTextureUnit(material->normal);
+    size_t roughIndex  = loadTextureToTextureUnit(material->roughness);
+    size_t metalIndex  = loadTextureToTextureUnit(material->metallic);
+    size_t aoIndex     = loadTextureToTextureUnit(material->AO);
 
     // Set the texture uniforms from the shader requested data
-    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Albedo) ,0);
-    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Normal), 1);
-    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Rough) , 2);
-    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_Metal) , 3);
-    setShaderInt(shader, (const char*) findValue(shader->requestedData, shader->requestedDataCount, GXSP_AO)    , 4);
+    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Albedo), albedoIndex);
+    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Normal), normalIndex);
+    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Rough), roughIndex);
+    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Metal), metalIndex);
+    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_AO), aoIndex);
 
-    // Bind the texture units to the textureIDs
-    // loadTextureToTextureUnit(material->albedo, )
-
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_2D, material->albedo->textureID);
-
-    glActiveTexture(GL_TEXTURE0 + 1);
-    glBindTexture(GL_TEXTURE_2D, material->normal->textureID);
-
-    glActiveTexture(GL_TEXTURE0 + 2);
-    glBindTexture(GL_TEXTURE_2D, material->metallic->textureID);
-
-    glActiveTexture(GL_TEXTURE0 + 3);
-    glBindTexture(GL_TEXTURE_2D, material->roughness->textureID);
-
-    glActiveTexture(GL_TEXTURE0 + 4);
-    glBindTexture(GL_TEXTURE_2D, material->AO->textureID);
-    
     return 0;
 }
 

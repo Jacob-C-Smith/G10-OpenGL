@@ -13,18 +13,18 @@
 
 struct GXLight_s
 {
-    const char*       name;     // The name of the light 
+    const char       *name;     // The name of the light 
 
     GXvec4_t          color;    // The color of the light, w component is unused
     GXvec4_t          location; // The location of the light, w component is last distance from camera
 
-    struct GXLight_s* next;     // The next light in the list
+    struct GXLight_s *next;     // The next light in the list
 };
 typedef struct GXLight_s GXLight_t;
 
-GXLight_t* createLight     (  );                   // ✅ Creates a blank light 
+GXLight_t *createLight     (  );                    // ✅ Creates a blank light 
 
-GXLight_t* loadLight       ( const char path [] ); // ✅ Loads a light from a JSON file
-GXLight_t* loadLightAsJSON ( char*      token );   // ✅ Loads a light from a JSON object
+GXLight_t *loadLight       ( const char  path [] ); // ✅ Loads a light from a JSON file
+GXLight_t *loadLightAsJSON ( char       *token   ); // ✅ Loads a light from a JSON object
 
-int        destroyLight    ( GXLight_t* light );   // ✅ Destroys a light
+int        destroyLight    ( GXLight_t*  light   ); // ✅ Destroys a light

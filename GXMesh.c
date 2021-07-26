@@ -48,21 +48,21 @@ GXMesh_t* loadMesh(const char path[])
 
     // Uninitialized data
     int          i;
-    char*        data;
+    char        *data;
     int          tokenCount;
-    JSONValue_t* tokens;
+    JSONValue_t *tokens;
 
     // Initialized data
-    GXMesh_t* ret = createMesh();
-    size_t    l   = 0;
-    FILE*     f   = fopen(path, "rb");
+    GXMesh_t    *ret = createMesh();
+    size_t       l   = 0;
+    FILE        *f   = fopen(path, "rb");
 
     // Load the file
     {
         // Check if file is valid
         if (f == NULL)
         {
-            printf("Failed to load file %s\n", path);
+            printf("[G10] [Mesh] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -114,7 +114,7 @@ GXMesh_t* loadMeshAsJSON(char* token)
         {
             // Print out comment
             #ifndef NDEBUG
-            printf("comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
+            printf("[G10] [Mesh] Comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
             #endif
             continue;
         }
@@ -176,7 +176,7 @@ GXPart_t* loadPart ( const char path[] )
         // Check if file is valid
         if (f == NULL)
         {
-            printf("Failed to load file %s\n", path);
+            printf("[G10] [Mesh] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -255,7 +255,7 @@ GXPart_t* loadPartAsJSON ( char* token )
         // Set name
         else if (strcmp("material", tokens[j].name) == 0)
         {
-
+            ret->material = loadMaterial(tokens[j].content.nWhere);
         }
     }
 
@@ -310,28 +310,28 @@ GXPart_t* getPart ( GXMesh_t* mesh, const char name[] )
         // There are no parts
         noParts:
         #ifndef NDEBUG
-            printf("There are no parts in \"%s\".\n", mesh->name);
+            printf("[G10] [Mesh] There are no parts in \"%s\".\n", mesh->name);
         #endif
         return 0;
 
         // There is no matching part
         noMatch:
         #ifndef NDEBUG
-            printf("There is no part in \"%s\" named \"%s\".", mesh->name, name);
+            printf("[G10] [Mesh] There is no part in \"%s\" named \"%s\".", mesh->name, name);
         #endif
         return 0;
     
         // The mesh parameter was null
         nullMesh:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Mesh] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Mesh] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
@@ -378,27 +378,27 @@ int appendPart ( GXMesh_t* mesh, GXPart_t* part )
         // Two parts with the same name cannot exist in the same mesh
         duplicateName:
         #ifndef NDEBUG
-            printf("Part \"%s\" can not be appended to \"%s\" because a part with that name already exists\n", part->name, mesh->name);
+            printf("[G10] [Mesh] Part \"%s\" can not be appended to \"%s\" because a part with that name already exists\n", part->name, mesh->name);
         #endif
         return 0;
 
         // The mesh argument was null
         nullMesh:
         #ifndef NDEBUG
-            printf("Null pointer provided for mesh in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Mesh] Null pointer provided for mesh in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The part argument was null
         nullPart:
         #ifndef NDEBUG
-            printf("Null pointer provided for part in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Mesh] Null pointer provided for part in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int drawMesh ( GXMesh_t* mesh ) 
+int drawMesh ( GXMesh_t* mesh, GXShader_t* shader ) 
 {
     // Initialized data
     GXPart_t* i = mesh->parts;
@@ -406,6 +406,8 @@ int drawMesh ( GXMesh_t* mesh )
     // Draw the entire mesh
     while (i)
     {
+        if (i->material)
+            assignMaterial(i->material, shader);
         drawPart(i);
         i = i->next;
     }
@@ -415,14 +417,40 @@ int drawMesh ( GXMesh_t* mesh )
 
 int drawPart ( GXPart_t* part )
 {
+    // Argument check
+    {
+        if (part == (void*)0)
+            goto noPart;
+    }
+
     // Draw the part
     glBindVertexArray(part->vertexArray);
-    glDrawElements(GL_TRIANGLES, part->elementsInBuffer * 3, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, part->elementsInBuffer, GL_UNSIGNED_INT, 0);
+
     return 0;
+
+    // Error handling
+    {
+        // Null pointer for part
+        noPart:
+        #ifndef NDEBUG
+            printf("[G10] [Mesh] Null pointer provided for parameter \"part\" in function \"%s\"\n",__FUNCSIG__);
+        #endif
+    }
 }
 
 int removePart( GXMesh_t* mesh, const char name[] )
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(mesh == (void*)0)
+                goto noMesh;
+            if(name == (void*)0)
+                goto noName;
+        #endif
+    }
+
     // Create a pointer to the head of the list
     GXPart_t* i = mesh->parts;
 
@@ -452,7 +480,7 @@ int removePart( GXMesh_t* mesh, const char name[] )
 
             // Verbose logging
             #ifndef NDEBUG
-                printf("Destroyed part \"%s\" from mesh \"%s\"\n", name,mesh->name);
+                printf("[G10] [Mesh] Destroyed part \"%s\" from mesh \"%s\"\n", name,mesh->name);
             #endif		
 
             // Stitch up the linked list 
@@ -468,14 +496,28 @@ int removePart( GXMesh_t* mesh, const char name[] )
         // Error handling if the mesh is empty.
         noParts:
         #ifndef NDEBUG
-            printf("There are no parts in \"%s\"\n", mesh->name);
+            printf("[G10] [Mesh] There are no parts in \"%s\"\n", mesh->name);
         #endif
         return 0;
 
         // Error hadling if we don't find the mesh.
         noMatch:
         #ifndef NDEBUG
-            printf("There is no part in \"%s\" named \"%s\".\n", mesh->name, name);
+            printf("[G10] [Mesh] There is no part in \"%s\" named \"%s\".\n", mesh->name, name);
+        #endif
+        return 0;
+
+        // No mesh was supplied
+        noMesh:
+        #ifndef NDEBUG
+            printf("[G10] [Mesh] Null pointer provided for parameter \"mesh\" in function \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+
+        // No name was supplied
+        noName:
+        #ifndef NDEBUG
+            printf("[G10] [Mesh] Null pointer provided for parameter \"name\" in function \"%s\"\n",__FUNCSIG__);
         #endif
         return 0;
     }
@@ -514,7 +556,7 @@ int destroyMesh ( GXMesh_t* mesh )
     {
         noMesh:
             #ifndef NDEBUG
-                printf("Null pointer provided for mesh in function \"%s\"\n", __FUNCSIG__);
+                printf("[G10] [Mesh] Null pointer provided for mesh in function \"%s\"\n", __FUNCSIG__);
             #endif
             return 0;
     }
@@ -551,7 +593,7 @@ int destroyPart( GXPart_t* part )
         // Null parameter for part
         nullPart:
             #ifndef NDEBUG 
-                printf("Null pointer provided for part in function \"%s\"\n", __FUNCSIG__);
+                printf("[G10] [Mesh] Null pointer provided for part in function \"%s\"\n", __FUNCSIG__);
             #endif
         return 0;
 

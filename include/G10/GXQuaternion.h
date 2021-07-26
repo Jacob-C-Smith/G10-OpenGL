@@ -72,3 +72,45 @@ inline GXmat4_t     rotationMatrixFromQuaternion ( quaternion_t q )
         0                                              , 0                                              , 0                                              , 1
     };
 }
+
+inline quaternion_t qSlerp(quaternion_t q0, quaternion_t q1, float deltaTime)
+{
+    // Uninitialized data
+    float sinht,
+          ht,
+          rA,
+          rB;
+
+    // Initialized data
+    // The cosine of the half angle of the quaternions
+    float cosht = q0.u * q1.u + q0.i * q1.i + q0.j * q1.j + q0.k * q1.k;
+    
+    // If the half angle is zero, we have nothing to do.
+    if(abs(cosht) >= 1.0)
+        return q0;
+    
+    // Compute the half angle and the sin of the half angle
+    ht    = acosf(cosht);
+    sinht = sqrtf(1.0 - cosht * cosht);
+
+    // If theta = 180, we can rotate around any axis
+    if (fabs(sinht) < 0.001)
+        return (quaternion_t) { 
+            (q0.u * 0.5 + q1.u * 0.5),
+            (q0.i * 0.5 + q1.i * 0.5),
+            (q0.j * 0.5 + q1.j * 0.5),
+            (q0.k * 0.5 + q1.k * 0.5)
+        };
+
+    // Compute the ratios to step by
+    rA = sinf((1 - deltaTime) * ht) / sinht,
+    rB = sinf(deltaTime*ht) / sinht;
+
+    return (quaternion_t) { 
+        (q0.u * rA + q1.u * rB),
+        (q0.i * rA + q1.i * rB),
+        (q0.j * rA + q1.j * rB),
+        (q0.k * rA + q1.k * rB)
+    };
+
+}

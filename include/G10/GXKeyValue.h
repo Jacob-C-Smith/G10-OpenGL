@@ -7,8 +7,8 @@
 struct GXKeyValue_s
 {
     size_t key;
-    char*  value;
+    char  *value;
 };
 typedef struct GXKeyValue_s GXKeyValue_t;
 
-char* findValue ( GXKeyValue_t* list, size_t count, size_t key ); // ✅ Walks through an array until a matching key / value pair is found
+char *findValue ( GXKeyValue_t *list, size_t count, size_t key ); // ✅ Walks through an array until a matching key / value pair is found

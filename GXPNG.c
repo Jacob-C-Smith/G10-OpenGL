@@ -1,14 +1,23 @@
 #include <G10/GXPNG.h>
 
-GXTexture_t* loadPNGImage ( const char path[] )
+GXTexture_t *loadPNGImage ( const char path[] )
 {
+    // Argument checking
+    {
+        #ifndef NDEBUG
+            if(path == 0)
+                goto noPath;
+        #endif
+    }
+
     // Uninitialized data
-    SDL_Surface* image;
+    SDL_Surface *image;
+    u8          *data;
     size_t       allocateSize;
-    u8*          data;
+    
 
     // Initialized data
-    GXTexture_t* ret = malloc(sizeof(GXTexture_t));
+    GXTexture_t* ret = createTexture();
     SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
     
     // Check allocated memory
@@ -41,13 +50,13 @@ GXTexture_t* loadPNGImage ( const char path[] )
         glBindTexture(GL_TEXTURE_2D, ret->textureID);
 
         // Point it to the right place, use some ternarry operaters to determine color depth
-        glTexImage2D(GL_TEXTURE_2D, 0, (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, ret->width, ret->height, 0, (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
-
+        glTexImage2D(GL_TEXTURE_2D, 0, (image->format->BytesPerPixel == 1) ? GL_RED : ((image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA), ret->width, ret->height, 0, (image->format->BytesPerPixel == 1) ? GL_RED : (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+        
         // More OpenGL things
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        glGenerateMipmap(GL_TEXTURE_2D);
+        //glGenerateMipmap(GL_TEXTURE_2D);
     }
 
     // Free data. We don't really need the header anymore. 
@@ -57,14 +66,23 @@ GXTexture_t* loadPNGImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        printf("[G10] Loaded file \"%s\"\n\n", path);
+        printf("[G10] [Texture] [PNG] Loaded file \"%s\"\n\n", path);
     #endif 
-
+    
     return ret;
 
-    invalidFile:
-    #ifndef NDEBUG
-        printf("[G10] Failed to load file %s\n", path);
-    #endif
-    return 0;
+    // Error handling
+    {
+        invalidFile:
+        #ifndef NDEBUG
+            printf("[G10] [Texture] [PNG] Failed to load file %s\n", path);
+        #endif
+        return 0;
+
+        noPath:
+        #ifndef NDEBUG
+            printf("[G10] [Texture] [PNG] No path provided\n");
+        #endif
+        return 0;
+    }
 }

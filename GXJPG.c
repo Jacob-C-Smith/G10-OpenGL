@@ -8,7 +8,7 @@ GXTexture_t* loadJPGImage ( const char path[] )
     u8*          data;
 
     // Initialized data
-    GXTexture_t* ret = malloc(sizeof(GXTexture_t));
+    GXTexture_t* ret = createTexture();
     SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
 
     // Check allocated memory
@@ -58,7 +58,7 @@ GXTexture_t* loadJPGImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        printf("[G10] Loaded file \"%s\"\n\n", path);
+        printf("[G10] [JPG] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;

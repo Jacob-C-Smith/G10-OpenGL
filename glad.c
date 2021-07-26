@@ -1665,7 +1665,7 @@ PFNGLDELETEVERTEXARRAYSPROC glad_glDeleteVertexArrays;
 void APIENTRY glad_debug_impl_glDeleteVertexArrays(GLsizei arg0, const GLuint * arg1) {    
     _pre_call_callback("glDeleteVertexArrays", (void*)glDeleteVertexArrays, 2, arg0, arg1);
      glad_glDeleteVertexArrays(arg0, arg1);
-    _post_call_callback("glDeleteVertexArrays", (void*)glDeleteVertexArrays, 2, arg0, arg1);
+     _post_call_callback("glDeleteVertexArrays", (void*)glDeleteVertexArrays, 2, arg0, arg1);
     
 }
 PFNGLDELETEVERTEXARRAYSPROC glad_debug_glDeleteVertexArrays = glad_debug_impl_glDeleteVertexArrays;

@@ -1,4 +1,4 @@
-﻿#pragma once
+﻿#pragma once.
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
 #include <G10/GXShader.h>
@@ -16,12 +16,12 @@ struct GXMaterial_s {
 typedef struct GXMaterial_s GXMaterial_t;
 
 // Constructors
-GXMaterial_t* createMaterial       ( );                                            // ✅ Creates an empty material
-GXMaterial_t* loadMaterial         ( const char path[] );                          // ✅ Loads a material from a JSON file
-GXMaterial_t* loadMaterialFromJSON ( char* token );                                // ✅ Loads a material from a JSON object
+GXMaterial_t *createMaterial       ( );                                            // ✅ Creates an empty material
+GXMaterial_t *loadMaterial         ( const char    path[] );                       // ✅ Loads a material from a JSON file
+GXMaterial_t *loadMaterialFromJSON ( char         *token );                        // ✅ Loads a material from a JSON object
 
 // Material
-int           assignMaterial       ( GXMaterial_t* material, GXShader_t* shader ); // ✅ Sets uniforms and binds textures for drawing calls
+int           assignMaterial       ( GXMaterial_t *material, GXShader_t *shader ); // ✅ Sets uniforms and binds textures for drawing calls
 
 // Destructors
-int           unloadMaterial       ( GXMaterial_t* material );                     // ✅ Destroys a material
+int           unloadMaterial       ( GXMaterial_t *material );                     // ✅ Destroys a material

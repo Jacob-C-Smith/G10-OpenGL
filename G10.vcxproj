@@ -150,6 +150,9 @@
   <ItemGroup>
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
+    <MASM Include="GXCollision_x86_64.asm">
+      <FileType>Document</FileType>
+    </MASM>
     <None Include="README.md" />
     <None Include="TODO" />
   </ItemGroup>
@@ -158,27 +161,30 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="GXBitmap.c" />
     <ClCompile Include="GXCamera.c" />
+    <ClCompile Include="GXCollider.c" />
     <ClCompile Include="GXEntity.c" />
     <ClCompile Include="GXJPG.c" />
     <ClCompile Include="GXJSON.c" />
+    <ClCompile Include="GXKeyValue.c" />
     <ClCompile Include="GXLight.c" />
     <ClCompile Include="GXMaterial.c" />
     <ClCompile Include="GXMesh.c" />
     <ClCompile Include="GXNetworking.c" />
+    <ClCompile Include="GXPhysics.c" />
     <ClCompile Include="GXPLY.c" />
     <ClCompile Include="GXPNG.c" />
+    <ClCompile Include="GXProp.c" />
     <ClCompile Include="GXRig.c" />
     <ClCompile Include="GXRigidbody.c" />
     <ClCompile Include="GXScene.c" />
     <ClCompile Include="GXShader.c" />
+    <ClCompile Include="GXSplashscreen.c" />
     <ClCompile Include="GXTexture.c" />
     <ClCompile Include="GXTransform.c" />
-    <ClCompile Include="include\G10\arch\x86_64\GXAVX.h\GXAVX2.h" />
-    <ClCompile Include="include\G10\GXKeyValue.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\G10\arch\x86_64\GXSSEmath.h" />
+    <ClInclude Include="include\G10\arch\x86_64\GXAVXmath.h" />
     <ClInclude Include="include\G10\G10.h" />
     <ClInclude Include="include\G10\GXBitmap.h" />
     <ClInclude Include="include\G10\GXCamera.h" />
@@ -193,13 +199,16 @@
     <ClInclude Include="include\G10\GXMaterial.h" />
     <ClInclude Include="include\G10\GXMesh.h" />
     <ClInclude Include="include\G10\GXNetworking.h" />
+    <ClInclude Include="include\G10\GXPhysics.h" />
     <ClInclude Include="include\G10\GXPLY.h" />
     <ClInclude Include="include\G10\GXPNG.h" />
+    <ClInclude Include="include\G10\GXProp.h" />
     <ClInclude Include="include\G10\GXQuaternion.h" />
     <ClInclude Include="include\G10\GXRig.h" />
     <ClInclude Include="include\G10\GXRigidbody.h" />
     <ClInclude Include="include\G10\GXScene.h" />
     <ClInclude Include="include\G10\GXShader.h" />
+    <ClInclude Include="include\G10\GXSplashscreen.h" />
     <ClInclude Include="include\G10\GXTexture.h" />
     <ClInclude Include="include\G10\GXTransform.h" />
     <ClInclude Include="include\G10\GXtypedef.h" />
@@ -209,15 +218,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="..\GXAVX_x86_64.asm" />
     <MASM Include="GXCamera_x86_64.asm" />
-    <MASM Include="GXRig.asm" />
+    <MASM Include="GXQuaternion_x86_64.asm" />
+    <MASM Include="GXRig_x86_64.asm" />
     <MASM Include="GXRigidbody_x86_64.asm" />
     <MASM Include="GXMath_x86_64.asm" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="acknowledgements.txt" />
     <Text Include="benchmarks.txt" />
+    <Text Include="height mapping notes.txt" />
     <Text Include="how to build.txt" />
   </ItemGroup>
   <ItemGroup>

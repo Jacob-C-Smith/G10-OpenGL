@@ -47,72 +47,86 @@ _CONST ENDS
 _TEXT SEGMENT
 
 ; Summates vector array pointed to by rdx+0x10. Stores resultant vector rdx.
-PUBLIC SSESumVecs
-SSESumVecs PROC 
+PUBLIC AVXSumVecs
+AVXSumVecs PROC 
     push rdx                    ; Save rdx on the stack so we can dereference it later
     add rdx, 10h                ; Start at the array pointed to by rdx+0x10
-    vmovaps xmm0, [rdx]         ; Copy out the vector
+    vmovaps xmm4, [rdx]         ; Copy out the vector
     loops:                      
         add rdx, 10h            ; Iterate to the next vector
-        vmovaps xmm1, [rdx]     ; Copy out the second vector
-        vaddps xmm0, xmm0, xmm1 ; Add the vectors together and sotre the result in xmm0
+        vmovaps xmm5, [rdx]     ; Copy out the second vector
+        vaddps xmm4, xmm4, xmm5 ; Add the vectors together and sotre the result in xmm0
 
         dec rcx                 ; Decrement the counter
         jrcxz e                 ; If we're done, we exit
         jmp loops               ; If not we keep going
     e:                          ;
     pop rdx                     ; Pop rdx from the stack
-    vmovaps [rdx], xmm0         ; Copy xmm0 to memory 
+    vmovaps [rdx], xmm4         ; Copy xmm0 to memory 
     
-    leave
     ret                         ; exit
-SSESumVecs ENDP
+AVXSumVecs ENDP
 
 ; Adds two vectors
-PUBLIC SSEAddVec
-SSEAddVec PROC
+PUBLIC AVXAddVec
+AVXAddVec PROC
     vmovaps xmm0, [rcx]
     vmovaps xmm1, [rdx]
     vaddps  xmm0, xmm0, xmm1
     vmovaps [r8], xmm0
     leave
     ret
-SSEAddVec ENDP
+AVXAddVec ENDP
 
 ; Subtract two vectors
-PUBLIC SSESubVec
-SSESubVec PROC
+PUBLIC AVXSubVec
+AVXSubVec PROC
     vmovaps xmm0, [rcx]
     vmovaps xmm1, [rdx]
     vsubps  xmm0, xmm0, xmm1
     vmovaps [r8], xmm0
     leave
     ret
-SSESubVec ENDP
+AVXSubVec ENDP
 
-PUBLIC SSEAddVecS
-SSEAddVecS PROC
+PUBLIC AVXAddVecS
+AVXAddVecS PROC
     vmovaps xmm0, [rcx]
     vbroadcastss xmm1, xmm1
     vsubps  xmm0, xmm0, xmm1
     vmovaps [r8], xmm0
     leave
     ret
-SSEAddVecS ENDP
+AVXAddVecS ENDP
 
-PUBLIC SSESubVecS
-SSESubVecS PROC
+PUBLIC AVXSubVecS
+AVXSubVecS PROC
     vmovaps xmm0, [rcx]
     vbroadcastss xmm1, xmm1
     vsubps  xmm0, xmm0, xmm1
     vmovaps [r8], xmm0
     leave
     ret
-SSESubVecS ENDP
+AVXSubVecS ENDP
+
+PUBLIC AVXSameVec
+AVXSameVec PROC
+    vmovaps xmm0, [rcx]
+    vmovaps xmm1, [rdx]
+    vxorps  xmm2, xmm0, xmm1
+    vpmovmskb rax,xmm2
+    or rax, rax
+    jz tr
+    xor rax, rax
+    ret
+    tr:
+        mov rax, 1
+        ret
+AVXSameVec ENDP
 
 ; Computes cross product of two vectors. Stores result where first parameter points
-PUBLIC SSECrossProduct
-SSECrossProduct PROC
+PUBLIC AVXCrossProduct
+AVXCrossProduct PROC
     vmovaps xmm0, [rcx]
     vmovaps xmm1, [rdx]
     vmovaps xmm2, xmm0                 ; copy xmm0 into xmm2
@@ -129,10 +143,10 @@ SSECrossProduct PROC
 
     leave
     ret
-SSECrossProduct ENDP
+AVXCrossProduct ENDP
 
-PUBLIC SSEmat4xmat4
-SSEmat4xmat4 PROC
+PUBLIC AVXmat4xmat4
+AVXmat4xmat4 PROC
         
     ; Save a copy of rcx, rsi, and rdi
     push rcx
@@ -176,41 +190,40 @@ SSEmat4xmat4 PROC
 
     leave
     ret
-SSEmat4xmat4 ENDP
+AVXmat4xmat4 ENDP
 
-PUBLIC SSEvecxvec
-SSEVecxVec PROC
+PUBLIC AVXvecxvec
+AVXVecxVec PROC
 
-SSEVecxVec ENDP
+AVXVecxVec ENDP
 
-PUBLIC SSEVecxScalar
-SSEVecxScalar PROC
+PUBLIC AVXVecxScalar
+AVXVecxScalar PROC
 
-SSEVecxScalar ENDP
+AVXVecxScalar ENDP
 
-PUBLIC SSEDotProduct
-SSEDotProduct PROC
-    vmovaps xmm0, xmmword ptr [rcx]       ; Copy first parameter into xmm0
-    vmulps  xmm0, xmm0, xmmword ptr [rdx] ; Multiply xmm0 by the second parameter
-    vmovaps xmm1,xmm0                     ; xmm1 = xmm0
-    vshufps xmm1, xmm1,xmm0,0FFh          ; xmm2 = xmm0.w
-    vmovaps xmm2,xmm0                     ; xmm2 = xmm0
-    vshufps xmm2, xmm2,xmm0,0AAh          ; xmm2 = xmm0.z
-    vaddps  xmm1, xmm1,xmm2               ; xmm1 += xmm2
-    vmovaps xmm2,xmm0                     ; xmm2 = xmm0
-    vshufps xmm2, xmm2,xmm0,55h           ; xmm2 = xmm0.y
-    vshufps xmm0, xmm0,xmm0,0             ; xmm0 = xmm0.x
-    vaddps  xmm2, xmm2,xmm0               ; xmm2 += xmm0
-    vaddps  xmm0, xmm1,xmm2               ; xmm0 = xmm1 + xmm2
-    
+PUBLIC AVXDot
+AVXDot PROC
+    vmovss xmm1, dword ptr [rcx]          ; xmm1 = x1
+    vmovss xmm0, dword ptr [rcx+4]        ; xmm0 = y1
+    vmulss xmm1, xmm1, dword ptr [rcx]    ; xmm1 = x1 * x2
+    vmulss xmm0, xmm0, dword ptr [rcx+4]  ; xmm0 = y1 * y2
+    vaddss xmm1, xmm1, xmm0               ; xmm1 = (x1 * x2 + y1 * y2)
+    vmovss xmm0, dword ptr [rcx+8]        ; xmm0 = z1
+    vmulss xmm0, xmm0, dword ptr [rcx+8]  ; xmm0 = z1 * z2
+    vaddss xmm0, xmm1, xmm0               ; xmm0 = (x1 * x2 + y1 * y2 + z1 * z2)
+    vmovss xmm1, dword ptr [rcx+12]       ; xmm1 = w1
+    vmulss xmm1, xmm1, dword ptr [rcx+12] ; xmm1 = w1 * w2
+    vaddss xmm0, xmm1, xmm0               ; xmm0 = (x1 * x2 + y1 * y2 + z1 * z2 + w1 * w2)
+
     ret
-SSEDotProduct ENDP
+AVXDot ENDP
 
-PUBLIC SSENormalize
-SSENormalize PROC
+PUBLIC AVXNormalize
+AVXNormalize PROC
     push rdx
     mov rdx, rcx
-    call SSEDotProduct
+    call AVXDot
 
     vsqrtss xmm0, xmm0, xmm0
     vmovaps xmm1, [rcx]
@@ -221,10 +234,11 @@ SSENormalize PROC
     pop rdx
     vmovaps [rdx], xmm1
     ret
-SSENormalize ENDP
+AVXNormalize ENDP
+
 ; Transposes inverse matrix
-PUBLIC SSETransposeInverseMatrix
-SSETransposeInverseMatrix PROC
+PUBLIC AVXTransposeInverseMatrix
+AVXTransposeInverseMatrix PROC
     vmovaps xmm0, [rcx]                    ; xmm0 = [ a b c d ]
     vmovaps xmm1, [rcx+16]                 ; xmm1 = [ e f g h ]
     vmovaps xmm2, [rcx+32]                 ; xmm2 = [ i j k l ]
@@ -250,14 +264,49 @@ SSETransposeInverseMatrix PROC
     vcvtpd2ps xmm2, ymm2                   ; .
     vcvtpd2ps xmm3, ymm3                   ; .
 
-    vmovaps [r8],     xmm0                ; [ a e i m ]
-    vmovaps [r8+10h], xmm1                ; [ b f j n ]
-    vmovaps [r8+20h], xmm2                ; [ c g k o ]
-    vmovaps [r8+30h], xmm3                ; [ d h l p ]
+    vmovaps [r8],     xmm0                ; xmm0 = [ a e i m ]
+    vmovaps [r8+10h], xmm1                ; xmm1 = [ b f j n ]
+    vmovaps [r8+20h], xmm2                ; xmm2 = [ c g k o ]
+    vmovaps [r8+30h], xmm3                ; xmm3 = [ d h l p ]
 
     leave
     ret
-SSETransposeInverseMatrix ENDP
+AVXTransposeInverseMatrix ENDP
+
+;AVXModelMatrix            ( GXvec4_t* location, GXvec4_t* rotation,    GXvec4_t* scale, GXmat4_t* ret );
+;AVXViewMatrix             ( GXvec4_t* eye,      GXvec4_t* target,      GXvec4_t* up );
+;AVXProjectionMatrix       ( float     fov,      float     aspectRatio, float     near,  float far );
+
+PUBLIC AVXModelMatrix
+AVXModelMatrix PROC
+
+AVXModelMatrix ENDP
+
+PUBLIC AVXViewMatrix
+AVXViewMatrix PROC
+
+AVXViewMatrix ENDP
+
+PUBLIC AVXProjectionMatrix
+AVXProjectionMatrix PROC
+
+AVXProjectionMatrix ENDP
+
+PUBLIC AVXHorizontalAdd
+AVXHorizontalAdd PROC
+    vmovups xmm1, [rcx]
+
+    noLoad:
+    vextractf128 xmm0, ymm0, 1h
+    vaddps xmm0, xmm1, xmm0
+    vmovshdup xmm1, xmm0
+    vaddps xmm0, xmm1, xmm0
+    vmovhlps xmm1, xmm1, xmm0
+    vaddss xmm0, xmm0, xmm1
+    vzeroupper
+    ret
+AVXHorizontalAdd ENDP
+
 
 _TEXT ENDS
  

@@ -11,12 +11,12 @@ GXTexture_t* loadBMPImage ( const char path[] )
     }
 
     // Uninitialized data
+    u8          *data;
     int          i;
-    u8*          data;
-
+    
     // Initialized data
-    GXTexture_t* ret = malloc(sizeof(GXTexture_t));
-    FILE*        f   = fopen(path, "rb");
+    GXTexture_t *ret = createTexture();
+    FILE        *f   = fopen(path, "rb");
 
     // Check allocated memory
     if (ret == 0)
@@ -73,7 +73,7 @@ GXTexture_t* loadBMPImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        printf("[G10] Loaded file \"%s\"\n\n", path);
+        printf("[G10] [BMP] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;
@@ -83,14 +83,14 @@ GXTexture_t* loadBMPImage ( const char path[] )
         // No path supplied
         noPath:
             #ifndef NDEBUG
-                printf("[G10] No path supplied to \"%s\"\n",__FUNCSIG__);
+                printf("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
             #endif
             return 0;
 
         // Invalid file
         invalidFile:
             #ifndef NDEBUG
-                printf("[G10] Failed to load file %s\n", path);
+                printf("[G10] [BMP] Failed to load file %s\n", path);
             #endif
             return 0;
     }

@@ -1,6 +1,6 @@
 #include <G10/G10.h>
 
-int gInit(SDL_Window** window, SDL_GLContext* glContext)
+int gInit(SDL_Window **window, SDL_GLContext *glContext)
 {
     // Argument Check
     {
@@ -13,7 +13,7 @@ int gInit(SDL_Window** window, SDL_GLContext* glContext)
     }
 
     // Uninitialized data
-    SDL_Window*         lWindow;
+    SDL_Window         *lWindow;
     SDL_GLContext       lGlContext;
 
     // SDL + GLAD Initialization
@@ -35,9 +35,14 @@ int gInit(SDL_Window** window, SDL_GLContext* glContext)
         lWindow = SDL_CreateWindow("G10",
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
-            1280, 720,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE ); 
+            1600, 900,
+            SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE ); 
         
+        // Context attributes
+
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+
         // Create the OpenGL context
         lGlContext = SDL_GL_CreateContext(lWindow);
 
@@ -66,23 +71,24 @@ int gInit(SDL_Window** window, SDL_GLContext* glContext)
             glEnable(GL_MULTISAMPLE);
             glDepthFunc(GL_LESS);
 
-            // TODO: Dynamically load active textures when needed for rendering
             // Initialize the active texture block
-            /*
             {
-                // Initialized data
-                lActiveTextures = malloc(sizeof(GXActiveTextures_t));
+                // Uninitialized data
+                extern GXTextureUnit_t *activeTextures;
+
+                activeTextures = malloc(sizeof(GXTextureUnit_t));
 
                 #ifndef NDEBUG
-                    if (lActiveTextures == (void*)0)
+                    if (activeTextures == (void*)0)
                         return 0;
                 #endif
 
-                glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &lActiveTextures->activeTextureCount);
-                lActiveTextures->activeTextureBlock = calloc(lActiveTextures->activeTextureCount, sizeof(GXTexture_t));
-                memset(lActiveTextures->activeTextureBlock, 0xFFFFFFFF, lActiveTextures->activeTextureCount * sizeof(GXTexture_t));
+                // Find out how many texture units the card has
+                glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &activeTextures->activeTextureCount);
+
+                // Allocate the space for them
+                activeTextures->activeTextureBlock = calloc(activeTextures->activeTextureCount, sizeof(GXTexture_t*));
             }
-            */
 
             // Set the clear color to white
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

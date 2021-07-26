@@ -19,14 +19,16 @@ GXScene_t* createScene ( )
 GXScene_t* loadScene ( const char path[] )
 {
     // Argument checking
-    #ifndef NDEBUG
-        if(path == 0)
-            goto nullPath;
-    #endif
+    {
+        #ifndef NDEBUG
+            if(path == 0)
+                goto nullPath;
+        #endif
+    }
 
     // Uninitialized data
     int          i;
-    char*        data;
+    char*        data = 0;
     int          rootTokenCount;
     JSONValue_t* rootContents; 
 
@@ -43,7 +45,7 @@ GXScene_t* loadScene ( const char path[] )
         // Check if file is valid
         if (f == NULL)
         {
-            printf("Failed to load file %s\n", path);
+            printf("[G10] [Scene] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -54,8 +56,10 @@ GXScene_t* loadScene ( const char path[] )
 
         // Allocate data and read file into memory
         data = malloc(i+1);
-        if (data == 0)
+
+        if (data == (void*)00)
             return (void*)0;
+
         fread(data, 1, i, f);
 
         // We no longer need the file
@@ -81,7 +85,7 @@ GXScene_t* loadScene ( const char path[] )
         {
             #ifndef NDEBUG
                 // Print out comment
-                printf("comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
+                printf("[G10] [Scene] Comment in file \"%s\" - \"%s\"\n\n", path, (char*)rootContents[j].content.nWhere);
             #endif
             continue;
         }
@@ -132,7 +136,7 @@ GXScene_t* loadScene ( const char path[] )
     // The path argument was null
     nullPath:
     #ifndef NDEBUG
-        printf("Null pointer provided for \"path\" in function \"%s\"\n", __FUNCSIG__);
+        printf("[G10] [Scene] Null pointer provided for \"path\" in function \"%s\"\n", __FUNCSIG__);
     #endif
         return 0;
 }
@@ -178,21 +182,21 @@ int appendEntity ( GXScene_t* scene, GXEntity_t* entity )
         // Two entities with the same name cannot exist in the same scene
         duplicateName:
         #ifndef NDEBUG
-            printf("Entity \"%s\" can not be appended to \"%s\" because an entity with that name already exists\n", entity->name, scene->name);
+            printf("[G10] [Scene] Entity \"%s\" can not be appended to \"%s\" because an entity with that name already exists\n", entity->name, scene->name);
         #endif
         return 0;
 
         // The scene argument was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The entity argument was null
         nullEntity:
         #ifndef NDEBUG
-            printf("Null pointer provided for entity in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for entity in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
@@ -239,27 +243,27 @@ int appendCamera ( GXScene_t* scene, GXCamera_t* camera )
         // Two cameras with the same name cannot exist in the same scene
         duplicateName:
         #ifndef NDEBUG
-            printf("Camera \"%s\" can not be appended to \"%s\" because a camera with that name already exists\n", camera->name, scene->name);
+            printf("[G10] [Scene] Camera \"%s\" can not be appended to \"%s\" because a camera with that name already exists\n", camera->name, scene->name);
         #endif
         return 0;
     
         // The scene argument was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The entity argument was null
         nullCamera:
         #ifndef NDEBUG
-            printf("Null pointer provided for camera in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for camera in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int appendLight  ( GXScene_t* scene, GXLight_t* light )
+int appendLight ( GXScene_t* scene, GXLight_t* light )
 {
     // Argument checking
     {
@@ -299,26 +303,26 @@ int appendLight  ( GXScene_t* scene, GXLight_t* light )
         // Two lights with the same name cannot exist in the same scene
         duplicateName:
         #ifndef NDEBUG
-            printf("Light \"%s\" can not be appended to \"%s\" because a light with that name already exists\n", light->name, scene->name);
+            printf("[G10] [Scene] Light \"%s\" can not be appended to \"%s\" because a light with that name already exists\n", light->name, scene->name);
         #endif
         return 0;
 
         // The entity argument was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
             return 0;
         // The entity argument was null
         nullLight:
         #ifndef NDEBUG
-            printf("Null pointer provided for light in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for light in function \"%s\"\n", __FUNCSIG__);
         #endif
             return 0;
     }
 }
 
-int drawScene ( GXScene_t* scene )
+int drawScene ( GXScene_t* scene ) 
 {
     // Argument checking 
     {
@@ -343,7 +347,7 @@ int drawScene ( GXScene_t* scene )
             if (i->shader->requestedDataFlags & GXSP_Projection)
                 setShaderMat4(i->shader, findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_Projection), (const GLfloat*)&scene->cameras->projection);
             if (i->shader->requestedDataFlags & GXSP_View)
-                setShaderMat4(i->shader, findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_View), (const GLfloat*)&scene->cameras->view);
+                setShaderMat4(i->shader, (const char*)findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_View), (const GLfloat*)&scene->cameras->view);
             if (i->shader->requestedDataFlags & GXSP_CameraPosition)
                 setShaderVec3(i->shader, findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_CameraPosition), scene->cameras->where);
         }
@@ -387,32 +391,32 @@ int drawScene ( GXScene_t* scene )
     {
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided for scene in function \"%s\".\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for scene in function \"%s\".\n", __FUNCSIG__);
         #endif
             return 0;
     }
     
 }
 
-int computePhysics ( GXScene_t* scene, float deltaTime )
+int computePhysics(GXScene_t* scene, float deltaTime)
 {
-    // TODO: Compute physics
     GXEntity_t* i = scene->entities;
-    while (i && i->rigidbody)
+
+    while (i)
     {
-        if (i->rigidbody)
-        {
-            // Summate forces 
-            SSESumVecs(i->rigidbody->forcesCount, i->rigidbody->forces);
+        if (i->rigidbody == 0)
+            goto noRigidbody;
+        // Summate forces
+        summateForces(i->rigidbody->forces, i->rigidbody->forcesCount);
 
-            // Calculate new acceleration, velocity, and position
-            calculateDerivativesOfDisplacement(i, deltaTime);
+        // Calculate derivatives of displacement
+        integrateDisplacement(i, deltaTime);
 
-            // TODO: Calculate angular acceleration, velocity, and rotation
-        }
-
+        //integrateRotation(entity);
+        noRigidbody:
         i = i->next;
     }
+
     return 0;
 }
 
@@ -451,35 +455,34 @@ GXEntity_t* getEntity ( GXScene_t* scene, const char name[] )
         // There are no entities
         noEntities:
         #ifndef NDEBUG
-            printf("There are no entities.\n");
+            printf("[G10] [Scene] There are no entities.\n");
         #endif
         return 0;	
 
         // There is no match
         noMatch:
         #ifndef NDEBUG
-            printf("There is no entity named \"%s\".", name);
+            printf("[G10] [Scene] There is no entity named \"%s\".", name);
         #endif
         return 0;
     
         // The scene parameter was null
-        // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXCamera_t* getCamera( GXScene_t* scene, const char name[] )
+GXCamera_t* getCamera ( GXScene_t* scene, const char name[] )
 {
     // Argument checking
     {
@@ -514,28 +517,28 @@ GXCamera_t* getCamera( GXScene_t* scene, const char name[] )
         // There are no cameras
         noCameras:
         #ifndef NDEBUG
-            printf("There are no cameras in \"%s\".\n", scene->name);
+            printf("[G10] [Scene] There are no cameras in \"%s\".\n", scene->name);
         #endif
         return 0;
 
         // There is no matching camera
         noMatch:
         #ifndef NDEBUG
-            printf("There is no camera in \"%s\" named \"%s\".", scene->name, name);
+            printf("[G10] [Scene] There is no camera in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
     
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
@@ -563,13 +566,13 @@ GXLight_t* getLight( GXScene_t* scene, const char name[] )
     {
         noLights:
         #ifndef NDEBUG
-            printf("There are no lights in \"%s\".\n", scene->name);
+            printf("[G10] [Scene] There are no lights in \"%s\".\n", scene->name);
         #endif
         return 0;
 
         noMatch:
         #ifndef NDEBUG
-            printf("There is no light in \"%s\" named \"%s\".", scene->name, name);
+            printf("[G10] [Scene] There is no light in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
     }
@@ -620,40 +623,40 @@ int setActiveCamera ( GXScene_t* scene, const char name[] )
     {
         noCameras:
         #ifndef NDEBUG
-            printf("There are no cameras, therefore no active camera.\n");
+            printf("[G10] [Scene] There are no cameras, therefore no active camera.\n");
         #endif
         return 0;
 
         noNeed:
         #ifndef NDEBUG
-            printf("\"%s\" is already the active camera.\n", name);
+            printf("[G10] [Scene] \"%s\" is already the active camera.\n", name);
         #endif
         return 0;
 
         noMatch:
         #ifndef NDEBUG
-            printf("There is no camera in \"%s\" named \"%s\".\n", scene->name, name);
+            printf("[G10] [Scene] There is no camera in \"%s\" named \"%s\".\n", scene->name, name);
         #endif
         return 0;
 
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
     }
 }
 
-int removeEntity( GXScene_t* scene, const char name[] )
+GXEntity_t* removeEntity( GXScene_t* scene, const char name[] )
 {
     // Argument checking
     {
@@ -676,9 +679,8 @@ int removeEntity( GXScene_t* scene, const char name[] )
     if (strcmp(name, i->name) == 0)
     {
         GXEntity_t* j = i->next;
-        destroyEntity(i);
-        i = j;
-        return 0;
+        scene->entities = j;
+        return i;
     }
 
     // Destroy the named entity
@@ -689,17 +691,16 @@ int removeEntity( GXScene_t* scene, const char name[] )
             // Make a copy of the entity that is 2 positions ahead of the current entity
             GXEntity_t* j = i->next->next;
             
-            // Delete the entity
-            destroyEntity(i->next);
-
+            GXEntity_t* ret = i->next;
+            
             // Verbose logging
             #ifndef NDEBUG
-                printf("Destroyed Entity \"%s\"\n", name);
+                printf("[G10] [Scene] Removed entity \"%s\" from \"%s\"\n", name, scene->name);
             #endif
             
             // Stitch up the linked list 
             i->next = j;
-            return 0;
+            return ret;
         }
         i = i->next;
     }
@@ -710,33 +711,33 @@ int removeEntity( GXScene_t* scene, const char name[] )
     {
         noEntities:
             #ifndef NDEBUG
-                printf("There are no entities in \"%s\".\n", scene->name);
+                printf("[G10] [Scene] There are no entities in \"%s\".\n", scene->name);
             #endif
             return 0;
 
         noMatch:
             #ifndef NDEBUG
-                printf("There is no entity in \"%s\" named \"%s\".\n", scene->name, name);
+                printf("[G10] [Scene] There is no entity in \"%s\" named \"%s\".\n", scene->name, name);
             #endif
             return 0;
         
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int removeCamera ( GXScene_t* scene, const char name[] )
+GXCamera_t* removeCamera ( GXScene_t* scene, const char name[] )
 {
     // Argument checking
     {
@@ -757,8 +758,8 @@ int removeCamera ( GXScene_t* scene, const char name[] )
     if (strcmp(name, i->name) == 0)
     {
         GXCamera_t* j = i->next;
-        destroyCamera(i);
-        i = j;
+        scene->cameras = j;
+        return i;
         return 0;
     }
 
@@ -768,19 +769,18 @@ int removeCamera ( GXScene_t* scene, const char name[] )
         if (strcmp(name, i->next->name) == 0)
         {
             // Make a copy of the camera that is 2 positions ahead of the current camera
-            GXCamera_t* j = i->next->next;
-
-            // Delete the camera
-            destroyCamera(i->next);
+            GXCamera_t *j   = i->next->next,
+                       *ret = i->next; 
 
             // Verbose logging
             #ifndef NDEBUG
-                printf("Destroyed Camera \"%s\"\n", name);
+                printf("[G10] [Scene] Destroyed Camera \"%s\"\n", name);
             #endif		
 
             // Stitch up the linked list 
             i->next = j;
-            return 0;
+
+            return ret;
         }
         i = i->next;
     }
@@ -791,32 +791,32 @@ int removeCamera ( GXScene_t* scene, const char name[] )
     {
         noCameras:
         #ifndef NDEBUG
-            printf("There are no cameras in \"%s\"", scene->name);
+            printf("[G10] [Scene] There are no cameras in \"%s\"", scene->name);
         #endif
         return 0;
         noMatch:
         #ifndef NDEBUG
-            printf("There is no camera in \"%s\" named \"%s\".", scene->name, name);
+            printf("[G10] [Scene] There is no camera in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
         
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int removeLight( GXScene_t* scene, const char name[] )
+GXLight_t* removeLight( GXScene_t* scene, const char name[] )
 {
     // Argument checking 
     {
@@ -838,9 +838,9 @@ int removeLight( GXScene_t* scene, const char name[] )
     // Check the head
     if (strcmp(name, i->name) == 0)
     {
-        GXLight_t* j = i->next; // Get a pointer to the next object so we don't lose it when we destroy the light
-        destroyLight(i);        // Destroy the light
-        i = j;                  // Stitch up the linked list
+        GXLight_t* j  = i->next; // Get a pointer to the next object so we don't lose it when we destroy the light
+        scene->lights = j;       // Stitch up the linked list
+
         return 0;
     }
 
@@ -857,7 +857,7 @@ int removeLight( GXScene_t* scene, const char name[] )
 
             // Verbose logging
             #ifndef NDEBUG
-                printf("Destroyed light \"%s\"\n", name);
+                printf("[G10] [Scene] Destroyed light \"%s\"\n", name);
             #endif		
 
             // Stitch up the linked list 
@@ -872,26 +872,26 @@ int removeLight( GXScene_t* scene, const char name[] )
     {
         noLights:
         #ifndef NDEBUG
-            printf("There are no lights in \"%s\"", scene->name);
+            printf("[G10] [Scene] There are no lights in \"%s\"", scene->name);
         #endif
         return 0;
         noMatch:
         #ifndef NDEBUG
-            printf("There is no light in \"%s\" named \"%s\".", scene->name, name);
+            printf("[G10] [Scene] There is no light in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
 
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
         }
@@ -957,7 +957,7 @@ int destroyScene ( GXScene_t* scene )
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            printf("Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            printf("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }

@@ -1,8 +1,17 @@
 ﻿TODO File, place TODOs here
 
+=== Armature goals ===
+ - ❌ Set up vertex weight map
+ - ❌ Animations
+ - ❌ Implement an inverse kinetics solver for ragdolls
+
+=== IK Solver ===
+ - ❌ Write an inverse kinematics solver
+ - ❌ Ragdoll physics
+
 === Debugger goals ===
- - ❌ Increase the specificity of error messages while in debugger mode
- - ❌ Only check for errors in debug mode 
+ - ✅ Increase the specificity of error messages while in debugger mode
+ - ✅ Only check for errors in debug mode 
  - ❌ Make debug mode more granular
 
 === Framework goals ===
@@ -37,7 +46,7 @@
  - ✅ Calculate acceleration, velocity, and position 
  - ❌ Summate and apply torque
  - ❌ Calculate angular acceleration, velocity, and rotation
- - ❌ Collision detection, box, sphere, (cylinder???).
+ - ❌ Collision detection, box, sphere, (cylinder?).
  - ❌ Rigidbody physics.
 
 === General goals ===
@@ -45,3 +54,5 @@
  - ❌ Implement multithreading.
  - ❌ Export this whole project into a DLL file so that other developers can use it.
  - ❌ Figure out a better way of handling input.
+
+ Other TODOs can be found littered throughout the source code

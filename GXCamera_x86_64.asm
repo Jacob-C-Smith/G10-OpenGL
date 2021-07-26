@@ -33,8 +33,8 @@ _TEXT SEGMENT
 ;
 
 ; extern void SSEPerspective ( GXmat4_t* ret, float fov, float aspect, float near, float far );
-PUBLIC SSEPerspective
-SSEPerspective PROC
+PUBLIC AVXPerspective
+AVXPerspective PROC
     ;1. Calculate tan(f/2)
     ;vbroadcastss xmm1, xmm1
     ;vbroadcastss xmm4, allOneHalf
@@ -47,7 +47,7 @@ SSEPerspective PROC
 
     ;. 
     ret
-SSEPerspective ENDP
+AVXPerspective ENDP
 
 ;extern void SSEView ( GXvec3_t* eye, GXvec3_t* target, GXvec3_t* up, GXmat4_t* result );        // ? Computes a view matrix from eye, target, and up vectors
 ;{ 
@@ -73,8 +73,8 @@ SSEPerspective ENDP
 ;	};
 ;};
 
-PUBLIC SSEView
-SSEView PROC
+PUBLIC AVXView
+AVXView PROC
     ; Load up values
     vmovups xmm0, xmmword ptr [clearUp] ; xmm0 = clear w constant
     vmovups xmm1, xmmword ptr [rcx]     ; xmm1 = eye
@@ -93,15 +93,15 @@ SSEView PROC
 
 ;    mov rcx, 
 
-    extern SSENormalize : PROC
-    call SSENormalize
+    extern AVXNormalize : PROC
+    call AVXNormalize
 
     pop rdx 
     pop rcx
 
 
     ret
-SSEView ENDP
+AVXView ENDP
 
 
 END

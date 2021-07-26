@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include=".gitattributes">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include=".gitignore">
       <Filter>Source Files</Filter>
     </None>
@@ -40,6 +37,9 @@
       <Filter>Source Files\text</Filter>
     </None>
     <None Include="README.md">
+      <Filter>Source Files\text</Filter>
+    </None>
+    <None Include=".gitattributes">
       <Filter>Source Files\text</Filter>
     </None>
   </ItemGroup>
@@ -98,16 +98,25 @@
     <ClCompile Include="G10.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\G10\GXKeyValue.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GXNetworking.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\G10\arch\x86_64\GXAVX.h\GXAVX2.h">
-      <Filter>Header Files\arch\x86_64</Filter>
-    </ClCompile>
     <ClCompile Include="GXRig.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXCollider.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXPhysics.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXKeyValue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXSplashscreen.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXProp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -166,9 +175,6 @@
     <ClInclude Include="include\G10\GXRigidbody.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\arch\x86_64\GXSSEmath.h">
-      <Filter>Header Files\arch\x86_64</Filter>
-    </ClInclude>
     <ClInclude Include="include\G10\GXCollider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -190,6 +196,18 @@
     <ClInclude Include="include\G10\GXRig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\G10\arch\x86_64\GXAVXmath.h">
+      <Filter>Header Files\arch\x86_64</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXPhysics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXSplashscreen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXProp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="GXCamera_x86_64.asm">
@@ -198,13 +216,16 @@
     <MASM Include="GXMath_x86_64.asm">
       <Filter>Source Files\assembly\x86_64</Filter>
     </MASM>
+    <MASM Include="GXRig_x86_64.asm">
+      <Filter>Source Files\assembly\x86_64</Filter>
+    </MASM>
+    <MASM Include="GXQuaternion_x86_64.asm">
+      <Filter>Source Files\assembly\x86_64</Filter>
+    </MASM>
+    <MASM Include="GXCollision_x86_64.asm">
+      <Filter>Source Files\assembly\x86_64</Filter>
+    </MASM>
     <MASM Include="GXRigidbody_x86_64.asm">
-      <Filter>Source Files\assembly\x86_64</Filter>
-    </MASM>
-    <MASM Include="..\GXAVX_x86_64.asm">
-      <Filter>Source Files\assembly\x86_64</Filter>
-    </MASM>
-    <MASM Include="GXRig.asm">
       <Filter>Source Files\assembly\x86_64</Filter>
     </MASM>
   </ItemGroup>
@@ -216,6 +237,9 @@
       <Filter>Source Files\text</Filter>
     </Text>
     <Text Include="how to build.txt">
+      <Filter>Source Files\text</Filter>
+    </Text>
+    <Text Include="height mapping notes.txt">
       <Filter>Source Files\text</Filter>
     </Text>
   </ItemGroup>

@@ -38,7 +38,7 @@ GXLight_t* loadLight(const char path[])
     FILE*        f = fopen(path, "rb");
 
     #ifndef NDEBUG
-        printf("Loading \"%s\".\n", (char*)path);
+        printf("[G10] [Light] Loading \"%s\".\n", (char*)path);
     #endif	
 
     // Load the file
@@ -46,7 +46,7 @@ GXLight_t* loadLight(const char path[])
         // Check for file
         if (f == NULL)
         {
-            printf("Failed to load file %s\n", path);
+            printf("[G10] [Light] Failed to load file %s\n", path);
             return (void*)0;
         }
 
