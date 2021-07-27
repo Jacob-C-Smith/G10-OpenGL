@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include <G10/G10.h>
+
 #include <G10/GXtypedef.h>
 
 #include <G10/GXLinear.h>

@@ -35,7 +35,7 @@ GXTexture_t *loadPNGImage ( const char path[] )
     ret->height  = image->h;
 
     // Allocate space for the pixel data
-    data         = malloc(allocateSize);
+    data         = calloc(allocateSize+1,sizeof(u8));
 
     if (data == 0)
         return (void*)0;
@@ -66,7 +66,7 @@ GXTexture_t *loadPNGImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        printf("[G10] [Texture] [PNG] Loaded file \"%s\"\n\n", path);
+        gPrintLog("[G10] [Texture] [PNG] Loaded file \"%s\"\n", path);
     #endif 
     
     return ret;
@@ -75,13 +75,13 @@ GXTexture_t *loadPNGImage ( const char path[] )
     {
         invalidFile:
         #ifndef NDEBUG
-            printf("[G10] [Texture] [PNG] Failed to load file %s\n", path);
+            gPrintError("[G10] [Texture] [PNG] Failed to load file %s\n", path);
         #endif
         return 0;
 
         noPath:
         #ifndef NDEBUG
-            printf("[G10] [Texture] [PNG] No path provided\n");
+            gPrintError("[G10] [Texture] [PNG] No path provided\n");
         #endif
         return 0;
     }

@@ -8,6 +8,7 @@
 
 #include <glad/glad.h>
 
+#include <G10/G10.h>
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
 

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <G10/G10.h>
 #include <G10/GXtypedef.h>
 
 // Enumeration for the types of JSON objects.

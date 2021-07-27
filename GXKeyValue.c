@@ -8,7 +8,7 @@ char* findValue(GXKeyValue_t* list, size_t count, size_t key)
             return list[j].value;
     }
     #ifndef NDEBUG
-        printf("[G10] [Key Value] Unable to find value %lld\n.");
+        gPrintLog("[G10] [Key Value] Unable to find value %lld\n.");
     #endif
     return 0;
 }

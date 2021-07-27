@@ -1,6 +1,7 @@
 #include <G10/G10.h>
+HANDLE hConsole;
 
-int gInit(SDL_Window **window, SDL_GLContext *glContext)
+int gInit( SDL_Window **window, SDL_GLContext *glContext )
 {
     // Argument Check
     {
@@ -69,6 +70,8 @@ int gInit(SDL_Window **window, SDL_GLContext *glContext)
             // Enable depth testing and anti aliasing
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_MULTISAMPLE);
+            glEnable(GL_SHADE_MODEL);
+            glShadeModel(GL_SMOOTH);
             glDepthFunc(GL_LESS);
 
             // Initialize the active texture block
@@ -95,6 +98,11 @@ int gInit(SDL_Window **window, SDL_GLContext *glContext)
         }
     }
 
+    // Windows Initialization
+    {
+        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    }
+
     *window    = lWindow;
     *glContext = lGlContext;
 
@@ -105,62 +113,104 @@ int gInit(SDL_Window **window, SDL_GLContext *glContext)
         // The provided window double pointer was null
         nullWindow:
         #ifndef NDEBUG
-            printf("[G10] Null pointer provided to %s.\n", __FUNCSIG__);
+            gPrintError("[G10] Null pointer provided to %s.\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The provided OpenGL context pointer was null
         nullGLContext:
         #ifndef NDEBUG
-            printf("[G10] Null pointer provided to %s.\n", __FUNCSIG__);
+            gPrintError("[G10] Null pointer provided to %s.\n", __FUNCSIG__);
         #endif
         return 0;
 
         // SDL failed to initialize
         noSDL:
         #ifndef NDEBUG
-            printf("[SDL2] Failed to initialize SDL\n");
+            gPrintError("[SDL2] Failed to initialize SDL\n");
         #endif
         return 0;
 
         // SDL Image failed to initialize
         noSDLImage:
         #ifndef NDEBUG
-            printf("[SDL Image] Failed to initialize SDL Image\n");
+            gPrintError("[SDL Image] Failed to initialize SDL Image\n");
         #endif
         return 0;
 
         // SDL Networking failed to initialize
         noSDLNetwork:
         #ifndef NDEBUG
-            printf("[SDL Networking] Failed to initialize SDL Networking\n");
+            gPrintError("[SDL Networking] Failed to initialize SDL Networking\n");
         #endif
         return 0;
 
         // The SDL window failed to initialize
         noWindow:
         #ifndef NDEBUG
-            printf("[SDL2] Failed to create a window\nSDL Says: %s\n", SDL_GetError());
+            gPrintError("[SDL2] Failed to create a window\nSDL Says: %s\n", SDL_GetError());
         #endif
         return 0;
 
         // The OpenGL context failed to initialize
         noSDLGLContext:
         #ifndef NDEBUG
-            printf("[SDL2] Failed to create an OpenGL Context\nSDL Says: %s", SDL_GetError());
+            gPrintError("[SDL2] Failed to create an OpenGL Context\nSDL Says: %s", SDL_GetError());
         #endif
         return 0;
 
         // The OpenGL loader failed
         gladFailed:
         #ifndef NDEBUG
-            printf("[GLAD] Failed to load OpenGL\n");
+            gPrintError("[GLAD] Failed to load OpenGL\n");
         #endif 
         return 0;
     }
 }
 
-int gExit(SDL_Window* window, SDL_GLContext  glContext)
+int gPrintError( const char* const format, ... )
+{
+    va_list aList;
+    va_start(aList, format);
+
+    SetConsoleTextAttribute(hConsole, 0x0C);
+    vprintf(format, aList);
+    SetConsoleTextAttribute(hConsole, 0x0F);
+
+    va_end(aList);
+
+    return 0;
+}
+
+int gPrintWarning(const char* const format, ...)
+{
+    va_list aList;
+    va_start(aList, format);
+
+    SetConsoleTextAttribute(hConsole, 0x0E);
+    vprintf(format, aList);
+    SetConsoleTextAttribute(hConsole, 0x0F);
+
+    va_end(aList);
+
+    return 0;
+}
+
+int gPrintLog ( const char* const format, ... )
+{
+    va_list aList;
+    va_start(aList, format);
+
+    SetConsoleTextAttribute(hConsole, 0x0B);
+    vprintf(format, aList);
+    SetConsoleTextAttribute(hConsole, 0x0F);
+
+    va_end(aList);
+
+    return 0;
+}
+
+int gExit( SDL_Window* window, SDL_GLContext  glContext )
 {
     // SDL Deinitialization
     {

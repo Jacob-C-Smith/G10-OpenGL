@@ -58,14 +58,14 @@ GXTexture_t* loadJPGImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        printf("[G10] [JPG] Loaded file \"%s\"\n\n", path);
+        gPrintLog("[G10] [JPG] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;
 
     invalidFile:
     #ifndef NDEBUG
-        printf("[G10] Failed to load file %s\n", path);
+        gPrintError("[G10] Failed to load file %s\n", path);
     #endif
     return 0;
 }

@@ -63,7 +63,7 @@ GXEntity_t* loadEntity ( const char path[] )
     FILE*        f   = fopen(path, "rb");
 
     #ifndef NDEBUG
-        printf("[G10] [Entity] Loading \"%s\".\n", (char*)path);
+        gPrintLog("[G10] [Entity] Loading \"%s\".\n", (char*)path);
     #endif	
 
     // Load the file
@@ -96,7 +96,7 @@ GXEntity_t* loadEntity ( const char path[] )
     return ret;
     invalidFile:
     #ifndef NDEBUG
-        printf("[G10] [Entity] Failed to load file %s\n", path);
+        gPrintError("[G10] [Entity] Failed to load file %s\n", path);
     #endif
     return 0;
 }
@@ -120,7 +120,7 @@ GXEntity_t* loadEntityAsJSON ( char* token )
         {
             #ifndef NDEBUG
                 // Print out comment
-                printf("[G10] [Entity] Comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
+                gPrintLog("[G10] [Entity] Comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
             #endif
             continue;
         }

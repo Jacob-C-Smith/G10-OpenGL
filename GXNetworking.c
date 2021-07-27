@@ -42,7 +42,7 @@ int connect(GXServer_t* server, char* host, u16 port)
 	{
 		if (++retries == MAX_RETRIES+1)
 			goto maxRetries;
-		printf("[G10] [Networking] Failed to resolve \"%s\":%hu. Attempting reconnect %d/%d\r",host,port, (int)retries,MAX_RETRIES);
+		gPrintError("[G10] [Networking] Failed to resolve \"%s\":%hu. Attempting reconnect %d/%d\r",host,port, (int)retries,MAX_RETRIES);
 		SDL_Delay(100);
 		goto retryConnection;
 	}
@@ -61,19 +61,19 @@ int connect(GXServer_t* server, char* host, u16 port)
 	{
 		if (++retries == MAX_RETRIES + 1)
 			goto maxRetries;
-		printf("[G10] [Networking] Failed to open a socket. Attempting reconnect %d/%d\r", (int)retries, MAX_RETRIES);
+		gPrintError("[G10] [Networking] Failed to open a socket. Attempting reconnect %d/%d\r", (int)retries, MAX_RETRIES);
 		SDL_Delay(100);
 		goto retrySocket;
 	}
 
 	#ifndef NDEBUG
-		printf("[G10] [Networking] Connected to \"%s\" aka %u.%u.%u.%u:%u\n", host, a, b, c, d, p);
+		gPrintLog("[G10] [Networking] Connected to \"%s\" aka %u.%u.%u.%u:%u\n", host, a, b, c, d, p);
 	#endif
 	
 	return 0;
 	maxRetries:
 	#ifndef NDEBUG
-		printf("\n[G10] [Networking] Maximum retries reached\n");
+		gPrintLog("\n[G10] [Networking] Maximum retries reached\n");
 	#endif
 	return 0;
 }

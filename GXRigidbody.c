@@ -62,7 +62,7 @@ GXRigidbody_t* loadRigidbody(const char path[])
     return ret;
     invalidFile:
     #ifndef NDEBUG
-        printf("[G10] [Rigidbody] Failed to load file %s\n", path);
+        gPrintError("[G10] [Rigidbody] Failed to load file %s\n", path);
     #endif
     return 0;
 }

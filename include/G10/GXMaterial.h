@@ -12,6 +12,7 @@ struct GXMaterial_s {
     GXTexture_t* roughness; 
     GXTexture_t* metallic; 
     GXTexture_t* AO; 
+    GXTexture_t* height;
 };
 typedef struct GXMaterial_s GXMaterial_t;
 

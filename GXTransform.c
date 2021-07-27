@@ -19,7 +19,7 @@ GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t 
 
     // Debug information
     #ifndef NDEBUG
-        printf("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
+        gPrintLog("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
                "                                         rotation (%f,%f,%f)\n"
                "                                         scale    (%f,%f,%f)\n"
                , location.x, location.y, location.z, rotation.x, rotation.y, rotation.z, scale.x, scale.y, scale.z);
@@ -77,14 +77,14 @@ GXTransform_t* loadTransform ( const char path[] )
         // File not found
         invalidFile:
         #ifndef NDEBUG
-            printf("[G10] [Transform] Failed to load file %s\n", path);
+            gPrintError("[G10] [Transform] Failed to load file %s\n", path);
         #endif
         return 0;
 
         // Path was null pointer
         noArgument:
         #ifndef NDEBUG
-            printf("[G10] [Transform] No file supplied for path in function %s\n", __FUNCSIG__);
+            gPrintError("[G10] [Transform] No file supplied for path in function %s\n", __FUNCSIG__);
         #endif
         return 0;
     }

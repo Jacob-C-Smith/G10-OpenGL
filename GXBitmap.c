@@ -1,6 +1,6 @@
 #include <G10/GXBitmap.h>
 
-GXTexture_t* loadBMPImage ( const char path[] )
+GXTexture_t *loadBMPImage ( const char path[] )
 {
     // Argument check
     {
@@ -34,7 +34,7 @@ GXTexture_t* loadBMPImage ( const char path[] )
         fseek(f, 0, SEEK_SET);
 
         // Allocate data and read file into memory
-        data = malloc(i);
+        data = calloc(i,sizeof(u8));
 
         // Check if data is valid
         if (data == 0)
@@ -73,7 +73,7 @@ GXTexture_t* loadBMPImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        printf("[G10] [BMP] Loaded file \"%s\"\n\n", path);
+        gPrintLog("[G10] [BMP] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;
@@ -83,14 +83,14 @@ GXTexture_t* loadBMPImage ( const char path[] )
         // No path supplied
         noPath:
             #ifndef NDEBUG
-                printf("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
+                gPrintError("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
             #endif
             return 0;
 
         // Invalid file
         invalidFile:
             #ifndef NDEBUG
-                printf("[G10] [BMP] Failed to load file %s\n", path);
+                gPrintError("[G10] [BMP] Failed to load file %s\n", path);
             #endif
             return 0;
     }

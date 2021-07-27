@@ -146,7 +146,7 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
                 {
                     i = 0;
                     while (cData[++i] != '\n');
-                    printf("[G10] [PLY] Comment in file \"%s\" : %.*s\n", path, i-8, &cData[8]);
+                    gPrintLog("[G10] [PLY] Comment in file \"%s\" : %.*s\n", path, i-8, &cData[8]);
                 }
             #endif
 
@@ -417,10 +417,10 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
         #endif
         goto processVAO;
         missingVerts:
-            printf("[G10] [PLY] Missing vertex attributes detected in \"%s\"\n",path);
+            gPrintLog("[G10] [PLY] Missing vertex attributes detected in \"%s\"\n",path);
             goto processVAO;
         irregularVertices:
-            printf("[G10] [PLY] Detected irregular vertex attribute grouping in \"%s\"\n", path);
+            gPrintLog("[G10] [PLY] Detected irregular vertex attribute grouping in \"%s\"\n", path);
             goto processVAO;
     }
     processVAO:
@@ -550,25 +550,25 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
     // Error handling
     {
         noFile:
-            printf("[G10] [PLY] Failed to load file %s\n", path);
+            gPrintError("[G10] [PLY] Failed to load file %s\n", path);
             return 0;
         noPart:
-            printf("[G10] [PLY] Null pointer provided for parameter part in call to %s\n", __FUNCSIG__); 
+            gPrintError("[G10] [PLY] Null pointer provided for parameter part in call to %s\n", __FUNCSIG__);
             return 0;
         noPath:
-            printf("[G10] [PLY] Null pointer provided for parameter path in call to %s\n", __FUNCSIG__);
+            gPrintError("[G10] [PLY] Null pointer provided for parameter path in call to %s\n", __FUNCSIG__);
             return 0;
         invalidHeader:
-            printf("[G10] [PLY] Invalid header detected in file \"%s\"\n",path);
+            gPrintError("[G10] [PLY] Invalid header detected in file \"%s\"\n",path);
             return 0;
         noDoubleSupport:
-            printf("[G10] [PLY] Double detected in element \"%s\" in file \"%s\"\n", plyFile->elements[j].name, path);
+            gPrintError("[G10] [PLY] Double detected in element \"%s\" in file \"%s\"\n", plyFile->elements[j].name, path);
             return 0;
         unrecognizedPropertyType:
-            printf("[G10] [PLY] Unrecognized property type detected in file \"%s\"\n", path);
+            gPrintError("[G10] [PLY] Unrecognized property type detected in file \"%s\"\n", path);
             return 0;
         nonTriangulated:
-            printf("[G10] [PLY] Detected non triangulated faces in file \"%s\"\n", path);
+            gPrintError("[G10] [PLY] Detected non triangulated faces in file \"%s\"\n", path);
             return 0;
     }
 }

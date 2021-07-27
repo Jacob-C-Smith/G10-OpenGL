@@ -54,7 +54,8 @@ GXRig_t* loadRig(const char* path)
         // Check if file is valid
         if (f == NULL)
         {
-            printf("[G10] [Rig] Failed to load file %s\n", path);
+            // TODO: Move to error handling
+            gPrintError("[G10] [Rig] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -106,7 +107,7 @@ GXRig_t* loadRigAsJSON(char* token)
         {
             // Print out comment
             #ifndef NDEBUG
-            printf("[G10] [Rig] comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
+                gPrintLog("[G10] [Rig] comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
             #endif
             continue;
         }
@@ -145,7 +146,7 @@ GXRig_t* loadRigAsJSON(char* token)
     {
     nullToken:
         #ifndef NDEBUG
-            printf("[G10] [Rig] Null pointer provided in function \"%s\"\n",__FUNCSIG__);
+            gPrintError("[G10] [Rig] Null pointer provided in function \"%s\"\n",__FUNCSIG__);
         #endif
         return 0;
     }
@@ -175,7 +176,7 @@ GXBone_t* loadArmiture(const char* path)
         // Check if file is valid
         if (f == NULL)
         {
-            printf("[G10] [Rig] Failed to load file %s\n", path);
+            gPrintError("[G10] [Rig] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -305,13 +306,13 @@ GXBone_t* findBone(GXRig_t* rig,  char* name)
     {
         noBones:
             #ifndef NDEBUG
-                printf("[G10] [Rig] There are no bones in \"%s\".\n", rig->name);
+                gPrintError("[G10] [Rig] There are no bones in \"%s\".\n", rig->name);
             #endif
             return 0;
 
         noMatch:
             #ifndef NDEBUG
-                printf("[G10] [Rig] There is no bone in \"%s\" named \"%s\".", rig->name, name);
+                gPrintError("[G10] [Rig] There is no bone in \"%s\" named \"%s\".", rig->name, name);
             #endif
             return 0;
     }
@@ -347,13 +348,13 @@ GXBone_t* searchBone(GXBone_t* bone, char* name, size_t searchDepth)
     {
         noBones:
             #ifndef NDEBUG
-                printf("[G10] [Rig] There are no bones in \"%s\".\n", bone->name);
+                gPrintError("[G10] [Rig] There are no bones in \"%s\".\n", bone->name);
             #endif
             return 0;
 
         noMatch:
             #ifndef NDEBUG
-                printf("[G10] [Rig] There is no bone in \"%s\" named \"%s\".", bone->name, name);
+                gPrintError("[G10] [Rig] There is no bone in \"%s\" named \"%s\".", bone->name, name);
             #endif
             return 0;
     }

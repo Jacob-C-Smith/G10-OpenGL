@@ -12,7 +12,7 @@ int createSplashscreen ( const char* imagePath )
 	SDL_Rect     texr;
 
 	// Create a new window and renderer
-	window   = SDL_CreateWindow("splash", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 512, 512, SDL_WINDOW_BORDERLESS | SDL_WINDOW_SHOWN);
+	window   = SDL_CreateWindow("G10 Splashscreen", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 512, 512, SDL_WINDOW_BORDERLESS | SDL_WINDOW_SHOWN);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
 	// Load up the specified texture and get the width and height

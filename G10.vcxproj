@@ -163,6 +163,7 @@
     <ClCompile Include="GXCamera.c" />
     <ClCompile Include="GXCollider.c" />
     <ClCompile Include="GXEntity.c" />
+    <ClCompile Include="GXHDR.c" />
     <ClCompile Include="GXJPG.c" />
     <ClCompile Include="GXJSON.c" />
     <ClCompile Include="GXKeyValue.c" />
@@ -178,6 +179,7 @@
     <ClCompile Include="GXRigidbody.c" />
     <ClCompile Include="GXScene.c" />
     <ClCompile Include="GXShader.c" />
+    <ClCompile Include="GXSkybox.c" />
     <ClCompile Include="GXSplashscreen.c" />
     <ClCompile Include="GXTexture.c" />
     <ClCompile Include="GXTransform.c" />
@@ -190,6 +192,7 @@
     <ClInclude Include="include\G10\GXCamera.h" />
     <ClInclude Include="include\G10\GXCollider.h" />
     <ClInclude Include="include\G10\GXEntity.h" />
+    <ClInclude Include="include\G10\GXHDR.h" />
     <ClInclude Include="include\G10\GXilmath.h" />
     <ClInclude Include="include\G10\GXJPG.h" />
     <ClInclude Include="include\G10\GXJSON.h" />
@@ -208,6 +211,7 @@
     <ClInclude Include="include\G10\GXRigidbody.h" />
     <ClInclude Include="include\G10\GXScene.h" />
     <ClInclude Include="include\G10\GXShader.h" />
+    <ClInclude Include="include\G10\GXSkybox.h" />
     <ClInclude Include="include\G10\GXSplashscreen.h" />
     <ClInclude Include="include\G10\GXTexture.h" />
     <ClInclude Include="include\G10\GXTransform.h" />

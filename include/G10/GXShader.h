@@ -42,7 +42,8 @@ GXShader_t *loadShader        ( const char  shaderPath[] );
 GXShader_t *loadShaderAsJSON  ( char       *token );                                                                       // ✅ Loads a shader from a JSON file that points to the vertex and fragment shader source
 
 // Shader processing
-GXShader_t *loadCompileShader ( const char vertexShaderPath[], const char fragmentShaderPath[], const char shaderName[] ); // ✅ Loads a glsl vertex and glsl fragment shader from path and return a pointer to GXShader_t
+GXShader_t *loadCompileShader ( const char  vertexShaderPath[], const char fragmentShaderPath[], const char shaderName[] ); // ✅ Loads a glsl vertex and glsl fragment shader from path and return a pointer to GXShader_t
+int         compileFromText   ( GXShader_t *shader,             char      *vertexShaderText,     char      *fragmentShaderText);
 
 // Shader manipulation
 int         useShader         ( GXShader_t *shader );                                                                      // ✅ Uses a shader program

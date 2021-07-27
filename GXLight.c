@@ -37,16 +37,13 @@ GXLight_t* loadLight(const char path[])
     size_t       l = 0;
     FILE*        f = fopen(path, "rb");
 
-    #ifndef NDEBUG
-        printf("[G10] [Light] Loading \"%s\".\n", (char*)path);
-    #endif	
-
     // Load the file
     {
         // Check for file
         if (f == NULL)
         {
-            printf("[G10] [Light] Failed to load file %s\n", path);
+            // TODO: Move to error handling
+            gPrintError("[G10] [Light] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -64,6 +61,10 @@ GXLight_t* loadLight(const char path[])
     }
 
     ret = loadLightAsJSON(data);
+
+    #ifndef NDEBUG
+        gPrintLog("[G10] [Light] Loading \"%s\".\n", (char*)path);
+    #endif	
 
     // Finish up
     free(data);

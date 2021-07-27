@@ -24,6 +24,8 @@
 #include <G10/GXPhysics.h>
 #include <G10/GXSplashscreen.h>
 
+#include <Windows.h>
+
 // G10 arch
 #ifdef _M_X64
 #include <G10/arch/x86_64/GXAVXmath.h>
@@ -127,7 +129,7 @@ int main( int argc, const char* argv[] )
 
         // FPS readout
         {
-            printf("%g\r", deltaTime * 1000); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
+            printf("FPS: %.1f\r", deltaTime * 1000); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
         }
 
         // TODO: Find a better way to process input.
@@ -137,8 +139,21 @@ int main( int argc, const char* argv[] )
             switch (event.type)
             {
                 case SDL_QUIT:
+                {
                     running = 0;
                     break;
+                }
+                case SDL_DROPFILE:
+                {
+                    char* dropped_filedir;                  // Pointer for directory of dropped file
+
+                    dropped_filedir = event.drop.file;
+                    // Shows directory of dropped file
+                    GXEntity_t* e = getEntity(scene, "default cube");
+                    unloadMaterial(e->mesh->parts->material);
+                    e->mesh->parts->material = loadMaterial(dropped_filedir);
+                    SDL_free(dropped_filedir);    // Free dropped_filedir memory
+                }
                 case SDL_KEYDOWN:
                 {
                     const u8* keyboardState = SDL_GetKeyboardState(NULL);
@@ -178,10 +193,7 @@ int main( int argc, const char* argv[] )
                     }
                     if (keyboardState[SDL_SCANCODE_G])
                     {
-                        GXEntity_t* fc1           = getEntity(scene, "female character");
-                        GXEntity_t* fc2           = getEntity(scene, "female character 2");
-                        fc1->rigidbody->velocity  = (GXvec4_t) { -0.125f,0.f,0.f,0.f };
-                        fc2->rigidbody->velocity  = (GXvec4_t) { 0.125f,0.f,0.f,0.f };
+
                     }
                     if(keyboardState[SDL_SCANCODE_CAPSLOCK])
                     {
@@ -265,6 +277,9 @@ int main( int argc, const char* argv[] )
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
+
+        GXEntity_t *entity = getEntity(scene, "default cube");
+        scene->entities->transform->rotation.y+=0.025f;
 
         // G10
         {

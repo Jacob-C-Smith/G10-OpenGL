@@ -44,8 +44,9 @@ GXTexture_t* loadTexture ( const char path[] )
 		return loadJPGImage(path);
 	else
 	#ifndef NDEBUG
-		printf("[G10] [Texture] Could not load file %s, unrecognized file extension.\n", path);
+		gPrintError("[G10] [Texture] Could not load file %s, unrecognized file extension.\n", path);
 	#endif
+	;
 
 	return ret;
 }

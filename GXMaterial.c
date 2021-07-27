@@ -40,7 +40,7 @@ GXMaterial_t* loadMaterial ( const char path[] )
         // Check if file is valid
         if (f == NULL)
         {
-            printf("[G10] [Material] Failed to load file %s\n", path);
+            gPrintError("[G10] [Material] Failed to load file %s\n", path);
             return (void*)0;
         }
 
@@ -123,6 +123,11 @@ GXMaterial_t* loadMaterialFromJSON(char* token)
         else if (strncmp("AO", tokens[k].name, 2) == 0)
         {
             ret->AO = loadTexture(tokens[k].content.nWhere);
+            continue;
+        }
+        else if (strncmp("height", tokens[k].name, 6) == 0)
+        {
+            ret->height = loadTexture(tokens[k].content.nWhere);
             continue;
         }
     }

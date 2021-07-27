@@ -14,18 +14,23 @@
 
 #include <G10/arch/x86_64/GXAVXmath.h>
 
+#include <G10/GXSkybox.h>
+#include <G10/GXTexture.h>
+
 // Contains information about a scene
 struct GXScene_s {
-    char       *name;
-    GXEntity_t *entities;
-    GXCamera_t *cameras;
-    GXLight_t  *lights;
+    char        *name;
+    GXEntity_t  *entities;
+    GXCamera_t  *cameras;
+    GXLight_t   *lights;
+    GXTexture_t *skybox;
 };
 typedef struct GXScene_s GXScene_t;
 
 // Constructors
 GXScene_t  *createScene         ( );                                      // ✅ Create a scene with nothing in it
 GXScene_t  *loadScene           ( const char path[] );                    // ✅ Loads a scene from JSON file at path
+GXScene_t  *loadSceneAsJSON     ( char      *token  );
 
 // Appenders
 int         appendEntity        ( GXScene_t *scene, GXEntity_t *entity ); // ✅ Add an entity to the end of an entity list

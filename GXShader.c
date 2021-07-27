@@ -19,7 +19,7 @@ GXShader_t* loadShader(const char shaderPath[])
         // Check if file is valid
         if (f == NULL)
         {
-            printf("[G10] [Shader] Failed to load file %s\n", shaderPath);
+            gPrintError("[G10] [Shader] Failed to load file %s\n", shaderPath);
             return (void*)0;
         }
 
@@ -229,7 +229,7 @@ GXShader_t* loadShaderAsJSON(char* token)
                 // If the key is unsupported, we log, ignore, and keep looking for new pairs.
                 else {
                     #ifndef NDEBUG
-                        printf("[G10] [Shader] Shader requested \"%s\", which is unsupported data.", subContents[k].name);
+                        gPrintWarning("[G10] [Shader] Shader requested \"%s\", which is unsupported data.", subContents[k].name);
                     #endif
                     continue;
                 }
@@ -293,18 +293,17 @@ GXShader_t* loadCompileShader ( const char vertexShaderPath[], const char fragme
         return (void*)0;
 
     // Load the files
-
     {
         // Check files
         if (vf == NULL)
         {
-            printf("[G10] [Shader] Failed to load file %s\n", vertexShaderPath);
+            gPrintError("[G10] [Shader] Failed to load file %s\n", vertexShaderPath);
             return (void*)0;
         }
 
         if (ff == NULL)
         {
-            printf("[G10] [Shader] Failed to load file %s\n", fragmentShaderPath);
+            gPrintError("[G10] [Shader] Failed to load file %s\n", fragmentShaderPath);
             return (void*)0;
         }
 
@@ -333,19 +332,44 @@ GXShader_t* loadCompileShader ( const char vertexShaderPath[], const char fragme
         ffdata[ffi] = '\0';
     }
 
+    compileFromText(ret, vfdata, ffdata);
+
+    // We no longer need the shader text
+    free(vfdata);
+    free(ffdata);
+
+    // We aren't requesting data yet, so we will just leave it as nullptr,
+    // in case the shader never requests data.
+    ret->requestedData = 0;
+
+    return ret;
+
+}
+
+int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragmentShaderText )
+{
+    // TODO: Argument check, error handling
+
+    // Uninitialized data
+    unsigned int vShader, // OpenGL vertex shader
+                 fShader; // OpenGL fragment shader
+
+    // Initialized data
+    int          status = 0;
+
     // Compile, attach, and link shaders
     vShader = glCreateShader(GL_VERTEX_SHADER);
     fShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    glShaderSource(vShader, 1, &vfdata, NULL);
-    glShaderSource(fShader, 1, &ffdata, NULL);
+    glShaderSource(vShader, 1, &vertexShaderText, NULL);
+    glShaderSource(fShader, 1, &fragmentShaderText, NULL);
 
     glCompileShader(vShader);
     glCompileShader(fShader);
 
     // Check to make sure the vertex shader compiled without errors
     glGetShaderiv(vShader, GL_COMPILE_STATUS, &status);
-        
+
     if (!status)
     {
         char* log = malloc(512);
@@ -370,47 +394,38 @@ GXShader_t* loadCompileShader ( const char vertexShaderPath[], const char fragme
     }
 
     // Create a shader program
-    ret->shaderProgramID = glCreateProgram();
+    shader->shaderProgramID = glCreateProgram();
 
     // Attach both of the shaders 
-    glAttachShader(ret->shaderProgramID, vShader);
-    glAttachShader(ret->shaderProgramID, fShader);
+    glAttachShader(shader->shaderProgramID, vShader);
+    glAttachShader(shader->shaderProgramID, fShader);
 
     // Link the program
-    glLinkProgram(ret->shaderProgramID);
+    glLinkProgram(shader->shaderProgramID);
 
     // Clear status and check to make sure the shader program compiled correctly
     status ^= 0;
 
-    glGetProgramiv(ret->shaderProgramID, GL_LINK_STATUS, &status);
+    glGetProgramiv(shader->shaderProgramID, GL_LINK_STATUS, &status);
     if (!status)
     {
         char* log = malloc(512);
         if (log == 0)
             return (void*)0;
-        glGetProgramInfoLog(ret->shaderProgramID, 512, NULL, log);
+        glGetProgramInfoLog(shader->shaderProgramID, 512, NULL, log);
         printf(log);
         free(log);
     }
 
     // Detach the shaders
-    glDetachShader(ret->shaderProgramID, vShader);
-    glDetachShader(ret->shaderProgramID, fShader);
+    glDetachShader(shader->shaderProgramID, vShader);
+    glDetachShader(shader->shaderProgramID, fShader);
 
     // Destroy the shader programs we don't need anymore
     glDeleteShader(vShader);
     glDeleteShader(fShader);
 
-    // We no longer need the shader text
-    free(vfdata);
-    free(ffdata);
-
-    // We aren't requesting data yet, so we will just leave it as nullptr,
-    // in case the shader never requests data.
-    ret->requestedData = 0;
-
-    return ret;
-
+    return 0;
 }
 
 int useShader ( GXShader_t* shader )

@@ -1,7 +1,6 @@
 ﻿#include <G10/GXCamera.h>
 
-
-GXmat4_t perspective ( float fov, float aspect, float near, float far )
+GXmat4_t perspective ( float fov, float aspect, float nearClip, float farClip)
 {
     /* Compute perspective projection, where f = fov, a = aspect, n = near, and r = far
      * ┌                                                      ┐
@@ -15,8 +14,8 @@ GXmat4_t perspective ( float fov, float aspect, float near, float far )
     return (GXmat4_t) {                                                                       
         (1 / (aspect * tanf(fov / 2))), 0,                 0,                               0,
         0,                              1 / tanf(fov / 2), 0,                               0,                 
-        0,                              0,                 (-(far + near) / (far - near)), -1,
-        0,                              0,                 (2 * far * near / (near - far)), 0
+        0,                              0,                 (-(farClip + nearClip) / (farClip - nearClip)), -1,
+        0,                              0,                 (2 * farClip * nearClip / (nearClip - farClip)), 0
     };
 }
 
@@ -73,7 +72,7 @@ GXCamera_t* loadCamera( const char* path )
     return ret;
     invalidFile:
     #ifndef NDEBUG
-        printf("[G10] [Camera] Failed to load file %s\n", path);
+        gPrintLog("[G10] [Camera] Failed to load file %s\n", path);
     #endif
     return 0;
 }
@@ -133,14 +132,14 @@ GXCamera_t* loadCameraAsJSON( char* token )
         // Parse out near clipping plane
         else if (strcmp("near", tokens[l].name) == 0)
         {
-            ret->near = (float)atof(tokens[l].content.nWhere);
+            ret->nearClip = (float)atof(tokens[l].content.nWhere);
             continue;
         }
 
         // Parse out far clipping plane
         else if (strcmp("far", tokens[l].name) == 0)
         {
-            ret->far = (float)atof(tokens[l].content.nWhere);
+            ret->farClip = (float)atof(tokens[l].content.nWhere);
             continue;
         }
 
@@ -154,7 +153,7 @@ GXCamera_t* loadCameraAsJSON( char* token )
 
     // Calculate the first view and projection matrices
     ret->view       = lookAt(ret->where, ret->target, ret->up);
-    ret->projection = perspective(ret->fov, ret->aspectRatio, ret->near, ret->far);
+    ret->projection = perspective(ret->fov, ret->aspectRatio, ret->nearClip, ret->farClip);
 
     // If no aspect ratio is supplied, default to 16:9
     if (ret->aspectRatio == 0.f)
@@ -168,7 +167,7 @@ GXCamera_t* loadCameraAsJSON( char* token )
 void computeProjectionMatrix ( GXCamera_t* camera )
 {
     // Compute and set the projection matrix for the camera
-    camera->projection = perspective(toRadians(camera->fov), camera->aspectRatio, camera->near, camera->far);
+    camera->projection = perspective(toRadians(camera->fov), camera->aspectRatio, camera->nearClip, camera->farClip);
 }
 
 int destroyCamera ( GXCamera_t* camera )
@@ -180,8 +179,8 @@ int destroyCamera ( GXCamera_t* camera )
 
     // Projection
     camera->fov         = 0.f;
-    camera->near        = 0.f;
-    camera->far         = 0.f;
+    camera->nearClip    = 0.f;
+    camera->farClip     = 0.f;
     camera->aspectRatio = 0.f;
 
     // Matricies
