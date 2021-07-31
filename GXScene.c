@@ -421,6 +421,7 @@ int computePhysics(GXScene_t* scene, float deltaTime)
     {
         if (i->rigidbody == 0)
             goto noRigidbody;
+
         // Summate forces
         summateForces(i->rigidbody->forces, i->rigidbody->forcesCount);
 

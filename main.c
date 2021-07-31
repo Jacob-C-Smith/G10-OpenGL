@@ -99,13 +99,17 @@ int main( int argc, const char* argv[] )
         #ifdef NDEBUG
             createSplashscreen("gameassets/splash.png");
         #endif
-
-        // Rig testing
+        
+        // Testing
         {
-            //GXRig_t* rig = loadRig("gameassets/common assets/rigs/rig.json");
-            //printRig(rig->bones);
-        }
+            // Rig testing
+            {
+                //GXRig_t* rig = loadRig("gameassets/common assets/rigs/rig.json");
+                //printRig(rig->bones);
+            }
 
+
+        }
         // Load the scene
         scene = loadScene(initialScene);
 

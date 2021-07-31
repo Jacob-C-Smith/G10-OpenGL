@@ -70,8 +70,6 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
             // Enable depth testing and anti aliasing
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_MULTISAMPLE);
-            glEnable(GL_SHADE_MODEL);
-            glShadeModel(GL_SMOOTH);
             glDepthFunc(GL_LESS);
 
             // Initialize the active texture block
@@ -98,7 +96,7 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
         }
     }
 
-    // Windows Initialization
+    // Windows console initialization
     {
         hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     }

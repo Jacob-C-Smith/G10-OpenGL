@@ -53,6 +53,14 @@ GXTexture_t* loadTexture ( const char path[] )
 
 unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
 {
+	// Argument checking
+	{
+		#ifndef NDEBUG
+			if(image==0)
+				goto noImage;
+		#endif
+	}
+	
 	// TODO: Make atomic for multithreading
 	// TODO: Make multithreaded
 	// TODO: Partition an even number of texture units per each thread.
@@ -80,6 +88,16 @@ unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
 	}
 
 	return -1;
+	
+	// Error handling
+	{
+	noImage:
+		#ifndef NDEBUG
+			printf("[G10] [Texture] Null parameter provided for \"image\" in function \"%s\"\n",__FUNCSIG__);
+		#endif
+		return 0;
+	}
+
 }
 
 unsigned int removeTextureFromTextureUnit(size_t index)

@@ -55,12 +55,12 @@ int drawEntity ( GXEntity_t* entity )
 GXEntity_t* loadEntity ( const char path[] )
 {
     // Uninitialized data
-    u8*          data;
-    GXEntity_t*  ret;
+    u8         *data;
+    GXEntity_t *ret;
 
     // Initialized data
-    size_t       l   = 0;
-    FILE*        f   = fopen(path, "rb");
+    size_t      l   = 0;
+    FILE       *f   = fopen(path, "rb");
 
     #ifndef NDEBUG
         gPrintLog("[G10] [Entity] Loading \"%s\".\n", (char*)path);
