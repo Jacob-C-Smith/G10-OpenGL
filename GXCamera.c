@@ -154,6 +154,8 @@ GXCamera_t* loadCameraAsJSON( char* token )
     // Calculate the first view and projection matrices
     ret->view       = lookAt(ret->where, ret->target, ret->up);
     ret->projection = perspective(ret->fov, ret->aspectRatio, ret->nearClip, ret->farClip);
+    
+    computeProjectionMatrix(ret);
 
     // If no aspect ratio is supplied, default to 16:9
     if (ret->aspectRatio == 0.f)

@@ -24,11 +24,10 @@
 #include <G10/GXPhysics.h>
 #include <G10/GXSplashscreen.h>
 
-#include <Windows.h>
-
 // G10 arch
 #ifdef _M_X64
 #include <G10/arch/x86_64/GXAVXmath.h>
+#include <G10/arch/x86_64/GXAVXlinear.h>
 #elif _M_ARM64
 // ARM specific includes
 #endif
@@ -97,19 +96,14 @@ int main( int argc, const char* argv[] )
 
         // Splash screen code
         #ifdef NDEBUG
-            createSplashscreen("gameassets/splash.png");
+            createSplashscreen("material viewer/splash.png");
         #endif
         
         // Testing
         {
-            // Rig testing
-            {
-                //GXRig_t* rig = loadRig("gameassets/common assets/rigs/rig.json");
-                //printRig(rig->bones);
-            }
-
 
         }
+
         // Load the scene
         scene = loadScene(initialScene);
 
@@ -118,6 +112,7 @@ int main( int argc, const char* argv[] )
         #endif
 
         SDL_ShowWindow(window);
+
     }
 
     // Main game loop
@@ -153,7 +148,7 @@ int main( int argc, const char* argv[] )
 
                     dropped_filedir = event.drop.file;
                     // Shows directory of dropped file
-                    GXEntity_t* e = getEntity(scene, "default cube");
+                    GXEntity_t* e = getEntity(scene, "shapes");
                     unloadMaterial(e->mesh->parts->material);
                     e->mesh->parts->material = loadMaterial(dropped_filedir);
                     SDL_free(dropped_filedir);    // Free dropped_filedir memory
@@ -161,15 +156,9 @@ int main( int argc, const char* argv[] )
                 case SDL_KEYDOWN:
                 {
                     const u8* keyboardState = SDL_GetKeyboardState(NULL);
-                       
+                    
                     if (keyboardState[SDL_SCANCODE_1])
-                        setActiveCamera(scene, "Primary Camera");
-                    if (keyboardState[SDL_SCANCODE_2])
-                        setActiveCamera(scene, "Secondary Camera");
-                    if (keyboardState[SDL_SCANCODE_3])
-                        setActiveCamera(scene, "Tertiary Camera");
-                    if (keyboardState[SDL_SCANCODE_4])
-                        setActiveCamera(scene, "Quaternary Camera");
+                        ;
 
                     if (keyboardState[SDL_SCANCODE_W])
                     {
@@ -203,7 +192,7 @@ int main( int argc, const char* argv[] )
                     {
                         SDL_SetRelativeMouseMode(!SDL_GetRelativeMouseMode());
                     }
-
+                    
                     if(keyboardState[SDL_SCANCODE_ESCAPE])
                         running = 0;
 
@@ -217,6 +206,8 @@ int main( int argc, const char* argv[] )
                 
                 case SDL_MOUSEMOTION:
                 {
+                    if (SDL_GetRelativeMouseMode() == 0)
+                        break;
                     GXCamera_t* a = scene->cameras;
                     
                     static float hAng = 0.f,
@@ -259,7 +250,7 @@ int main( int argc, const char* argv[] )
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
                             // Respond to window resizing
-                            int w = 0, h = 0;
+                            i32 w = 0, h = 0;
                                 
                             // Pull window data
                             SDL_GetWindowSize(window, &w, &h);
@@ -282,7 +273,6 @@ int main( int argc, const char* argv[] )
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
 
-        GXEntity_t *entity = getEntity(scene, "default cube");
         scene->entities->transform->rotation.y+=0.025f;
 
         // G10

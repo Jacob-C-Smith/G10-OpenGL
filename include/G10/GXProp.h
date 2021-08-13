@@ -16,6 +16,7 @@ struct GXProp_s {
 typedef struct GXProp_s GXProp_t;
 
 GXProp_t* createProp     ( );
+
 GXProp_t* loadProp       ( const char path[] );
 GXProp_t* loadPropAsJSON ( char      *token );
 

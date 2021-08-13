@@ -248,15 +248,15 @@ GXPart_t* loadPartAsJSON ( char* token )
         }
 
         // Load from a path
-        else if (strcmp("path", tokens[j].name) == 0)
+        else if (strncmp("path", tokens[j].name,4) == 0)
         {
             loadPLY(tokens[j].content.nWhere,ret);
         }
 
-        // Set name
-        else if (strcmp("material", tokens[j].name) == 0)
+        // Set material
+        else if (strncmp("material", tokens[j].name,8) == 0)
         {
-            ret->material = loadMaterial(tokens[j].content.nWhere);
+            ret->material = (*(char*)tokens[j].content.nWhere=='{') ? loadMaterialAsJSON(tokens[j].content.nWhere) : loadMaterial(tokens[j].content.nWhere); 
         }
     }
 

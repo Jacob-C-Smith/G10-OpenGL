@@ -50,28 +50,17 @@ nppp:
     real4  1.f
     real4 -1.f
 
+pnnn:
+    real4  1.f
+    real4 -1.f
+    real4 -1.f
+    real4 -1.f
+
 nnnn:
     real4 -1.f
     real4 -1.f
     real4 -1.f
     real4 -1.f
-
-;    a: 
-;    DWORD 00h
-;    b: 
-;    DWORD 1Bh
-;    c: 
-;    DWORD 5Bh  
-;    d: 
-;    DWORD 40h   
-;    e: 
-;    DWORD ADh
-;    f: 
-;    DWORD B6h
-;    g: 
-;    DWORD F6h   
-;    h: 
-;    DWORD EDh 
 
 _CONST ENDS
 
@@ -134,10 +123,37 @@ AVXQMul PROC
     ret
 AVXQMul ENDP
 
+PUBLIC AVXQConjugate
+AVXQConjugate PROC
+    vmovups xmm0, [rcx]
+    vmulps  xmm0, xmm0, xmmword ptr [pnnn]
+    vmovups [rdx], xmm0
+
+    ret
+AVXQConjugate ENDP 
+
+PUBLIC AVXQInverse  
+AVXQInverse PROC
+    vmovups xmm0, [rcx]                    ; xmm0 = q
+    vmulps  xmm1, xmm0, xmmword ptr [pnnn] ; xmm1 = q'
+    
+
+
+    vmovups [rdx], xmm0
+
+AVXQInverse ENDP
+
+PUBLIC AVXQRotationMatrix
+AVXQRotationMatrix PROC
+    vmovaps xmm0, [rcx]
+
+AVXQRotationMatrix ENDP
+
+
 ; TODO: Quaternion spherical linear interpolation
-;PUBLIC AVXQSlerp
-;AVXQSlerp PROC
-    ; slerp(xmmword q0, xmmword q1,float dT) = q0 * ( q0^-1 * q1 ) ^ dT
+PUBLIC AVXQdSlerp
+AVXQdSlerp PROC
+    ;slerp(xmmword q0, xmmword q1,float dT) = log( q0^-1 * q1 )
 
 ;    ret ; exit
 ;AVXQSlerp ENDP
@@ -146,7 +162,8 @@ AVXQMul ENDP
 ;AVXdQSlerp PROC
     
 ;    ret ;
-;AVXdQSlerp ENDP
+    ret 
+AVXQdSlerp ENDP
 
 _TEXT ENDS
  

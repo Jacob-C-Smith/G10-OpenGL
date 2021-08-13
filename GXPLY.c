@@ -17,9 +17,10 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
          * │ Geometric vertices  │ ( x, y, z )                                      │ 0x01 │
          * │ Texture coordinates │ ( u, v ) or ( s, t )                             │ 0x02 │
          * │ Vertex normals      │ ( nx, ny, nz )                                   │ 0x04 │
-         * │ Vertex colors       │ ( red, green, blue, alpha ) or ( r, g, b, a )    │ 0x08 │
-         * │ Bone groups         │ ( b0, b1, b2, b3 )                               │ 0x10 │
-         * │ Bone weights        │ ( w0, w1, w2, w3 )                               │ 0x20 │
+         * │ Vertex normals      │ ( bx, by, bz )                                   │ 0x08 │
+         * │ Vertex colors       │ ( red, green, blue, alpha ) or ( r, g, b, a )    │ 0x10 │
+         * │ Bone groups         │ ( b0, b1, b2, b3 )                               │ 0x20 │
+         * │ Bone weights        │ ( w0, w1, w2, w3 )                               │ 0x40 │
          * └─────────────────────┴──────────────────────────────────────────────────┴──────┘
          * 
          * NOTE: The function can be modified to read two more vertex groups, supporting a 
@@ -303,8 +304,8 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
                     if (*plyFile->elements[a].properties[b].name == 'x')
                     {
                         plyFile->flags <<= 8;
-                        plyFile->flags  |= (GXPLY_Geometric);
-                        tflags          |= GXPLY_X;
+                        plyFile->flags |= (GXPLY_Geometric);
+                        tflags |= GXPLY_X;
                         vertexGroupCount++;
                     }
                     else if (*plyFile->elements[a].properties[b].name == 'y')
@@ -314,8 +315,8 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
                     else if (*plyFile->elements[a].properties[b].name == 's')
                     {
                         plyFile->flags <<= 8;
-                        plyFile->flags  |= (GXPLY_Texture);
-                        tflags          |= GXPLY_S;
+                        plyFile->flags |= (GXPLY_Texture);
+                        tflags |= GXPLY_S;
                         vertexGroupCount++;
                     }
                     else if (*plyFile->elements[a].properties[b].name == 't')
@@ -331,6 +332,17 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
                         tflags |= GXPLY_NY;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "nz", 2) == 0)
                         tflags |= GXPLY_NZ;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "bx", 2) == 0)
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags |= (GXPLY_Texture);
+                        tflags |= (GXPLY_BX);
+                        vertexGroupCount++;
+                    }
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "by", 2) == 0)
+                        tflags |= GXPLY_BY;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "bz", 2) == 0)
+                        tflags |= GXPLY_BZ;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "red", 3) == 0)
                     {
                         plyFile->flags <<= 8;
@@ -392,6 +404,12 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
                 !( tflags & GXPLY_NX &&
                    tflags & GXPLY_NY &&
                    tflags & GXPLY_NZ ))
+                goto missingVerts;
+
+            if (plyFile->flags & GXPLY_Bitangent &&
+                !(tflags & GXPLY_BX &&
+                    tflags & GXPLY_BY &&
+                    tflags & GXPLY_BZ))
                 goto missingVerts;
 
             if (plyFile->flags & GXPLY_Color &&
@@ -482,6 +500,7 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
         {
         case GXPLY_Geometric:
         case GXPLY_Normal:
+        case GXPLY_Bitangent:
         case GXPLY_Color:
             glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
             vertexAttribOffset += 3;

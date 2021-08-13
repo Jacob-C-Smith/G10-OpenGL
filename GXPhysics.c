@@ -2,6 +2,7 @@
 
 GXvec3_t* summateForces ( GXvec3_t* forces, size_t forceCount )
 {
+    
     forces[0].x = 0.f,
     forces[0].y = 0.f,
     forces[0].z = 0.f,
@@ -14,7 +15,7 @@ GXvec3_t* summateForces ( GXvec3_t* forces, size_t forceCount )
         forces[0].z += forces[i].z,
         forces[0].w += forces[i].w;
     }
-
+    AVXSumVecs(forceCount, forces + 16);
     return forces;
 }
 
@@ -41,8 +42,17 @@ int integrateDisplacement(GXEntity_t* entity, float deltaTime)
     return 0;
 }
 
-int integrateRotation(GXEntity_t* entity)
+int integrateRotation ( GXEntity_t* entity )
 {
+    GXRigidbody_t* rigidbody = entity->rigidbody;
+    GXTransform_t* transform = entity->transform;
+
+    transform->rotation.x += (float) 0.5 * (rigidbody->angularVelocity.x * fabs(rigidbody->angularVelocity.x)),
+    transform->rotation.y += (float) 0.5 * (rigidbody->angularVelocity.y * fabs(rigidbody->angularVelocity.y)),
+    transform->rotation.z += (float) 0.5 * (rigidbody->angularVelocity.z * fabs(rigidbody->angularVelocity.z)),
+    transform->rotation.w += (float) 0.5 * (rigidbody->angularVelocity.w * fabs(rigidbody->angularVelocity.w));
+
+
     return 0;
 }
 

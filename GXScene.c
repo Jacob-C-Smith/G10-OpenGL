@@ -341,6 +341,8 @@ int drawScene ( GXScene_t* scene )
         #ifndef NDEBUG
             if (scene == 0)
                 goto nullScene;
+            if (scene->entities == 0)
+                goto noEntities;
         #endif
     }
 
@@ -407,6 +409,11 @@ int drawScene ( GXScene_t* scene )
         nullScene:
         #ifndef NDEBUG
             gPrintError("[G10] [Scene] Null pointer provided for scene in function \"%s\".\n", __FUNCSIG__);
+        #endif
+            return 0;
+        noEntities:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Scene] No entities in scene \"%s\"\n", scene->name);
         #endif
             return 0;
     }

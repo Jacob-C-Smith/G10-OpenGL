@@ -220,6 +220,9 @@
     <ClInclude Include="include\G10\GXSkybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\G10\arch\x86_64\GXAVXlinear.h">
+      <Filter>Header Files\arch\x86_64</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="GXCamera_x86_64.asm">
@@ -238,6 +241,9 @@
       <Filter>Source Files\assembly\x86_64</Filter>
     </MASM>
     <MASM Include="GXRigidbody_x86_64.asm">
+      <Filter>Source Files\assembly\x86_64</Filter>
+    </MASM>
+    <MASM Include="GXLinear_x86_64.asm">
       <Filter>Source Files\assembly\x86_64</Filter>
     </MASM>
   </ItemGroup>

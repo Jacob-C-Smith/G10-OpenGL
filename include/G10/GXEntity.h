@@ -74,9 +74,7 @@ GXEntity_t* createEntity     ( );                                          // �
 GXEntity_t* loadEntity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
 GXEntity_t* loadEntityAsJSON ( char       *token  );                       // ✅ Loads an entity as a JSON object
 
+//int         computePhysics   ( GXEntity_t *entity );                       // ❌ Computes physics for an entity
 int         drawEntity       ( GXEntity_t *entity );                       // ✅ Draws an entity if draw flag is set
-
-// TODO: Find a better home for this function
-int         assignTexture    ( GXShader_t *shader, const char uniform[] ); // ✅ Assigns a texture to a glsl uniform
 
 int         destroyEntity    ( GXEntity_t *entity );                       // ✅ Destroys the entity and all its contents

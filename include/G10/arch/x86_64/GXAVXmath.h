@@ -44,4 +44,5 @@ extern void  AVXViewMatrix             ( GXvec4_t* eye,      GXvec4_t* target,  
 extern void  AVXProjectionMatrix       ( float     fov,      float     aspectRatio, float     near,  float far );
 
 // Quaternion operations
-extern void AVXQMul                    ( quaternion_t* a, quaternion_t* b, quaternion_t* r );
+extern void  AVXQMul                   ( quaternion_t* a, quaternion_t* b, quaternion_t* r );
+extern void  AVXQConjugate             ( quaternion_t* a, quaternion_t* r );

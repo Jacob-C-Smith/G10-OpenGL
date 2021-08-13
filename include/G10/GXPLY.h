@@ -34,44 +34,49 @@
 #define GXPLY_Geometric           0x00001
 #define GXPLY_Texture             0x00002
 #define GXPLY_Normal              0x00004
-#define GXPLY_Color               0x00008
-#define GXPLY_Bones               0x00010
-#define GXPLY_Weights             0x00020
+#define GXPLY_Bitangent           0x00008
+#define GXPLY_Color               0x00010
+#define GXPLY_Bones               0x00020
+#define GXPLY_Weights             0x00040
 
 #define GXPLY_MAXVERTEXGROUPS     8
 
-
 // Geometric
-#define GXPLY_X                   0x00001
-#define GXPLY_Y                   0x00002
-#define GXPLY_Z                   0x00004
+#define GXPLY_X                   0x000001
+#define GXPLY_Y                   0x000002
+#define GXPLY_Z                   0x000004
 
 // Texture
-#define GXPLY_S                   0x00008
-#define GXPLY_T                   0x00010
+#define GXPLY_S                   0x000008
+#define GXPLY_T                   0x000010
 
 // Normal
-#define GXPLY_NX                  0x00020
-#define GXPLY_NY                  0x00040
-#define GXPLY_NZ                  0x00080
+#define GXPLY_NX                  0x000020
+#define GXPLY_NY                  0x000040
+#define GXPLY_NZ                  0x000080
+
+// Bitangent
+#define GXPLY_BX                  0x000100
+#define GXPLY_BY                  0x000200
+#define GXPLY_BZ                  0x000400
 
 // Color
-#define GXPLY_R                   0x00100
-#define GXPLY_G                   0x00200
-#define GXPLY_B                   0x00400
-#define GXPLY_A                   0x00800
+#define GXPLY_R                   0x000800
+#define GXPLY_G                   0x001000
+#define GXPLY_B                   0x002000
+#define GXPLY_A                   0x004000
 
 // Bones
-#define GXPLY_B0                  0x01000
-#define GXPLY_B1                  0x02000
-#define GXPLY_B2                  0x04000
-#define GXPLY_B3                  0x08000
+#define GXPLY_B0                  0x008000
+#define GXPLY_B1                  0x010000
+#define GXPLY_B2                  0x020000
+#define GXPLY_B3                  0x040000
 
 // Bone weights
-#define GXPLY_BW0                 0x10000
-#define GXPLY_BW1                 0x20000
-#define GXPLY_BW2                 0x40000
-#define GXPLY_BW3                 0x80000
+#define GXPLY_BW0                 0x080000
+#define GXPLY_BW1                 0x100000
+#define GXPLY_BW2                 0x200000
+#define GXPLY_BW3                 0x400000
 
 enum GXPLYFileType_e {
     none   = 0,

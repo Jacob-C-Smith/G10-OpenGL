@@ -1,5 +1,4 @@
 #include <G10/G10.h>
-HANDLE hConsole;
 
 int gInit( SDL_Window **window, SDL_GLContext *glContext )
 {
@@ -94,11 +93,12 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
             // Set the clear color to white
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         }
-    }
 
-    // Windows console initialization
-    {
-        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        // Load a missing texture texture
+        {
+            extern GXTexture_t* missingTexture;
+            missingTexture = loadTexture("G10/missingTexture.png");
+        }
     }
 
     *window    = lWindow;
@@ -168,12 +168,15 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
 
 int gPrintError( const char* const format, ... )
 {
+    // We use the varadic argument list in vprintf
     va_list aList;
     va_start(aList, format);
 
-    SetConsoleTextAttribute(hConsole, 0x0C);
+    // Uses ANSI terminal escapes to set the color to red, 
+    // print the message, and restore the color.
+    printf("\033[91m");
     vprintf(format, aList);
-    SetConsoleTextAttribute(hConsole, 0x0F);
+    printf("\033[0m");
 
     va_end(aList);
 
@@ -182,12 +185,15 @@ int gPrintError( const char* const format, ... )
 
 int gPrintWarning(const char* const format, ...)
 {
+    // We use the varadic argument list in vprintf
     va_list aList;
     va_start(aList, format);
 
-    SetConsoleTextAttribute(hConsole, 0x0E);
+    // Uses ANSI terminal escapes to set the color to yellow, 
+    // print the message, and restore the color.
+    printf("\033[93m");
     vprintf(format, aList);
-    SetConsoleTextAttribute(hConsole, 0x0F);
+    printf("\033[0m");
 
     va_end(aList);
 
@@ -196,12 +202,15 @@ int gPrintWarning(const char* const format, ...)
 
 int gPrintLog ( const char* const format, ... )
 {
+    // We use the varadic argument list in vprintf
     va_list aList;
     va_start(aList, format);
 
-    SetConsoleTextAttribute(hConsole, 0x0B);
+    // Uses ANSI terminal escapes to set the color to light blue, 
+    // print the message, and restore the color.
+    printf("\033[94m");
     vprintf(format, aList);
-    SetConsoleTextAttribute(hConsole, 0x0F);
+    printf("\033[0m");
 
     va_end(aList);
 

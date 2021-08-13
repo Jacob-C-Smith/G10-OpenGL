@@ -13,8 +13,6 @@
 
 #include <G10/GXTexture.h>
 
-#include <Windows.h>
-
 int gInit         ( SDL_Window      **window, SDL_GLContext *glContext ); // ✅ gInit initializes SDL and OpenGL
 int gPrintError   ( const char *const format, ... );                      // ✅ gPrintError is printf, but in red
 int gPrintWarning ( const char *const format, ... );                      // ✅ gPrintWarning is printf, but in yellow

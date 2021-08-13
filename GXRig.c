@@ -295,6 +295,8 @@ GXBone_t* loadArmitureAsJSON(char* token)
 
 GXBone_t* findBone(GXRig_t* rig,  char* name)
 {
+    // TODO: Argument check
+    
     // Create a pointer to the head of the list
     GXBone_t* i = rig->bones;
 
@@ -303,6 +305,8 @@ GXBone_t* findBone(GXRig_t* rig,  char* name)
         goto noBones;
 
     return searchBone(rig, name, 0);
+
+    // Error handling
     {
         noBones:
             #ifndef NDEBUG

@@ -119,7 +119,6 @@ static inline GXmat4_t mat4rcp(GXmat4_t m)
     };
 }
 
-
 // ✅ Returns the identity matrix
 static inline GXmat4_t identityMat4 ( )
 {

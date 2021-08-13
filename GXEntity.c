@@ -204,19 +204,6 @@ GXEntity_t* loadEntityAsJSON ( char* token )
     return ret;
 }
 
-int assignTexture ( GXShader_t* shader, const char uniform[] )
-{
-    // We can not assign a texture if there is no shader
-    if (shader == (void*) 0)
-        return 0;
-
-    // Use the shader and set the uniform
-    useShader(shader);
-    glUniform1i(glGetUniformLocation(shader->shaderProgramID, uniform), 0);
-
-    return 0;
-}
-
 int destroyEntity ( GXEntity_t* entity )
 {
     // TODO: Use destructors functions
