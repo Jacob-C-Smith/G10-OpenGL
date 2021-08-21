@@ -1,6 +1,6 @@
 #include <G10/GXShader.h>
 
-GXShader_t* loadShader(const char shaderPath[])
+GXShader_t* loadShader(const char path[])
 {
     // Uninitialized data
     int          i;
@@ -11,38 +11,14 @@ GXShader_t* loadShader(const char shaderPath[])
     JSONValue_t *tokens;
 
     // Initialized data
-    FILE         *f                  = fopen(shaderPath, "rb");
+    FILE         *f                  = fopen(path, "rb");
 
 
     // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            gPrintError("[G10] [Shader] Failed to load file %s\n", shaderPath);
-            return (void*)0;
-        }
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = malloc(i+1);
-
-        // Check if data is valid
-        if (data == 0)
-            return (void*)0;
-
-        // Read to data
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-
-        data[i] = '\0';
-    }
 
     ret = loadShaderAsJSON(data);
 
@@ -60,8 +36,8 @@ GXShader_t* loadShaderAsJSON(char* token)
     JSONValue_t*  tokens;
 
     // Initialized data
-    char        * vertexShaderPath   = 0,
-                * fragmentShaderPath = 0,
+    char        * vertexPath   = 0,
+                * fragmentPath = 0,
                 * shaderName         = 0;
     GXKeyValue_t* requestedData      = 0;
     size_t        requestedDataCount = 0,
@@ -83,14 +59,14 @@ GXShader_t* loadShaderAsJSON(char* token)
         // Point to the vertex shader
         if (strcmp("vertexShaderPath", tokens[j].name) == 0)
         {
-            vertexShaderPath = tokens[j].content.nWhere;
+            vertexPath = tokens[j].content.nWhere;
             continue;
         }
 
         // Point to the fragment shader
         else if (strcmp("fragmentShaderPath", tokens[j].name) == 0)
         {
-            fragmentShaderPath = tokens[j].content.nWhere;
+            fragmentPath = tokens[j].content.nWhere;
             continue;
         }
 
@@ -229,7 +205,7 @@ GXShader_t* loadShaderAsJSON(char* token)
                 // If the key is unsupported, we log, ignore, and keep looking for new pairs.
                 else {
                     #ifndef NDEBUG
-                        gPrintWarning("[G10] [Shader] Shader requested \"%s\", which is unsupported data.", subContents[k].name);
+                        gPrintWarning("[G10] [Shader] Shader requested \"%s\", which is unsupported data.\n", subContents[k].name);
                     #endif
                     continue;
                 }
@@ -239,7 +215,7 @@ GXShader_t* loadShaderAsJSON(char* token)
                     vLen = strlen(subContents[k].content.nWhere) + 1;
 
                     // Set the value 
-                    requestedData[k].value = malloc(vLen);
+                    requestedData[k].value = calloc(vLen, sizeof(u8));
                     if (requestedData[k].value == (void*)0)
                         return 0;
 
@@ -257,7 +233,7 @@ GXShader_t* loadShaderAsJSON(char* token)
 
     // Spin up the shader, set the name and the requested data
     {
-        ret                     = loadCompileShader(vertexShaderPath, fragmentShaderPath, shaderName);
+        ret                     = loadCompileShader(vertexPath, fragmentPath, shaderName);
         ret->name               = shaderName;
         ret->requestedDataFlags = requestedDataFlags;
         ret->requestedData      = requestedData;
@@ -271,7 +247,7 @@ GXShader_t* loadShaderAsJSON(char* token)
     return ret;
 }
 
-GXShader_t* loadCompileShader ( const char vertexShaderPath[], const char fragmentShaderPath[], const char shaderName[] )
+GXShader_t* loadCompileShader ( const char vertexPath[], const char fragmentPath[], const char shaderName[] )
 {
     // Uninitialized data
     char       * vfdata,                               // Vertex shader text
@@ -283,10 +259,10 @@ GXShader_t* loadCompileShader ( const char vertexShaderPath[], const char fragme
     int          status;                               // Checks for compilation issues
 
     // Initialized data
-    FILE* vf        = fopen(vertexShaderPath, "rb");   // Vertex shader source code FILE
-    FILE* ff        = fopen(fragmentShaderPath, "rb"); // Fragment shader source code FILE
+    FILE* vf        = fopen(vertexPath, "rb");   // Vertex shader source code FILE
+    FILE* ff        = fopen(fragmentPath, "rb"); // Fragment shader source code FILE
     
-    GXShader_t* ret = malloc(sizeof(GXShader_t));      // The return 
+    GXShader_t* ret = calloc(1,sizeof(GXShader_t));      // The return 
 
 
     if (ret == 0)
@@ -297,13 +273,13 @@ GXShader_t* loadCompileShader ( const char vertexShaderPath[], const char fragme
         // Check files
         if (vf == NULL)
         {
-            gPrintError("[G10] [Shader] Failed to load file %s\n", vertexShaderPath);
+            gPrintError("[G10] [Shader] Failed to load file %s\n", vertexPath);
             return (void*)0;
         }
 
         if (ff == NULL)
         {
-            gPrintError("[G10] [Shader] Failed to load file %s\n", fragmentShaderPath);
+            gPrintError("[G10] [Shader] Failed to load file %s\n", fragmentPath);
             return (void*)0;
         }
 
@@ -372,7 +348,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
 
     if (!status)
     {
-        char* log = malloc(512);
+        char* log = calloc(512,sizeof(u8));
         if (log == 0)
             return (void*)0;
         glGetShaderInfoLog(vShader, 512, NULL, log);
@@ -385,7 +361,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
     glGetShaderiv(fShader, GL_COMPILE_STATUS, &status);
     if (!status)
     {
-        char* log = malloc(512);
+        char* log = calloc(512,sizeof(u8));
         if (log == 0)
             return (void*)0;
         glGetShaderInfoLog(fShader, 512, NULL, log);
@@ -409,7 +385,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
     glGetProgramiv(shader->shaderProgramID, GL_LINK_STATUS, &status);
     if (!status)
     {
-        char* log = malloc(512);
+        char* log = calloc(512,sizeof(u8));
         if (log == 0)
             return (void*)0;
         glGetProgramInfoLog(shader->shaderProgramID, 512, NULL, log);

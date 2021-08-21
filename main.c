@@ -23,6 +23,8 @@
 #include <G10/GXCollider.h>
 #include <G10/GXPhysics.h>
 #include <G10/GXSplashscreen.h>
+#include <G10/GXHDR.h>
+
 
 // G10 arch
 #ifdef _M_X64
@@ -32,7 +34,7 @@
 // ARM specific includes
 #endif
 
-#define MOUSE_SENS 0.05
+#define MOUSE_SENS 0.05f
 
 // For some reason, SDL defines main. I don't know why, but we have to undef it.
 #undef main
@@ -95,9 +97,9 @@ int main( int argc, const char* argv[] )
         gInit(&window, &glContext);
 
         // Splash screen code
-        #ifdef NDEBUG
-            createSplashscreen("material viewer/splash.png");
-        #endif
+        //#ifdef NDEBUG
+            createSplashscreen("G10/splash.png");
+        //#endif
         
         // Testing
         {
@@ -106,14 +108,16 @@ int main( int argc, const char* argv[] )
 
         // Load the scene
         scene = loadScene(initialScene);
-
-        #ifdef NDEBUG
+        
+        //#ifdef NDEBUG
             destroySplashscreen();
-        #endif
+        //#endif
 
         SDL_ShowWindow(window);
 
     }
+
+    goto setGLViewportSizeFromWindow;
 
     // Main game loop
     while (running)
@@ -128,7 +132,7 @@ int main( int argc, const char* argv[] )
 
         // FPS readout
         {
-            printf("FPS: %.1f\r", deltaTime * 1000); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
+            printf("FPS: %.1f\r", (float)deltaTime * 1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
         }
 
         // TODO: Find a better way to process input.
@@ -141,17 +145,6 @@ int main( int argc, const char* argv[] )
                 {
                     running = 0;
                     break;
-                }
-                case SDL_DROPFILE:
-                {
-                    char* dropped_filedir;                  // Pointer for directory of dropped file
-
-                    dropped_filedir = event.drop.file;
-                    // Shows directory of dropped file
-                    GXEntity_t* e = getEntity(scene, "shapes");
-                    unloadMaterial(e->mesh->parts->material);
-                    e->mesh->parts->material = loadMaterial(dropped_filedir);
-                    SDL_free(dropped_filedir);    // Free dropped_filedir memory
                 }
                 case SDL_KEYDOWN:
                 {
@@ -249,15 +242,18 @@ int main( int argc, const char* argv[] )
                     {
                         case SDL_WINDOWEVENT_SIZE_CHANGED:
                         {
-                            // Respond to window resizing
-                            i32 w = 0, h = 0;
-                                
-                            // Pull window data
-                            SDL_GetWindowSize(window, &w, &h);
-                            scene->cameras->fov = (float)w / h;
-                                
-                            // Notify OpenGL of the change
-                            glViewport(0, 0, w, h);
+                            setGLViewportSizeFromWindow:
+                            {
+                                // Respond to window resizing
+                                i32 w = 0, h = 0;
+
+                                // Pull window data
+                                SDL_GetWindowSize(window, &w, &h);
+                                scene->cameras->fov = (float)w / h;
+
+                                // Notify OpenGL of the change
+                                glViewport(0, 0, w, h);
+                            }
                             break;
                         }
                         default:
@@ -273,8 +269,6 @@ int main( int argc, const char* argv[] )
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
 
-        scene->entities->transform->rotation.y+=0.025f;
-
         // G10
         {
             // Compute physics
@@ -286,7 +280,6 @@ int main( int argc, const char* argv[] )
 
         // Swap the window 
         SDL_GL_SwapWindow(window);
-
     }
 
     // G10 Unloading;

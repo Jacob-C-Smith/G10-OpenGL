@@ -224,9 +224,9 @@ struct GXShader_s
 };
 typedef struct GXShader_s GXShader_t;
 
-GXShader_t *loadShader        ( const char  shaderPath[] );
+GXShader_t *loadShader        ( const char  path[] );
 GXShader_t *loadShaderAsJSON  ( char       *token );
-GXShader_t *loadCompileShader ( const char  vertexShaderPath[], const char fragmentShaderPath[], const char shaderName[] );
+GXShader_t *loadCompileShader ( const char  vertexPath[], const char fragmentPath[], const char shaderName[] );
 int         useShader         ( GXShader_t *shader );
 void        setShaderInt      ( GXShader_t *shader, const char name[], int       value );
 void        setShaderFloat    ( GXShader_t *shader, const char name[], float     value );
@@ -236,7 +236,7 @@ int         unloadShader      ( GXShader_t *shader );
 ```
 
 #### ⌠loadShader⌡
-```GXShader_t* loadShader(const char vertexShaderPath[], const char fragmentShaderPath[])``` will load a vertex and fragment shader from ```vertexShaderPath``` and ```fragmentShaderPath``` respectively; then compile and link the shader.
+```GXShader_t* loadShader(const char vertexPath[], const char fragmentPath[])``` will load a vertex and fragment shader from ```vertexPath``` and ```fragmentPath``` respectively; then compile and link the shader.
 Returns a pointer to the loaded ```GXShader_t```.
 #### ⌠useShader⌡
 ```int useShader(GXShader_t* shader)``` will tell OpenGL to use the ```shader``` for draw calls.
@@ -419,8 +419,8 @@ Entities may be stored in a JSON file.
 	"name"      : "Cube",
 	"mesh"      : "gameassets/meshes/cube.ply",
 	"shader"    : {
-		"vertexShaderPath"   : "gameassets/shaders/pbrv.glsl",
-		"fragmentShaderPath" : "gameassets/shaders/pbrf.glsl"
+		"vertexPath"   : "gameassets/shaders/pbrv.glsl",
+		"fragmentPath" : "gameassets/shaders/pbrf.glsl"
 	},
 	"transform" : {
 		"location"                   : [ 0,0,0 ],

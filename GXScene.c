@@ -2,7 +2,7 @@
 
 GXScene_t* createScene ( )
 {
-    GXScene_t* ret = malloc(sizeof(GXScene_t));
+    GXScene_t* ret = calloc(1,sizeof(GXScene_t));
 
     if (ret == 0)
         return ret;
@@ -36,35 +36,11 @@ GXScene_t* loadScene ( const char path[] )
     FILE        *f   = fopen(path, "rb");
     char        *data = 0;
 
-    // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            gPrintError("[G10] [Scene] Failed to load file %s\n", path);
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = calloc(i+1,sizeof(u8));
-
-        if (data == (void*)0)
-            return (void*)0;
-
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-
-        // For reasons beyond me, the null terminator isn't included.
-        data[i] = '\0';
-    } 
-
+    // Load up the file
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
+    
     // Parse the file as JSON
     ret = loadSceneAsJSON(data);
 
@@ -143,7 +119,7 @@ GXScene_t* loadSceneAsJSON(char* token)
 
         else if (strcmp("skybox", tokens[j].name) == 0)
         {
-            //ret->skybox = createSkybox(tokens[j].content.nWhere);
+            ret->skybox = (*(char*)tokens[j].content.nWhere == '{') ? loadSkyboxAsJSON(tokens[j].content.nWhere) : loadSkybox(tokens[j].content.nWhere);
             continue;
         }
     }
@@ -401,6 +377,10 @@ int drawScene ( GXScene_t* scene )
         i = i->next;
         
     }
+
+    // Lastly, draw the skybox if there is a skybox
+    if(scene->skybox)
+        drawSkybox(scene->skybox, scene->cameras);
 
     return 0;
 

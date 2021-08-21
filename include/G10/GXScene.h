@@ -23,7 +23,7 @@ struct GXScene_s {
     GXEntity_t  *entities;
     GXCamera_t  *cameras;
     GXLight_t   *lights;
-    GXTexture_t *skybox;
+    GXSkybox_t  *skybox;
 };
 typedef struct GXScene_s GXScene_t;
 

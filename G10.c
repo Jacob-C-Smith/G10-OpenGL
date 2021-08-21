@@ -24,7 +24,7 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
             goto noSDL;
 
         // Initialize the image loader library
-        if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG) == 0)
+        if (IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG | IMG_INIT_TIF) == 0)
             goto noSDLImage;
 
         // Initialize the network library
@@ -69,14 +69,14 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
             // Enable depth testing and anti aliasing
             glEnable(GL_DEPTH_TEST);
             glEnable(GL_MULTISAMPLE);
-            glDepthFunc(GL_LESS);
+            glDepthFunc(GL_LEQUAL);
 
             // Initialize the active texture block
             {
                 // Uninitialized data
                 extern GXTextureUnit_t *activeTextures;
 
-                activeTextures = malloc(sizeof(GXTextureUnit_t));
+                activeTextures = calloc(1,sizeof(GXTextureUnit_t));
 
                 #ifndef NDEBUG
                     if (activeTextures == (void*)0)
@@ -162,6 +162,54 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
         #ifndef NDEBUG
             gPrintError("[GLAD] Failed to load OpenGL\n");
         #endif 
+        return 0;
+    }
+}
+
+size_t gLoadFile(const char* path, void* buffer)
+{
+    // Argument checking 
+    {
+        #ifndef NDEBUG
+            if(path==0)
+                goto noPath;
+        #endif
+    }
+
+    // Initialized data
+    size_t  ret = 0;
+    FILE   *f   = fopen(path, "r");
+    
+    // Check if file is valid
+    if (f == NULL)
+        goto invalidFile;
+
+    // Find file size and prep for read
+    fseek(f, 0, SEEK_END);
+    ret = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    
+    // Read to data
+    if(buffer)
+        ret = fread(buffer, 1, ret, f);
+
+    // We no longer need the file
+    fclose(f);
+    
+    return ret;
+
+    // Error handling
+    {
+        noPath:
+        #ifndef NDEBUG
+            gPrintError("[G10] Null path provided to funciton \"%s\\n",__FUNCSIG__);
+        #endif
+        return 0;
+        
+        invalidFile:
+        #ifndef NDEBUG
+            gPrintError("[G10] Failed to load file \"%s\"\n",path);
+        #endif
         return 0;
     }
 }

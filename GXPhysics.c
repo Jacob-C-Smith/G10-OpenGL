@@ -21,6 +21,18 @@ GXvec3_t* summateForces ( GXvec3_t* forces, size_t forceCount )
 
 int integrateDisplacement(GXEntity_t* entity, float deltaTime)
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(entity==(void*)0)
+                goto noEntity;
+            if(entity->transform == (void*)0)
+                goto noTransform;
+            if (entity->rigidbody == (void*)0);
+                goto noRigidbody;
+        #endif
+    }
+
     GXRigidbody_t* rigidbody  = entity->rigidbody;
     GXTransform_t* transform  = entity->transform;
 
@@ -40,6 +52,26 @@ int integrateDisplacement(GXEntity_t* entity, float deltaTime)
     transform->location.w     += (float) 0.5 * (rigidbody->velocity.w * fabs(rigidbody->velocity.w));
 
     return 0;
+
+    // Argument check
+    {
+    noEntity:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Physics] No entity provided to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    noTransform:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Physics] No transform in entity \"%s\" in call to function \"%s\"\n", entity->name, __FUNCSIG__);
+        #endif
+        return 0;
+    noRigidbody:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Physics] No rigidbody in entity \"%s\" in call to function \"%s\"\n", entity->name, __FUNCSIG__);
+        #endif
+        return 0;
+
+    }
 }
 
 int integrateRotation ( GXEntity_t* entity )

@@ -22,7 +22,7 @@ GXmat4_t perspective ( float fov, float aspect, float nearClip, float farClip)
 GXCamera_t* createCamera( )
 {
     // Allocate space for a camera struct
-    GXCamera_t* ret = malloc(sizeof(GXCamera_t));
+    GXCamera_t* ret = calloc(1,sizeof(GXCamera_t));
 
     // Check the memory
     if (ret == 0)
@@ -42,26 +42,10 @@ GXCamera_t* loadCamera( const char* path )
     size_t      i        = 0;
     char*       data     = 0;
 
-    // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-            goto invalidFile;
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = malloc(i);
-        if (data == 0)
-            return (void*)0;
-        fread(data, 1, i, f);
-    
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     // Load the camera from data
     ret = loadCameraAsJSON(data);
@@ -95,7 +79,7 @@ GXCamera_t* loadCameraAsJSON( char* token )
         if (strcmp("name", tokens[l].name) == 0)
         {
             size_t len = strlen(tokens[l].content.nWhere);
-            ret->name  = malloc(len+1);
+            ret->name  = calloc(len+1, sizeof(u8));
             strncpy(ret->name, (const char*)tokens[l].content.nWhere, len);
             ret->name[len] = '\0';
             continue;
@@ -151,16 +135,21 @@ GXCamera_t* loadCameraAsJSON( char* token )
         }
     }
 
-    // Calculate the first view and projection matrices
-    ret->view       = lookAt(ret->where, ret->target, ret->up);
-    ret->projection = perspective(ret->fov, ret->aspectRatio, ret->nearClip, ret->farClip);
-    
-    computeProjectionMatrix(ret);
-
     // If no aspect ratio is supplied, default to 16:9
     if (ret->aspectRatio == 0.f)
         ret->aspectRatio = 1.77777777f; // 16 / 9 = 1.777 
-    
+
+    if (ret->fov >= 89.99f)
+        ret->fov = 89.99f;
+    if (ret->fov <= 1.f)
+        ret->fov = 1.f;
+
+    // Calculate the first view and projection matrices
+    ret->view       = lookAt(ret->where, ret->target, ret->up);
+    ret->projection = perspective(toRadians(ret->fov), ret->aspectRatio, ret->nearClip, ret->farClip);
+
+    computeProjectionMatrix(ret);
+
     free(tokens);
 
     return ret;

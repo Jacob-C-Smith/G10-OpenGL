@@ -22,30 +22,10 @@ GXTexture_t *loadBMPImage ( const char path[] )
     if (ret == 0)
         return ret;
 
-    // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-            goto invalidFile;
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = calloc(i,sizeof(u8));
-
-        // Check if data is valid
-        if (data == 0)
-            return (void*)0;
-
-        // Read to data
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     // Fill out width and height information
     ret->width  = *(size_t*)&data[0x12];

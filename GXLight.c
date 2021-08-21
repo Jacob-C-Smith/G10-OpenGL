@@ -3,7 +3,7 @@
 GXLight_t* createLight( )
 {
     // Initialized data
-    GXLight_t* ret = malloc(sizeof(GXLight_t));
+    GXLight_t* ret = calloc(1,sizeof(GXLight_t));
 
     if (ret == (void*)0)
         return ret;
@@ -34,31 +34,13 @@ GXLight_t* loadLight(const char path[])
     GXLight_t* ret;
 
     // Initialized data
-    size_t       l = 0;
+    size_t       i = 0;
     FILE*        f = fopen(path, "rb");
 
-    // Load the file
-    {
-        // Check for file
-        if (f == NULL)
-        {
-            // TODO: Move to error handling
-            gPrintError("[G10] [Light] Failed to load file %s\n", path);
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        l = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = malloc(l + 1);
-        fread(data, 1, l, f);
-
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     ret = loadLightAsJSON(data);
 
@@ -89,7 +71,7 @@ GXLight_t* loadLightAsJSON(char* token)
         // Parse out the light name
         if (strcmp("name", tokens[l].name) == 0)
         {
-            ret->name = malloc(strlen(tokens[l].content.nWhere)+1);
+            ret->name = calloc(strlen(tokens[l].content.nWhere)+1,sizeof(u8));
             if (ret->name == (void*)0)
                 return 0;
             strcpy(ret->name, (const char*)tokens[l].content.nWhere);

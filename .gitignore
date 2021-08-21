@@ -2,6 +2,7 @@
 ## G10 Ignores
 ##
 
+G10/
 gameassets/
 lib/
 include/glad

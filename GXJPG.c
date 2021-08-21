@@ -28,7 +28,7 @@ GXTexture_t* loadJPGImage ( const char path[] )
     ret->height  = image->h;
 
     // Allocate space for the pixel data
-    data = malloc(allocateSize);
+    data = calloc(allocateSize,sizeof(u8));
     if (data == 0)
         return (void*)0;
 

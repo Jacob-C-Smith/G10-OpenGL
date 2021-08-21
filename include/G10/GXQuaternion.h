@@ -91,7 +91,7 @@ inline quaternion_t qSlerp(quaternion_t q0, quaternion_t q1, float deltaTime)
     
     // Compute the half angle and the sin of the half angle
     ht    = acosf(cosht);
-    sinht = sqrtf(1.0 - cosht * cosht);
+    sinht = sqrtf(1.f - cosht * cosht);
 
     // If theta = 180, we can rotate around any axis
     if (fabs(sinht) < 0.001)

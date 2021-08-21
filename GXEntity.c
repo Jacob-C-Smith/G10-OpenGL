@@ -3,7 +3,7 @@
 GXEntity_t* createEntity ( )
 {
     // Allocate space
-    GXEntity_t* ret = malloc(sizeof(GXEntity_t)); 
+    GXEntity_t* ret = calloc(1,sizeof(GXEntity_t)); 
 
     // Check if valid
     if (ret == 0)
@@ -59,34 +59,17 @@ GXEntity_t* loadEntity ( const char path[] )
     GXEntity_t *ret;
 
     // Initialized data
-    size_t      l   = 0;
+    size_t      i   = 0;
     FILE       *f   = fopen(path, "rb");
 
     #ifndef NDEBUG
         gPrintLog("[G10] [Entity] Loading \"%s\".\n", (char*)path);
     #endif	
 
-    // Load the file
-    {
-        // Check for file
-        if (f == NULL)
-        {
-            
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        l = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = calloc(l + 1,sizeof(u8));
-        fread(data, 1, l, f);
-
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     ret = loadEntityAsJSON(data);
 

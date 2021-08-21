@@ -3,7 +3,7 @@
 GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale )
 {
     // Allocate space
-    GXTransform_t* ret = malloc(sizeof(GXTransform_t));
+    GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
 
     // Check if valid
     if (ret == 0)
@@ -20,9 +20,9 @@ GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t 
     // Debug information
     #ifndef NDEBUG
         gPrintLog("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
-               "                                         rotation (%f,%f,%f)\n"
-               "                                         scale    (%f,%f,%f)\n"
-               , location.x, location.y, location.z, rotation.x, rotation.y, rotation.z, scale.x, scale.y, scale.z);
+                  "                                         rotation (%f,%f,%f)\n"
+                  "                                         scale    (%f,%f,%f)\n"
+                  , location.x, location.y, location.z, rotation.x, rotation.y, rotation.z, scale.x, scale.y, scale.z);
     #endif
 
     return ret;

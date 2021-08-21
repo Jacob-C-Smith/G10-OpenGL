@@ -2,7 +2,7 @@
 
 GXRig_t* createRig()
 {
-    GXRig_t* ret = malloc(sizeof(GXBone_t));
+    GXRig_t* ret = calloc(1,sizeof(GXBone_t));
 
     ret->name    = (char*)0;
     ret->bones   = (GXBone_t*)0;
@@ -13,14 +13,14 @@ GXRig_t* createRig()
 GXBone_t* createBone ( )
 {
     // Allocate space
-	GXBone_t* ret       = malloc(sizeof(GXBone_t));
+	GXBone_t* ret       = calloc(1,sizeof(GXBone_t));
 	
     // Zero set everything
     ret->name           = (void*)0;
 
-    ret->head           = malloc(sizeof(GXvec3_t));
-    ret->tail           = malloc(sizeof(GXvec3_t));
-    ret->transformation = malloc(sizeof(GXmat4_t));
+    ret->head           = calloc(1,sizeof(GXvec3_t));
+    ret->tail           = calloc(1,sizeof(GXvec3_t));
+    ret->transformation = calloc(1,sizeof(GXmat4_t));
     
     ret->connected      = false;
 
@@ -41,43 +41,24 @@ GXRig_t* loadRig(const char* path)
 
     // Uninitialized data
     int          i;
-    char*        data;
+    char        *data;
     int          tokenCount;
-    JSONValue_t* tokens;
+    JSONValue_t *tokens;
+    GXRig_t     *ret;
 
     // Initialized data
-    size_t l = 0;
-    FILE*  f = fopen(path, "rb");
+    FILE        *f = fopen(path, "rb");
 
     // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            // TODO: Move to error handling
-            gPrintError("[G10] [Rig] Failed to load file %s\n", path);
-            return (void*)0;
-        }
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
+    
+    ret = loadRigAsJSON(data);
 
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
+    free(data);
 
-        // Allocate data and read file into memory
-        data = malloc(i + 1);
-        if (data == 0)
-            return (void*)0;
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-
-        // For reasons beyond me, the null terminator isn't included.
-        data[i] = '\0';
-    }
-
-    return loadRigAsJSON(data);
+    return ret;
 }
 
 GXRig_t* loadRigAsJSON(char* token)
@@ -186,7 +167,7 @@ GXBone_t* loadArmiture(const char* path)
         fseek(f, 0, SEEK_SET);
 
         // Allocate data and read file into memory
-        data = malloc(i + 1);
+        data = calloc(i + 1,sizeof(u8));
         if (data == 0)
             return (void*)0;
         fread(data, 1, i, f);

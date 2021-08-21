@@ -3,7 +3,7 @@
 GXRigidbody_t* createRigidbody ( )
 {
     // Initialized data
-    GXRigidbody_t* ret = malloc(sizeof(GXRigidbody_t));
+    GXRigidbody_t* ret = calloc(1,sizeof(GXRigidbody_t));
 
     if (ret == (void*)0)
         return ret;
@@ -44,7 +44,7 @@ GXRigidbody_t* loadRigidbody(const char path[])
         fseek(f, 0, SEEK_SET);
 
         // Allocate data and read file into memory
-        data = malloc(i);
+        data = calloc(i,sizeof(u8));
         if (data == 0)
             return (void*)0;
         fread(data, 1, i, f);

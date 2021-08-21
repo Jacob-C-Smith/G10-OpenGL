@@ -5,7 +5,7 @@ GXTexture_t *missingTexture;
 GXMaterial_t* createMaterial ( )
 {
     // Initialized data
-    GXMaterial_t* ret = malloc(sizeof(GXMaterial_t));
+    GXMaterial_t* ret = calloc(1,sizeof(GXMaterial_t));
 
     // Check allocated memory
     if (ret == NULL)
@@ -23,6 +23,14 @@ GXMaterial_t* createMaterial ( )
 
 GXMaterial_t* loadMaterial ( const char path[] )
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(path==0)
+                goto noPath;
+        #endif
+    }
+
     // Uninitialized data
     int          i;
     u8*          data;
@@ -30,40 +38,19 @@ GXMaterial_t* loadMaterial ( const char path[] )
                  rootTokenCount;
 
     // Initialized data
-    GXMaterial_t* ret          = malloc(sizeof(GXMaterial_t));
+    GXMaterial_t* ret          = calloc(1,sizeof(GXMaterial_t));
     FILE*         f            = fopen(path, "rb");  
 
-    
-    // Check allocated memory
-    if (ret == 0)
-        return ret;
+    #ifndef NDEBUG
+        // Check allocated memory
+        if (ret == 0)
+            return ret;
+    #endif
 
-    {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            gPrintError("[G10] [Material] Failed to load file %s\n", path);
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = malloc(i);
-
-        // Check if data is valid
-        if (data == 0)
-            return (void*)0;
-
-        // Read to data
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     ret = loadMaterialAsJSON(data);
 
@@ -71,6 +58,15 @@ GXMaterial_t* loadMaterial ( const char path[] )
 
     // Return the material
     return ret;
+
+    // Error handling
+    {
+        noPath:
+        #ifndef NDEBUG
+            gPrintLog("[G10] [Material] No path provided to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 GXMaterial_t* loadMaterialAsJSON(char* token)

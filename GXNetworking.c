@@ -3,7 +3,7 @@
 GXServer_t* createServer()
 {
 	// Initialized data
-	GXServer_t* ret = malloc(sizeof(GXServer_t));
+	GXServer_t* ret = calloc(1,sizeof(GXServer_t));
 	
 	// Zero set the struct
 	ret->name    = (void*)0;

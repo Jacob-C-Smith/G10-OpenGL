@@ -5,7 +5,7 @@
 GXMesh_t* createMesh ( )
 {
     // Initialized data
-    GXMesh_t* ret = malloc(sizeof(GXMesh_t));
+    GXMesh_t* ret = calloc(1,sizeof(GXMesh_t));
 
     // Check allocated memory
     if (ret == 0)
@@ -21,7 +21,7 @@ GXMesh_t* createMesh ( )
 GXPart_t* createPart( )
 {
     // Initialized data
-    GXPart_t* ret = malloc(sizeof(GXPart_t));
+    GXPart_t* ret = calloc(1,sizeof(GXPart_t));
 
     // Check allocated memory
     if (ret == 0)
@@ -43,7 +43,7 @@ GXMesh_t* loadMesh(const char path[])
     // Argument Check
     {
         if (path == 0)
-            return (void*)0;
+            goto noPath;
     }
 
     // Uninitialized data
@@ -51,40 +51,32 @@ GXMesh_t* loadMesh(const char path[])
     char        *data;
     int          tokenCount;
     JSONValue_t *tokens;
+    GXMesh_t    *ret;
 
     // Initialized data
-    GXMesh_t    *ret = createMesh();
-    size_t       l   = 0;
     FILE        *f   = fopen(path, "rb");
 
-    // Load the file
+    // Load up the file
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
+
+    // Parse the file into a mesh
+    ret = loadMeshAsJSON(data);
+
+    // Free the data
+    free(data);
+
+    return ret;
+
+    // Error handling
     {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            gPrintError("[G10] [Mesh] Failed to load file %s\n", path);
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = malloc(i + 1);
-        if (data == 0)
-            return (void*)0;
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-
-        // For reasons beyond me, the null terminator isn't included.
-        data[i] = '\0';
+        noPath:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Mesh] No path provided to function \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
     }
-
-    return loadMeshAsJSON(data);
 }
 
 GXMesh_t* loadMeshAsJSON(char* token)
@@ -161,8 +153,9 @@ GXMesh_t* loadMeshAsJSON(char* token)
 GXPart_t* loadPart ( const char path[] )
 {
     // Uninitialized data
+    GXPart_t    *ret;
     int          i;
-    char*        data;
+    char        *data;
     int          tokenCount;
     JSONValue_t* tokens;
 
@@ -170,36 +163,16 @@ GXPart_t* loadPart ( const char path[] )
     size_t    l   = 0;
     FILE*     f   = fopen(path, "rb");
 
+    // Load up the file
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
-    // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            // TODO: Put in error handling
-            gPrintError("[G10] [Mesh] Failed to load file %s\n", path);
-            return (void*)0;
-        }
+    ret = loadPartAsJSON(data);
 
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
+    free(data);
 
-        // Allocate data and read file into memory
-        data = malloc(i + 1);
-        if (data == 0)
-            return (void*)0;
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-
-        // For reasons beyond me, the null terminator isn't included.
-        data[i] = '\0';
-    }
-
-    return loadPartAsJSON(data);
+    return ret;
 }
 
 GXPart_t* loadPartAsJSON ( char* token )
@@ -211,7 +184,7 @@ GXPart_t* loadPartAsJSON ( char* token )
     {
         #ifndef NDEBUG
             if (token == 0)
-                goto nullToken;
+                goto noToken;
         #endif
     }
 
@@ -268,9 +241,11 @@ GXPart_t* loadPartAsJSON ( char* token )
 
     // Error handling
     {
-    nullToken:
-        return 0;
-        // TODO
+        noToken:
+        
+        
+            return 0;
+            // TODO
     }
     
     return ret;

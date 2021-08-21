@@ -21,6 +21,11 @@ struct GXTexture_s
     // Resolution
     size_t       width;
     size_t       height;
+
+    // Color depth
+    size_t       bitsPerPixel;
+
+    u8           cubemap;
 };
 typedef struct GXTexture_s GXTexture_t;
 

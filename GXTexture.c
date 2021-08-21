@@ -9,15 +9,16 @@ GXTextureUnit_t* activeTextures;
 
 GXTexture_t* createTexture ( )
 {
-	GXTexture_t* ret = malloc(sizeof(GXTexture_t));
+	GXTexture_t* ret = calloc(1,sizeof(GXTexture_t));
 	if (ret == 0)
 		return ret;
 
 	ret->width              = 0,
 	ret->height             = 0,
+	ret->bitsPerPixel       = 0,
 	ret->textureID          = 0;
 	ret->textureUnitIndex   = -1; // Textures start out not being mapped
-
+	
 	return ret;
 }
 
@@ -78,7 +79,7 @@ unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
 			(GXTexture_t*)activeTextures->activeTextureBlock[i]    = image;                         // Set the texture unit index in the texture
 			image->textureUnitIndex                                = i;                             // Set the texture unit index
 			glActiveTexture(GL_TEXTURE0 + activeTextures->activeTextureBlock[i]->textureUnitIndex); // Set the active texture unit
-			glBindTexture(GL_TEXTURE_2D, activeTextures->activeTextureBlock[i]->textureID);         // Set the active texture to the corresponding unit
+			glBindTexture((image->cubemap) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, activeTextures->activeTextureBlock[i]->textureID);         // Set the active texture to the corresponding unit
 			removeTextureFromTextureUnit(i + 1);                                                    // Remove next texture 
 			return i;
 		}
@@ -93,7 +94,7 @@ unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
 	{
 	noImage:
 		#ifndef NDEBUG
-			printf("[G10] [Texture] Null parameter provided for \"image\" in function \"%s\"\n",__FUNCSIG__);
+			gPrintError("[G10] [Texture] Null parameter provided for \"image\" in function \"%s\"\n",__FUNCSIG__);
 		#endif
 		return 0;
 	}

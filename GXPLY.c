@@ -80,8 +80,7 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
     }
 
     // Uninitialized data
-    size_t         l,
-                   verticesInBuffer;
+    size_t         verticesInBuffer;
     char          *data;
     char          *cData;
     float         *vertexArray;
@@ -98,31 +97,11 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
     GXPLYfile_t   *plyFile            = calloc(1, sizeof(GXPLYfile_t));
 
     // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-            goto noFile;
+    i = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        l = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = malloc(l + 1);
-        if (data == 0)
-            return (void*)0;
-
-        // Check
-        if (l < 3)
-            return (void*)0;
-
-        // Read in the data
-        fread(data, 1, l, f);
-
-        // We no longer need the file
-        fclose(f);
-    }
+    i ^= i;
 
     // Populate the PLY file
     {
@@ -562,6 +541,9 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
         // Free the plyFile
         free(plyFile);
     }
+
+    free(correctedIndicies);
+    free(data);
 
     // Count up properties
     return part;
