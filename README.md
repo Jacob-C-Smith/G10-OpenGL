@@ -359,12 +359,12 @@ Scenes may be stored in a JSON file
 ```json
 {
     "comment"   : "Made by Jacob Smith on 1/4/2021 at 22:30 GMT-7:00",
-	"name"      : "Example Scene"
+    "name"      : "Example Scene",
     "entities"  : [
             "gameassets/asset1.json",
             "gameassets/asset2.json",
             "gameassets/asset3.json" 
-        ],
+    ],
     "camera"   : {
         "where"       : [ 2,2,2 ],
         "target"      : [ 0,0,0 ],
@@ -373,19 +373,19 @@ Scenes may be stored in a JSON file
         "near"        : 0.1,
         "far"         : 100,
         "aspectRatio" : 1.77777777 
-    }
-	"lights"   : [
-		    {
+    },
+    "lights"   : [
+	    {
                "name"     : "Light 1",
                "color"    : [ 10.0, 10.0, 10.0 ],
                "position" : [ 3.0, 3.0, 3.0 ]
             },
-			{
+	    {
                "name"     : "Light 2",
                "color"    : [ 10.0, 10.0, 10.0 ],
                "position" : [ 3.0, 3.0, 3.0 ]
             }
-	]
+    ]
 }
 ```
 ### ⌠comment⌡
