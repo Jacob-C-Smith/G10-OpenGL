@@ -1,9 +1,16 @@
 #include <G10/GXShader.h>
 
+GXShader_t* createShader()
+{
+    GXShader_t* ret = calloc(1, sizeof(GXShader_t));
+
+    return ret;
+}
+
 GXShader_t* loadShader(const char path[])
 {
     // Uninitialized data
-    int          i;
+    size_t       i;
     char        *data;
     GXShader_t  *ret;
     size_t       len,
@@ -11,37 +18,50 @@ GXShader_t* loadShader(const char path[])
     JSONValue_t *tokens;
 
     // Initialized data
-    FILE         *f                  = fopen(path, "rb");
+    FILE        *f = fopen(path, "rb");
 
 
     // Load the file
-    i = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0);
     data = calloc(i, sizeof(u8));
     gLoadFile(path, data);
 
-
     ret = loadShaderAsJSON(data);
 
+    #ifndef NDEBUG
+        if(ret == (void*)0)
+            goto badFile;
+    #endif
+    
+    return ret;
 
+    // Error handling
+    {
+    badFile:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Shader] Unable to parse \"%s\"\n",path);
+        #endif
+        return 0;
+    }
 }
 
 GXShader_t* loadShaderAsJSON(char* token)
 {
     // Uninitialized data
-    int           i;
-    char*         data;
-    GXShader_t*   ret;
-    size_t        len,
-                  rootTokenCount;
-    JSONValue_t*  tokens;
+    int                i;
+    char              *data;
+    size_t             len,
+                       rootTokenCount;
+    JSONValue_t       *tokens;
 
     // Initialized data
-    char        * vertexPath   = 0,
-                * fragmentPath = 0,
-                * shaderName         = 0;
-    GXKeyValue_t* requestedData      = 0;
-    size_t        requestedDataCount = 0,
-                  requestedDataFlags = 0;
+    GXShader_t        *ret                = createShader();
+    char              *vertexPath         = 0,
+                      *fragmentPath       = 0,
+                      *shaderName         = 0;
+    GXUniform_t       *requestedData      = 0;
+    size_t             requestedDataCount = 0, 
+                       requestedDataFlags = 0;
 
     // Preparse JSON
     {
@@ -57,14 +77,14 @@ GXShader_t* loadShaderAsJSON(char* token)
     for (size_t j = 0; j < rootTokenCount; j++)
     {
         // Point to the vertex shader
-        if (strcmp("vertexShaderPath", tokens[j].name) == 0)
+        if (strcmp("vertex shader path", tokens[j].name) == 0)
         {
             vertexPath = tokens[j].content.nWhere;
             continue;
         }
 
         // Point to the fragment shader
-        else if (strcmp("fragmentShaderPath", tokens[j].name) == 0)
+        else if (strcmp("fragment shader path", tokens[j].name) == 0)
         {
             fragmentPath = tokens[j].content.nWhere;
             continue;
@@ -78,154 +98,13 @@ GXShader_t* loadShaderAsJSON(char* token)
         }
 
         // Copy out requested data
-        else if (strcmp("requestData", tokens[j].name) == 0)
+        else if (strcmp("uniforms", tokens[j].name) == 0)
         {
-            // Uninitialized data
-            JSONValue_t* subContents;
-            size_t       subTokenCount,
-                         vLen;
+            requestedData = loadUniformAsJSON(tokens[j].content.aWhere[0]);
+            for ( requestedDataCount = 1; tokens[j].content.aWhere[requestedDataCount]; requestedDataCount++)
+                appendUniform(requestedData, loadUniformAsJSON(tokens[j].content.aWhere[requestedDataCount]));
 
-            // Initialized data
-            size_t       len   = strlen(tokens[j].content.nWhere);
-            
-            // Preparse the data
-            subTokenCount      = GXParseJSON(tokens[j].content.nWhere, len, 0, 0);
-            subContents        = calloc(subTokenCount, sizeof(JSONValue_t));
 
-            // Allocate space for the key/value pairs
-            requestedData      = calloc(subTokenCount, sizeof(GXKeyValue_t));
-            requestedDataCount = subTokenCount;
-
-            if (requestedData == (void*)0)
-                return 0;
-
-            // Parse out JSON light data
-            GXParseJSON(tokens[j].content.nWhere, len, subTokenCount, subContents);
-
-            // Iterate through key / value pairs to find relevent information
-            for (size_t k = 0; k < subTokenCount; k++)
-            {
-
-                // Parse out the value of the view matrix
-                if (strcmp("view", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_View;
-                    requestedDataFlags  |= GXSP_View;
-                    goto setValue;
-                }
-
-                // Parse out the value of the projection matrix
-                else if (strcmp("projection", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_Projection;
-                    requestedDataFlags  |= GXSP_Projection;
-                    goto setValue;
-                }
-
-                // Parse out the value of the model matrix
-                else if (strcmp("model", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_Model;
-                    requestedDataFlags  |= GXSP_Model;
-                    goto setValue;
-                }
-
-                // Parse out the value of the camera position
-                else if (strcmp("camera position", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_CameraPosition;
-                    requestedDataFlags  |= GXSP_CameraPosition;
-                    goto setValue;
-                }
-
-                // Parse out the value of the light position
-                else if (strcmp("light position", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_LightPosition;
-                    requestedDataFlags  |= GXSP_LightPosition;
-                    goto setValue;
-                }
-
-                // Parse out the value of the light color
-                else if (strcmp("light color", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_LightColor;
-                    requestedDataFlags  |= GXSP_LightColor;
-                    goto setValue;
-                }
-
-                // Parse out the value of the light count
-                else if (strcmp("light count", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_LightCount;
-                    requestedDataFlags  |= GXSP_LightCount;
-                    goto setValue;
-                }
-
-                // Parse out the value of the albedo texture
-                else if (strcmp("albedo", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_Albedo;
-                    requestedDataFlags  |= GXSP_Albedo;
-                    goto setValue;
-                }
-
-                // Parse out the value of the normal texture
-                else if (strcmp("normal", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_Normal;
-                    requestedDataFlags  |= GXSP_Normal;
-                    goto setValue;
-                }
-
-                // Parse out the value of the metallic texture
-                else if (strcmp("metal", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_Metal;
-                    requestedDataFlags  |= GXSP_Metal;
-                    goto setValue;
-                }
-
-                // Parse out the value of the roughness map
-                else if (strcmp("rough", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_Rough;
-                    requestedDataFlags  |= GXSP_Rough;
-                    goto setValue;
-                }
-
-                // Parse out the value of the ao map
-                else if (strcmp("ao", subContents[k].name) == 0)
-                {
-                    requestedData[k].key = GXSP_AO;
-                    requestedDataFlags  |= GXSP_AO;
-                    goto setValue;
-                }
-
-                // If the key is unsupported, we log, ignore, and keep looking for new pairs.
-                else {
-                    #ifndef NDEBUG
-                        gPrintWarning("[G10] [Shader] Shader requested \"%s\", which is unsupported data.\n", subContents[k].name);
-                    #endif
-                    continue;
-                }
-
-                setValue:
-                {
-                    vLen = strlen(subContents[k].content.nWhere) + 1;
-
-                    // Set the value 
-                    requestedData[k].value = calloc(vLen, sizeof(u8));
-                    if (requestedData[k].value == (void*)0)
-                        return 0;
-
-                    strncpy(requestedData[k].value, subContents[k].content.nWhere, vLen);
-                    requestedData[k].value[vLen + 1] = 0; 
-                }
-            }
-
-            // Free subcontents
-            free(subContents);
 
             continue;
         }
@@ -235,9 +114,8 @@ GXShader_t* loadShaderAsJSON(char* token)
     {
         ret                     = loadCompileShader(vertexPath, fragmentPath, shaderName);
         ret->name               = shaderName;
-        ret->requestedDataFlags = requestedDataFlags;
-        ret->requestedData      = requestedData;
         ret->requestedDataCount = requestedDataCount;
+        ret->requestedData      = requestedData;
     }
 
     // Free subcontents
@@ -247,26 +125,136 @@ GXShader_t* loadShaderAsJSON(char* token)
     return ret;
 }
 
+GXUniform_t *loadUniformAsJSON( char *token )
+{
+    // Uninitialized data
+    int                i;
+    char              *data;
+    GXUniform_t       *ret = calloc(1,sizeof(GXUniform_t));
+    size_t             len,
+                       rootTokenCount;
+    JSONValue_t       *tokens;
+
+    // Initialized data
+    char              *name         = 0,
+                      *uniformName  = 0;
+    u32                type         = 0;
+                       
+    // Preparse JSON
+    {
+        len            = strlen(token),
+        rootTokenCount = GXParseJSON(token, len, 0, 0);
+        tokens         = calloc(rootTokenCount, sizeof(JSONValue_t));
+    }
+
+    // Parse JSON Values
+    GXParseJSON(token, len, rootTokenCount, tokens);
+
+    // Find and load the shaders and token
+    for (size_t j = 0; j < rootTokenCount; j++)
+    {
+        if (strcmp(tokens[j].name, "name") == 0)
+            name = tokens[j].content.nWhere;
+        if (strcmp(tokens[j].name, "type") == 0)
+            if (tokens[j].type == GXJSONarray)
+                ret->type = GXUNIFSTRUCT;
+            else
+                ret->type = *(u32*)tokens[j].content.nWhere;
+        if (strcmp(tokens[j].name, "uniform name") == 0)
+            uniformName = tokens[j].content.nWhere;
+    }
+
+    if (name && uniformName)
+        ret->keyValue = createKeyValue(name, uniformName);
+    else
+        return 0;
+    return ret;
+
+    // Error handling
+    {
+
+        unknownUniformType:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Shader] Unknown uniform type ");
+        #endif
+        return 0;
+    }
+}
+
+int appendUniform(GXUniform_t *list, GXUniform_t* uniform)
+{
+    // Argument checking
+    {
+        #ifndef NDEBUG
+            if(uniform == 0)
+                goto nullUniform;
+        #endif
+    }
+
+    // Set the pointer to the head of the linked list
+    GXUniform_t* i = list;
+
+    // Check if the head is null. If so, set the head to the mesh
+    if (i == 0)
+    {
+        list = uniform;
+        return 0;
+    }
+
+    // Search for the end of the linked list, and check every mesh 
+    while (i->next)
+    {
+        // Error checking
+        if (strcmp(i->keyValue->key, uniform->keyValue->key) == 0)
+            goto duplicateName;
+        i = i->next;
+    }
+
+    // Assign next as entity
+    i->next = uniform;
+
+    return 0;
+
+    // Error handling
+    {
+        // Two parts with the same name cannot exist in the same mesh
+        duplicateName:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Shader] Uniform \"%s\" can not be appended because a uniform with that name already exists\n", uniform->keyValue->key);
+        #endif
+        return 0;
+
+        // The part argument was null
+        nullUniform:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Shader] Null pointer provided for \"uniform\" in function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
+}
+
 GXShader_t* loadCompileShader ( const char vertexPath[], const char fragmentPath[], const char shaderName[] )
 {
     // Uninitialized data
-    char       * vfdata,                               // Vertex shader text
-               * ffdata;                               // Fragment shader text
-    size_t       vfi,                                  // Vertex shader text index
-                 ffi;                                  // Fragment shader text index
-    unsigned int vShader,                              // OpenGL vertex shader
-                 fShader;                              // OpenGL fragment shader
-    int          status;                               // Checks for compilation issues
+    char       * vfdata,                            // Vertex shader text
+               * ffdata;                            // Fragment shader text
+    size_t       vfi,                               // Vertex shader text index
+                 ffi;                               // Fragment shader text index
+    unsigned int vShader,                           // OpenGL vertex shader
+                 fShader;                           // OpenGL fragment shader
+    int          status;                            // Checks for compilation issues
 
     // Initialized data
-    FILE* vf        = fopen(vertexPath, "rb");   // Vertex shader source code FILE
-    FILE* ff        = fopen(fragmentPath, "rb"); // Fragment shader source code FILE
+    FILE* vf        = fopen(vertexPath, "rb");      // Vertex shader source code FILE
+    FILE* ff        = fopen(fragmentPath, "rb");    // Fragment shader source code FILE
     
-    GXShader_t* ret = calloc(1,sizeof(GXShader_t));      // The return 
+    GXShader_t* ret = calloc(1,sizeof(GXShader_t)); // The return 
 
-
-    if (ret == 0)
-        return (void*)0;
+    // TODO: Skip to error handling
+    #ifndef NDEBUG
+        if (ret == 0)
+            return (void*)0;
+    #endif
 
     // Load the files
     {
@@ -314,9 +302,6 @@ GXShader_t* loadCompileShader ( const char vertexPath[], const char fragmentPath
     free(vfdata);
     free(ffdata);
 
-    // We aren't requesting data yet, so we will just leave it as nullptr,
-    // in case the shader never requests data.
-    ret->requestedData = 0;
 
     return ret;
 
@@ -350,7 +335,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
     {
         char* log = calloc(512,sizeof(u8));
         if (log == 0)
-            return (void*)0;
+            return 0;
         glGetShaderInfoLog(vShader, 512, NULL, log);
         printf(log);
         free(log);
@@ -363,7 +348,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
     {
         char* log = calloc(512,sizeof(u8));
         if (log == 0)
-            return (void*)0;
+            return 0;
         glGetShaderInfoLog(fShader, 512, NULL, log);
         printf(log);
         free(log);
@@ -387,7 +372,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
     {
         char* log = calloc(512,sizeof(u8));
         if (log == 0)
-            return (void*)0;
+            return 0;
         glGetProgramInfoLog(shader->shaderProgramID, 512, NULL, log);
         printf(log);
         free(log);
@@ -412,24 +397,70 @@ int useShader ( GXShader_t* shader )
     return 0;
 }
 
-void setShaderInt ( GXShader_t* shader, const char name[], int value )
+void setShaderInt ( GXShader_t* shader, const char *name, int value )
 {
     glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
-void setShaderFloat ( GXShader_t* shader, const char name[], float value )
+void setShaderFloat ( GXShader_t* shader, const char *name, float value )
 {
     glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
-void setShaderVec3 ( GXShader_t* shader, const char name[], GXvec3_t vector )
+void setShaderVec3 ( GXShader_t* shader, const char *name, vec3 vector )
 {
     glUniform3f(glGetUniformLocation(shader->shaderProgramID, name), vector.x, vector.y, vector.z);
 }
 
-void setShaderMat4 ( GXShader_t* shader, const char name[], GXmat4_t* m )
+void setShaderMat4 ( GXShader_t* shader, const char *name, mat4* m )
 {
-    glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, m);
+    glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, (const float*)m);
+}
+
+void setShaderTexture ( GXShader_t* shader, const char* name, GXTexture_t* texture)
+{
+    setShaderInt(shader, name, loadTextureToTextureUnit(texture));
+}
+
+void setShaderTransform(GXShader_t* shader, GXTransform_t* transform)
+{
+    GXUniform_t* i = shader->requestedData;
+
+    for (size_t j = 0; j < shader->requestedDataCount; j++)
+    {
+        if (strcmp(i->keyValue->key, "model") == 0)
+            setShaderMat4(shader, i->keyValue->value, &transform->modelMatrix);
+        i = i->next;
+    }
+}
+
+void setShaderCamera ( GXShader_t* shader, GXCamera_t* camera)
+{
+    GXUniform_t *i = shader->requestedData;
+
+    for (size_t j = 0; j < shader->requestedDataCount; j++)
+    {
+        if (strcmp(i->keyValue->key,"camera position") == 0)
+            setShaderVec3(shader, i->keyValue->value, camera->where);
+        if (strcmp(i->keyValue->key, "view") == 0) {
+            setShaderMat4(shader, i->keyValue->value, &camera->view);
+        }
+        if (strcmp(i->keyValue->key, "projection") == 0)
+        {
+            setShaderMat4(shader, i->keyValue->value, &camera->projection);
+        }
+        i = i->next;
+    }
+}
+
+void setCameraLights(GXShader_t* shader, const char *name, GXLight_t* light)
+{
+
+}
+
+int setShaderMaterial ( GXShader_t* shader, GXMaterial_t* material )
+{
+
 }
 
 int unloadShader ( GXShader_t* shader )
@@ -441,3 +472,4 @@ int unloadShader ( GXShader_t* shader )
 
     return 0;
 }
+

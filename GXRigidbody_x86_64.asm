@@ -18,13 +18,13 @@
 ;    float                 radius                0x04
 ;    bool                  useGravity            0x05
 ;
-;    GXvec3_t              acceleration          0x08
-;    GXvec3_t              velocity              0x18
+;    vec3              acceleration          0x08
+;    vec3              velocity              0x18
 ;    
-;    GXvec3_t              angularAcceleration   0x28
-;    GXvec3_t              angularVelocity       0x38
+;    vec3              angularAcceleration   0x28
+;    vec3              angularVelocity       0x38
 ;    
-;    GXvec3_t*             forces                0x40
+;    vec3*             forces                0x40
 ;    size_t                forcesCount           0x48
 ;
 ;    struct GXRigidbody_s* touching              0x50

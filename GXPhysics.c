@@ -1,6 +1,6 @@
 #include <G10/GXPhysics.h>
 
-GXvec3_t* summateForces ( GXvec3_t* forces, size_t forceCount )
+vec3* summateForces ( vec3* forces, size_t forceCount )
 {
     
     forces[0].x = 0.f,
@@ -41,15 +41,15 @@ int integrateDisplacement(GXEntity_t* entity, float deltaTime)
     rigidbody->acceleration.z = (rigidbody->forces->z / rigidbody->mass) * deltaTime,
     rigidbody->acceleration.w = (rigidbody->forces->w / rigidbody->mass) * deltaTime;
 
-    rigidbody->velocity.x     += (float) 0.5 * (rigidbody->acceleration.x * fabs(rigidbody->acceleration.x)),
-    rigidbody->velocity.y     += (float) 0.5 * (rigidbody->acceleration.y * fabs(rigidbody->acceleration.y)),
-    rigidbody->velocity.z     += (float) 0.5 * (rigidbody->acceleration.z * fabs(rigidbody->acceleration.z)),
-    rigidbody->velocity.w     += (float) 0.5 * (rigidbody->acceleration.w * fabs(rigidbody->acceleration.w));
+    rigidbody->velocity.x     += (float) 0.5 * (rigidbody->acceleration.x * fabsf(rigidbody->acceleration.x)),
+    rigidbody->velocity.y     += (float) 0.5 * (rigidbody->acceleration.y * fabsf(rigidbody->acceleration.y)),
+    rigidbody->velocity.z     += (float) 0.5 * (rigidbody->acceleration.z * fabsf(rigidbody->acceleration.z)),
+    rigidbody->velocity.w     += (float) 0.5 * (rigidbody->acceleration.w * fabsf(rigidbody->acceleration.w));
 
-    transform->location.x     += (float) 0.5 * (rigidbody->velocity.x * fabs(rigidbody->velocity.x)),
-    transform->location.y     += (float) 0.5 * (rigidbody->velocity.y * fabs(rigidbody->velocity.y)),
-    transform->location.z     += (float) 0.5 * (rigidbody->velocity.z * fabs(rigidbody->velocity.z)),
-    transform->location.w     += (float) 0.5 * (rigidbody->velocity.w * fabs(rigidbody->velocity.w));
+    transform->location.x     += (float) 0.5 * (rigidbody->velocity.x * fabsf(rigidbody->velocity.x)),
+    transform->location.y     += (float) 0.5 * (rigidbody->velocity.y * fabsf(rigidbody->velocity.y)),
+    transform->location.z     += (float) 0.5 * (rigidbody->velocity.z * fabsf(rigidbody->velocity.z)),
+    transform->location.w     += (float) 0.5 * (rigidbody->velocity.w * fabsf(rigidbody->velocity.w));
 
     return 0;
 
@@ -78,12 +78,12 @@ int integrateRotation ( GXEntity_t* entity )
 {
     GXRigidbody_t* rigidbody = entity->rigidbody;
     GXTransform_t* transform = entity->transform;
-
-    transform->rotation.x += (float) 0.5 * (rigidbody->angularVelocity.x * fabs(rigidbody->angularVelocity.x)),
-    transform->rotation.y += (float) 0.5 * (rigidbody->angularVelocity.y * fabs(rigidbody->angularVelocity.y)),
-    transform->rotation.z += (float) 0.5 * (rigidbody->angularVelocity.z * fabs(rigidbody->angularVelocity.z)),
-    transform->rotation.w += (float) 0.5 * (rigidbody->angularVelocity.w * fabs(rigidbody->angularVelocity.w));
-
+    /* TODO: Fix
+    transform->rotation.x += (float) 0.5 * (rigidbody->angularVelocity.x * fabsf(rigidbody->angularVelocity.x)),
+    transform->rotation.y += (float) 0.5 * (rigidbody->angularVelocity.y * fabsf(rigidbody->angularVelocity.y)),
+    transform->rotation.z += (float) 0.5 * (rigidbody->angularVelocity.z * fabsf(rigidbody->angularVelocity.z)),
+    transform->rotation.w += (float) 0.5 * (rigidbody->angularVelocity.w * fabsf(rigidbody->angularVelocity.w));
+    */
 
     return 0;
 }
@@ -91,7 +91,7 @@ int integrateRotation ( GXEntity_t* entity )
 bool collision(GXEntity_t* a, GXEntity_t* b)
 {
     // Initialized data
-    GXvec3_t aLocation = a->transform->location,
+    vec3 aLocation = a->transform->location,
              bLocation = b->transform->location;
 
     GXCollider_t  *aCollider  = a->collider,
@@ -99,10 +99,10 @@ bool collision(GXEntity_t* a, GXEntity_t* b)
 
     if (aCollider->type == box && bCollider->type == box)
     {
-        GXvec3_t aMin = (GXvec3_t){ 0.f,0.f,0.f,0.f }, 
-                 aMax = (GXvec3_t){ 0.f,0.f,0.f,0.f }, 
-                 bMin = (GXvec3_t){ 0.f,0.f,0.f,0.f }, 
-                 bMax = (GXvec3_t){ 0.f,0.f,0.f,0.f };
+        vec3 aMin = (vec3){ 0.f,0.f,0.f,0.f }, 
+                 aMax = (vec3){ 0.f,0.f,0.f,0.f }, 
+                 bMin = (vec3){ 0.f,0.f,0.f,0.f }, 
+                 bMax = (vec3){ 0.f,0.f,0.f,0.f };
 
         aMin.x = aLocation.x - aCollider->collisionVector.x,
         aMin.y = aLocation.y - aCollider->collisionVector.y,
@@ -138,7 +138,7 @@ bool collision(GXEntity_t* a, GXEntity_t* b)
 int resolve(GXEntity_t* a, GXEntity_t* b)
 {
 
-    GXvec3_t  lastAVel = a->rigidbody->velocity,
+    vec3  lastAVel = a->rigidbody->velocity,
               lastBVel = b->rigidbody->velocity,
              *aVel     = &a->rigidbody->velocity,
              *bVel     = &b->rigidbody->velocity;

@@ -188,7 +188,6 @@
   <ItemGroup>
     <ClInclude Include="include\G10\arch\x86_64\GXAVXlinear.h" />
     <ClInclude Include="include\G10\arch\x86_64\GXAVXmath.h" />
-    <ClInclude Include="include\G10\arch\x86_64\GXF16.h" />
     <ClInclude Include="include\G10\G10.h" />
     <ClInclude Include="include\G10\GXBitmap.h" />
     <ClInclude Include="include\G10\GXCamera.h" />

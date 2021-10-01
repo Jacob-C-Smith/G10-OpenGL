@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <stdio.h>
 #include <string.h>
@@ -15,22 +15,24 @@
 struct GXSkybox_s
 {
     GXPart_t    *cube;
-    GXShader_t  *equirectangularToCubic;
-    GXShader_t  *background;
+    GXShader_t  *equirectangularToCubic,
+                *irradiance,
+                *background;
     GXTexture_t *HDR, 
-                *environmentCubemap;
-    GXmat4_t     perspective;
-    GXmat4_t     views[6];
+                *environmentCubemap,
+                *irradianceConvolution,
+                *irradianceCubemap;
+    mat4         perspective;
+    mat4         views[6];
     u32          framebuffer,
                  renderbuffer;
 };
-typedef struct GXSkybox_s GXSkybox_t;
 
-GXSkybox_t *createSkybox     (  );
+GXSkybox_t *createSkybox     (  );                                        // ❌ Creates an empty skybox
 
-GXSkybox_t *loadSkybox       ( const char  path[] );
-GXSkybox_t *loadSkyboxAsJSON ( char       *token );
+GXSkybox_t *loadSkybox       ( const char  path[] );                      // ❌ Loads a skybox from a file
+GXSkybox_t *loadSkyboxAsJSON ( char       *token );                       // ✅ Loads a skybox from a JSON token
 
-int         drawSkybox       ( GXSkybox_t *skybox, GXCamera_t *camera );
+int         drawSkybox       ( GXSkybox_t *skybox, GXCamera_t *camera );  // ✅ Draws the skybox 
 
-int         destroySkybox    ( GXSkybox_t* skybox );
+int         destroySkybox    ( GXSkybox_t* skybox );                      // ✅ Destroys the skybox

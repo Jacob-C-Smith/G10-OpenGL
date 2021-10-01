@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
-#include <G10/GXShader.h>
 #include <G10/GXJSON.h>
 
 struct GXMaterial_s {
@@ -16,7 +15,6 @@ struct GXMaterial_s {
     
     struct GXMaterial_s *next;
 };
-typedef struct GXMaterial_s GXMaterial_t;
 
 // Constructors
 GXMaterial_t *createMaterial       ( );                                            // ✅ Creates an empty material
@@ -25,9 +23,6 @@ GXMaterial_t *loadMaterialAsJSON   ( char         *token );                     
 
 // Finders 
 GXMaterial_t *getMaterial          ( GXMaterial_t *materials, const char name[] ); // 
-
-// Material
-int           assignMaterial       ( GXMaterial_t *material, GXShader_t *shader ); // ✅ Sets uniforms and binds textures for drawing calls
 
 // Destructors
 int           unloadMaterial       ( GXMaterial_t *material );                     // ✅ Destroys a material

@@ -1,6 +1,6 @@
 #include <G10/GXTransform.h>
 
-GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale )
+GXTransform_t* createTransform ( vec3 location, quaternion rotation, vec3 scale )
 {
     // Allocate space
     GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
@@ -15,14 +15,14 @@ GXTransform_t* createTransform ( GXvec3_t location, GXvec3_t rotation, GXvec3_t 
     ret->scale    = scale;
 
     // Create a model matrix from the location, rotation, and scale
-    ret->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(makeQuaternionFromEulerAngle(rotation)), translationScaleMat(location, scale));
+    ret->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(rotation), translationScaleMat(location, scale));
 
     // Debug information
     #ifndef NDEBUG
         gPrintLog("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
-                  "                                         rotation (%f,%f,%f)\n"
+                  "                                         rotation (%f,%f,%f,%f)\n"
                   "                                         scale    (%f,%f,%f)\n"
-                  , location.x, location.y, location.z, rotation.x, rotation.y, rotation.z, scale.x, scale.y, scale.z);
+                  , location.x, location.y, location.z, rotation.u, rotation.i, rotation.j, rotation.k, scale.x, scale.y, scale.z);
     #endif
 
     return ret;
@@ -43,27 +43,13 @@ GXTransform_t* loadTransform ( const char path[] )
     GXTransform_t* ret;
 
     // Initialized data
-    size_t         l = 0;
+    size_t         i = 0;
     FILE*          f = fopen(path, "rb");
 
-    // Load the file
-    {
-        // Check for file
-        if (f == NULL)
-            goto invalidFile;
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        l = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = calloc(l + 1,sizeof(char));
-        fread(data, 1, l, f);
-
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     ret = loadTransformAsJSON(data);
 
@@ -97,21 +83,23 @@ GXTransform_t* loadTransformAsJSON ( char* token )
     size_t         len        = strlen(token),
                    tokenCount = GXParseJSON(token, len, 0, 0);
     JSONValue_t*   tokens     = calloc(tokenCount, sizeof(JSONValue_t));
-    GXvec3_t       location   = { 0,0,0 },
-                   rotation   = { 0,0,0 },
+    vec3           location   = { 0,0,0 },
                    scale      = { 0,0,0 };
+    quaternion     q          = { 0,0,0,0 };
 
     // Parse JSON Values
     GXParseJSON(token, len, tokenCount, tokens);
 
     // Find and assign location, rotation, and scale vectors
-    for ( size_t k = 0; k < tokenCount; k++ )
-        if ( strcmp( "location", tokens[k].name ) == 0 )
-            location = (GXvec3_t) { ( float ) atof(tokens[k].content.aWhere[0] ), ( float ) atof(tokens[k].content.aWhere[1] ), ( float ) atof(tokens[k].content.aWhere[2] ) };
-        else if ( strcmp( "rotation", tokens[k].name ) == 0 )
-            rotation = (GXvec3_t) { ( float ) atof(tokens[k].content.aWhere[0] ), ( float ) atof(tokens[k].content.aWhere[1] ), ( float ) atof(tokens[k].content.aWhere[2] ) };
+    for (size_t k = 0; k < tokenCount; k++)
+        if (strcmp("location", tokens[k].name) == 0)
+            location = (vec3){ (float)atof(tokens[k].content.aWhere[0]), (float)atof(tokens[k].content.aWhere[1]), (float)atof(tokens[k].content.aWhere[2]) };
+        else if (strcmp("rotation", tokens[k].name) == 0)
+            q = makeQuaternionFromEulerAngle((vec3) { (float)atof(tokens[k].content.aWhere[0]), (float)atof(tokens[k].content.aWhere[1]), (float)atof(tokens[k].content.aWhere[2]) });
+        else if (strcmp("quaternion", tokens[k].name) == 0)
+            q = (quaternion){ (float)atof(tokens[k].content.aWhere[0]), (float)atof(tokens[k].content.aWhere[1]), (float)atof(tokens[k].content.aWhere[2]) , (float)atof(tokens[k].content.aWhere[3]) };
         else if ( strcmp( "scale", tokens[k].name ) == 0 )
-            scale    = (GXvec3_t) { ( float ) atof(tokens[k].content.aWhere[0] ), ( float ) atof(tokens[k].content.aWhere[1] ), ( float ) atof(tokens[k].content.aWhere[2] ) };
+            scale    = (vec3) { ( float ) atof(tokens[k].content.aWhere[0] ), ( float ) atof(tokens[k].content.aWhere[1] ), ( float ) atof(tokens[k].content.aWhere[2] ) };
     
     // Free subcontents
     free(tokens);
@@ -119,18 +107,18 @@ GXTransform_t* loadTransformAsJSON ( char* token )
 
     // TODO: Rewrite createTransform 
     // Process transform
-    return createTransform(location, rotation, scale);
+    return createTransform(location, q, scale);
 }
 
 
 
-int unloadTransform ( GXTransform_t* transform )
+int destroyTransform ( GXTransform_t* transform )
 {
     // Zero set everything
-    transform->location    = (GXvec3_t){ 0,0,0 };
-    transform->rotation    = (GXvec3_t){ 0,0,0 };
-    transform->scale       = (GXvec3_t){ 0,0,0 };
-    transform->modelMatrix = (GXmat4_t){ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+    transform->location    = (vec3){ 0,0,0 };
+    transform->rotation    = (quaternion){ 0,0,0,0 };
+    transform->scale       = (vec3){ 0,0,0 };
+    transform->modelMatrix = (mat4){ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
     // Free the transform
     free(transform);

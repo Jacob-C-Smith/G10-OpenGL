@@ -5,17 +5,14 @@
 #include <stdlib.h>
 
 #include <G10/GXtypedef.h>
+
 #include <G10/GXEntity.h>
 #include <G10/GXCamera.h>
 #include <G10/GXLight.h>
-
 #include <G10/GXPhysics.h>
-#include <G10/GXCollider.h>
+#include <G10/GXSkybox.h>
 
 #include <G10/arch/x86_64/GXAVXmath.h>
-
-#include <G10/GXSkybox.h>
-#include <G10/GXTexture.h>
 
 // Contains information about a scene
 struct GXScene_s {
@@ -25,7 +22,6 @@ struct GXScene_s {
     GXLight_t   *lights;
     GXSkybox_t  *skybox;
 };
-typedef struct GXScene_s GXScene_t;
 
 // Constructors
 GXScene_t  *createScene         ( );                                      // ✅ Create a scene with nothing in it

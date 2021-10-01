@@ -18,9 +18,8 @@ typedef enum colliderType_e colliderType_t;
 struct GXCollider_s
 {
     colliderType_t type;
-    GXvec3_t       collisionVector;
+    vec3       collisionVector;
 };
-typedef struct GXCollider_s GXCollider_t;
 
 GXCollider_t* createCollider     ( );                          // ❌ Creates an empty collider
 

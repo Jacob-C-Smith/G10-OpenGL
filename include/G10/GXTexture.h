@@ -27,7 +27,6 @@ struct GXTexture_s
 
     u8           cubemap;
 };
-typedef struct GXTexture_s GXTexture_t;
 
 // Keeps track of what textures are being used by the GPU
 struct GXTextureUnit_s

@@ -12,7 +12,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
 
     // Uninitialized data
     u8          *data;
-    int          i;
+    size_t       i;
     
     // Initialized data
     GXTexture_t *ret = createTexture();
@@ -25,7 +25,13 @@ GXTexture_t *loadBMPImage ( const char path[] )
     // Load up the file
     i = gLoadFile(path, 0);
     data = calloc(i, sizeof(u8));
+    
+    if (data == (void*)0)
+        return 0;
+
     gLoadFile(path, data);
+
+    
 
     // Fill out width and height information
     ret->width  = *(size_t*)&data[0x12];
@@ -38,7 +44,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
         glBindTexture(GL_TEXTURE_2D, ret->textureID);
 
         // Point it to the right place
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (int)ret->width, (int)ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
 
         // Bilinear texture filtering
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -64,13 +70,6 @@ GXTexture_t *loadBMPImage ( const char path[] )
         noPath:
             #ifndef NDEBUG
                 gPrintError("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
-            #endif
-            return 0;
-
-        // Invalid file
-        invalidFile:
-            #ifndef NDEBUG
-                gPrintError("[G10] [BMP] Failed to load file %s\n", path);
             #endif
             return 0;
     }

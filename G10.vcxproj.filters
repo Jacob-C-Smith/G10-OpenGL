@@ -223,9 +223,6 @@
     <ClInclude Include="include\G10\arch\x86_64\GXAVXlinear.h">
       <Filter>Header Files\arch\x86_64</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\arch\x86_64\GXF16.h">
-      <Filter>Header Files\arch\x86_64</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="GXCamera_x86_64.asm">

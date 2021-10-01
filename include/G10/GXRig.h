@@ -14,21 +14,19 @@
 struct GXBone_s
 {
 	char               *name;
-	GXvec3_t           *head;
-	GXvec3_t           *tail;
-	GXmat4_t           *transformation;
+	vec3           *head;
+	vec3           *tail;
+	mat4           *transformation;
 	bool                connected;
 	struct GXBone_s    *children;
 	struct GXBone_s    *next;
 };
-typedef struct GXBone_s GXBone_t;
 
 struct GXRig_s
 {
 	char     *name;
 	GXBone_t *bones;
 };
-typedef struct GXRig_s GXRig_t;
 
 GXRig_t  *createRig          ( );                                                      // ✅ Creates an empty rig
 GXBone_t *createBone         ( );                                                      // ✅ Creates an empty bone
@@ -39,7 +37,7 @@ GXRig_t  *loadRigAsJSON      ( char       *token );                             
 GXBone_t *loadArmiture       ( const char *path );                                     // ✅ Loads a bone from a file
 GXBone_t *loadArmitureAsJSON ( char       *token );                                    // ✅ Creates a bone from text
 
-GXBone_t *searchBone         ( GXRig_t    *bone, char     *name, size_t searchDepth ); // ❌ Searches for a bone in a rig
+GXBone_t *searchBone         ( GXBone_t   *bone, char     *name, size_t searchDepth ); // ❌ Searches for a bone in a rig
 
 int       printRig           ( GXBone_t   *rig );                                      // ✅ Prints a rig
 

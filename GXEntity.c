@@ -9,12 +9,9 @@ GXEntity_t* createEntity ( )
     if (ret == 0)
         return ret;
 
-    // Set flags
-    ret->flags     = 0;
-
     // Initialize to nullptr
     ret->name      = (void*)0;
-    ret->mesh      = (void*)0;
+    ret->parts     = (void*)0;
     ret->shader    = (void*)0;
     ret->transform = (void*)0;
     ret->rigidbody = (void*)0;
@@ -27,27 +24,21 @@ GXEntity_t* createEntity ( )
 
 int drawEntity ( GXEntity_t* entity )
 {
-    // If the drawable flag is not set, we can stop
-    //if (!(entity->flags & GXEFDrawable))
-
-    for (size_t j = 0; j < entity->shader->requestedDataCount; j++)
-    {
-        switch (entity->shader->requestedData[j].key)
-        {
-            case GXSP_Model:
-                entity->transform->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(makeQuaternionFromEulerAngle(entity->transform->rotation)), translationScaleMat(entity->transform->location, entity->transform->scale));
-                setShaderMat4(entity->shader, entity->shader->requestedData[j].value, &entity->transform->modelMatrix);
-                break;
-            default:
-                break;
-        }
-    }
-
     // Assign the material
     //assignMaterial(entity->material, entity->shader);
 
     // Draw the mesh
-    drawMesh(entity->mesh,entity->shader);
+    GXPart_t* i = entity->parts;
+
+    // Draw the entire entity
+    while (i)
+    {
+        setShaderTransform(entity->shader, entity->transform);
+        //assignMaterial(i->material, entity->shader);
+
+        drawPart(i);
+        i = i->next;
+    }
 
     return 0;
 }
@@ -67,20 +58,20 @@ GXEntity_t* loadEntity ( const char path[] )
     #endif	
 
     // Load up the file
-    i = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0);
     data = calloc(i, sizeof(u8));
     gLoadFile(path, data);
 
-    ret = loadEntityAsJSON(data);
+    ret  = loadEntityAsJSON(data);
 
     // Finish up
     free(data);
 
     return ret;
     invalidFile:
-    #ifndef NDEBUG
-        gPrintError("[G10] [Entity] Failed to load file %s\n", path);
-    #endif
+        #ifndef NDEBUG
+            gPrintError("[G10] [Entity] Failed to load file %s\n", path);
+        #endif
     return 0;
 }
 
@@ -131,12 +122,13 @@ GXEntity_t* loadEntityAsJSON ( char* token )
         }
 
         // Load and process a mesh
-        else if (strcmp("mesh", tokens[j].name) == 0)
+        else if (strcmp("parts", tokens[j].name) == 0)
         {
-            // TODO: Test inline mesh
-            ret->mesh = (*(char*)tokens[j].content.nWhere == '{') ? loadMeshAsJSON((const char*)tokens[j].content.nWhere) : loadMesh(tokens[j].content.nWhere);
+            ret->parts = (*(char*)tokens[j].content.aWhere[0] == '{') ? loadPartAsJSON((const char*)tokens[j].content.aWhere[0]) : loadPart(tokens[j].content.aWhere[0]);
+            
+            for (size_t k = 1; tokens[j].content.aWhere[k]; k++)
+                appendPart(ret->parts,(*(char*)tokens[j].content.aWhere[k] == '{') ? loadPartAsJSON((const char*)tokens[j].content.aWhere[k]) : loadPart(tokens[j].content.aWhere[k]));
           
-            ret->flags |= GXEFMesh;
             continue;
         }
 
@@ -146,7 +138,6 @@ GXEntity_t* loadEntityAsJSON ( char* token )
             // TODO: Test inline shader
             ret->shader = (*(char*)tokens[j].content.nWhere == '{') ? loadShaderAsJSON((const char*)tokens[j].content.nWhere) : loadShader(tokens[j].content.nWhere);
 
-            ret->flags |= GXEFShader;
             continue;
         }
 
@@ -156,8 +147,6 @@ GXEntity_t* loadEntityAsJSON ( char* token )
             // TODO: Test inline transform
             ret->transform = (*(char*)tokens[j].content.nWhere == '{') ? loadTransformAsJSON(tokens[j].content.nWhere) : loadTransform(tokens[j].content.nWhere);
 
-            // Set the transform flag
-            ret->flags |= GXEFTransform;
 
             continue;
         }
@@ -182,7 +171,6 @@ GXEntity_t* loadEntityAsJSON ( char* token )
     free(tokens);
 
     ret->next   = 0;
-    ret->flags |= GXEFPresent;
 
     return ret;
 }
@@ -191,17 +179,14 @@ int destroyEntity ( GXEntity_t* entity )
 {
     // TODO: Use destructors functions
 
-    // Unset all flags
-    entity->flags = 0;
-
     // Check to see if items are set before we unload them
     if (entity->name != (void*)0)
     {
         free(entity->name);
         entity->name = (void*)0;
     }
-    if (entity->mesh != (void*)0)
-        destroyMesh(entity->mesh);
+    if (entity->parts != (void*)0)
+        // TODO: Destroy all parts
 
     if (entity->shader != (void*)0)
         entity->shader = (void*)0;

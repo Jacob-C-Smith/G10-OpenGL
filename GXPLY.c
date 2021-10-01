@@ -31,7 +31,11 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
          * 
          * Pass 1.
          *     On pass 1, the function counts all the elements in the header. It will also print
-         *     any comments it encounters. After this pass, the elements are allocated for.
+         *     any comments it encounters. After this pass, the elements are al
+         
+         
+         
+         ted for.
          * 
          * Pass 2.
          *     On pass 2, the elements are populated and the properties are counted up and 
@@ -433,7 +437,7 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
     correctedIndicies      = calloc((size_t)part->elementsInBuffer+2, sizeof(float));
 
     if (correctedIndicies == (void*)0)
-        return correctedIndicies;
+        return (void*)0;
     
     size_t indcnt = 0;
 
@@ -470,7 +474,7 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, part->elementsInBuffer * sizeof(u32), correctedIndicies, GL_STATIC_DRAW);
     }
     
-    for (size_t i = 0; vertexGroupCount > i; i++)
+    for (int i = 0; vertexGroupCount > i; i++)
     {
         size_t g = (0xFF << (8*(vertexGroupCount - 1)));
         char   h = (plyFile->flags & g) >> (8 * (vertexGroupCount - 1));

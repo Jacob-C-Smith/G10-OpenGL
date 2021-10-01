@@ -325,9 +325,6 @@ int drawScene ( GXScene_t* scene )
     // Initialized data
     GXEntity_t* i = scene->entities;
 
-    //if(scene->skybox)
-    //  drawSkybox(scene->skybox);
-
     // Iterate through list until we hit nullptr
     while (i)
     {
@@ -335,14 +332,9 @@ int drawScene ( GXScene_t* scene )
         {
             // Use it
             useShader(i->shader);
-
-            // Set some uniforms for the shader
-            if (i->shader->requestedDataFlags & GXSP_Projection)
-                setShaderMat4(i->shader, findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_Projection), (const GLfloat*)&scene->cameras->projection);
-            if (i->shader->requestedDataFlags & GXSP_View)
-                setShaderMat4(i->shader, (const char*)findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_View), (const GLfloat*)&scene->cameras->view);
-            if (i->shader->requestedDataFlags & GXSP_CameraPosition)
-                setShaderVec3(i->shader, findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_CameraPosition), scene->cameras->where);
+            //setShaderInt(i->shader, "irradianceMap", loadTextureToTextureUnit(scene->skybox->irradianceCubemap));
+            setShaderTexture(i->shader, "irradianceMap", scene->skybox->irradianceCubemap);
+            setShaderCamera(i->shader, scene->cameras);
         }
         
         // Set up lights
@@ -358,11 +350,12 @@ int drawScene ( GXScene_t* scene )
             // TODO: Dynamically determine max lights from graphics settings and machine hardware
             for(size_t j = 0; j < GX_MAX_LIGHTS && light; j++)
             {				
+                /*
                 buffer[sprintf(buffer, "%s[%lld]\0", findValue(i->shader->requestedData,i->shader->requestedDataCount,GXSP_LightPosition), j) + 1] = 0;
                 setShaderVec3(i->shader, buffer, light->location);
                 buffer[sprintf(buffer, "%s[%lld]\0", findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_LightColor), j) + 1] = 0;
                 setShaderVec3(i->shader, buffer, light->color);
-            
+                */
                 light = light->next;
             }
 
@@ -378,10 +371,15 @@ int drawScene ( GXScene_t* scene )
         
     }
 
+    drawSkybox:
     // Lastly, draw the skybox if there is a skybox
-    if(scene->skybox)
+    if (scene->skybox)
         drawSkybox(scene->skybox, scene->cameras);
-
+    else
+    {
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
     return 0;
 
     // Error handling
@@ -393,9 +391,9 @@ int drawScene ( GXScene_t* scene )
             return 0;
         noEntities:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] No entities in scene \"%s\"\n", scene->name);
+            gPrintWarning("[G10] [Scene] No entities in scene \"%s\"\n", scene->name);
         #endif
-            return 0;
+        goto drawSkybox;
     }
     
 }
@@ -413,7 +411,7 @@ int computePhysics(GXScene_t* scene, float deltaTime)
         summateForces(i->rigidbody->forces, i->rigidbody->forcesCount);
 
         // Calculate derivatives of displacement
-        integrateDisplacement(i, deltaTime);
+        // integrateDisplacement(i, deltaTime);
 
         //integrateRotation(entity);
         noRigidbody:

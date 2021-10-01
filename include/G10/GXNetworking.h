@@ -17,7 +17,6 @@ struct GXServer_s
     TCPsocket socket;
     int       result;
 };
-typedef struct GXServer_s GXServer_t;
 
 GXServer_t *createServer     ( );                                             // ✅ Creates an empty server connection
 GXServer_t *loadServer       ( const char  path[] );                          // ✅ Loads a server from a file

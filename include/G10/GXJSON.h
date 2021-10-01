@@ -32,7 +32,6 @@ struct JSONValue_s
     GXJSONValueType_t  type;    // The type.
     GXJSONContent_t    content; // Where the value appears, if type is array, then where is double pointer to text in array.
 };
-typedef struct JSONValue_s JSONValue_t;
 
 int GXParseJSON ( char *text, size_t len, size_t count, JSONValue_t *where ); // ✅ Parses a JSON file and places tokens at an array of JSONValue_t* tokens. 
                                                                               //    If the function is called when the where parameter is nullptr, the

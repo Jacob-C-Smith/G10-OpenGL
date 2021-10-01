@@ -81,14 +81,14 @@ GXLight_t* loadLightAsJSON(char* token)
         // Parse out light color
         if (strcmp("color", tokens[l].name) == 0)
         {
-            ret->color = (GXvec3_t){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->color = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
             continue;
         }
 
         // Parse out light position
         if (strcmp("position", tokens[l].name) == 0)
         {
-            ret->location = (GXvec3_t){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->location = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
             continue;
         }
     }

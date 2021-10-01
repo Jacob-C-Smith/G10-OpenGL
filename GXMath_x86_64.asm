@@ -14,10 +14,10 @@
 ; 
 ; Offset for GXEntity_t
 ;
-; GXvec3_t  velocity     - 0x00
-; GXvec3_t  acceleration - 0x10
+; vec3  velocity     - 0x00
+; vec3  acceleration - 0x10
 ; float     mass         - 0x20
-; GXvec3_t* forces       - 0x28
+; vec3* forces       - 0x28
 ; size_t    forcesCount  - 0x30
 ; bool      useGravity   - 0x34
 ;
@@ -206,15 +206,12 @@ PUBLIC AVXDot
 AVXDot PROC
     vmovss xmm1, dword ptr [rcx]          ; xmm1 = x1
     vmovss xmm0, dword ptr [rcx+4]        ; xmm0 = y1
-    vmulss xmm1, xmm1, dword ptr [rcx]    ; xmm1 = x1 * x2
-    vmulss xmm0, xmm0, dword ptr [rcx+4]  ; xmm0 = y1 * y2
+    vmulss xmm1, xmm1, dword ptr [rdx]    ; xmm1 = x1 * x2
+    vmulss xmm0, xmm0, dword ptr [rdx+4]  ; xmm0 = y1 * y2
     vaddss xmm1, xmm1, xmm0               ; xmm1 = (x1 * x2 + y1 * y2)
     vmovss xmm0, dword ptr [rcx+8]        ; xmm0 = z1
-    vmulss xmm0, xmm0, dword ptr [rcx+8]  ; xmm0 = z1 * z2
+    vmulss xmm0, xmm0, dword ptr [rdx+8]  ; xmm0 = z1 * z2
     vaddss xmm0, xmm1, xmm0               ; xmm0 = (x1 * x2 + y1 * y2 + z1 * z2)
-    vmovss xmm1, dword ptr [rcx+12]       ; xmm1 = w1
-    vmulss xmm1, xmm1, dword ptr [rcx+12] ; xmm1 = w1 * w2
-    vaddss xmm0, xmm1, xmm0               ; xmm0 = (x1 * x2 + y1 * y2 + z1 * z2 + w1 * w2)
 
     ret
 AVXDot ENDP
@@ -273,8 +270,8 @@ AVXTransposeInverseMatrix PROC
     ret
 AVXTransposeInverseMatrix ENDP
 
-;AVXModelMatrix            ( GXvec4_t* location, GXvec4_t* rotation,    GXvec4_t* scale, GXmat4_t* ret );
-;AVXViewMatrix             ( GXvec4_t* eye,      GXvec4_t* target,      GXvec4_t* up );
+;AVXModelMatrix            ( vec4* location, vec4* rotation,    vec4* scale, mat4* ret );
+;AVXViewMatrix             ( vec4* eye,      vec4* target,      vec4* up );
 ;AVXProjectionMatrix       ( float     fov,      float     aspectRatio, float     near,  float far );
 
 PUBLIC AVXModelMatrix

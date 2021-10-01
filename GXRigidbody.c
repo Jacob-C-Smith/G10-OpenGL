@@ -11,13 +11,13 @@ GXRigidbody_t* createRigidbody ( )
     ret->mass                = 0.f;
     ret->radius              = 0.f;
 
-    ret->acceleration        = (GXvec3_t){ 0.f, 0.f, 0.f, 0.f };
-    ret->velocity            = (GXvec3_t){ 0.f, 0.f, 0.f, 0.f };
+    ret->acceleration        = (vec3){ 0.f, 0.f, 0.f, 0.f };
+    ret->velocity            = (vec3){ 0.f, 0.f, 0.f, 0.f };
     
-    ret->angularAcceleration = (GXvec3_t){ 0.f, 0.f, 0.f, 0.f };
-    ret->angularVelocity     = (GXvec3_t){ 0.f, 0.f, 0.f, 0.f };
+    ret->angularAcceleration = (vec3){ 0.f, 0.f, 0.f, 0.f };
+    ret->angularVelocity     = (vec3){ 0.f, 0.f, 0.f, 0.f };
 
-    ret->forces              = calloc(MAXFORCES, sizeof(GXvec3_t));
+    ret->forces              = calloc(MAXFORCES, sizeof(vec3));
 
     ret->forcesCount         =  1;
     
@@ -32,26 +32,10 @@ GXRigidbody_t* loadRigidbody(const char path[])
     size_t         i        = 0;
     char*          data     = 0;
 
-    // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-            goto invalidFile;
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = calloc(i,sizeof(u8));
-        if (data == 0)
-            return (void*)0;
-        fread(data, 1, i, f);
-    
-        // We no longer need the file
-        fclose(f);
-    }
+    // Load up the file
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     // Load the camera from data
     ret = loadRigidbodyAsJSON(data);
@@ -99,28 +83,28 @@ GXRigidbody_t* loadRigidbodyAsJSON(char* token)
         // Parse out up
         else if (strcmp("acceleration", tokens[l].name) == 0)
         {
-            ret->acceleration = (GXvec3_t){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
+            ret->acceleration = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
             continue;
         }
 
         // Parse out FOV
         else if (strcmp("velocity", tokens[l].name) == 0)
         {
-            ret->velocity = (GXvec3_t){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
+            ret->velocity = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
             continue;
         }
 
         // Parse out near clipping plane
         else if (strcmp("angular acceleration", tokens[l].name) == 0)
         {
-            ret->angularAcceleration = (GXvec3_t){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
+            ret->angularAcceleration = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
             continue;
         }
 
         // Parse out far clipping plane
         else if (strcmp("angular velocity", tokens[l].name) == 0)
         {
-            ret->angularVelocity = (GXvec3_t){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
+            ret->angularVelocity = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]), 0.f };
             continue;
         }
     }
@@ -133,11 +117,11 @@ GXRigidbody_t* loadRigidbodyAsJSON(char* token)
 int updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transform, u32 deltaTime )
 {
     // Initialized data
-    GXvec3_t f = applyForce(rigidbody);
-    GXvec3_t a = vec3xf(f, 1 / rigidbody->mass);
+    vec3 f = applyForce(rigidbody);
+    vec3 a = vec3xf(f, 1 / rigidbody->mass);
 
-    rigidbody->velocity = addVec3(rigidbody->velocity, vec3xf(a, deltaTime / 1000.f));
-    transform->location = addVec3(transform->location, vec3xf(rigidbody->velocity, deltaTime / 1000.f));
+    addVec3(&rigidbody->velocity, rigidbody->velocity, vec3xf(a, deltaTime / 1000.f));
+    addVec3(&transform->location, transform->location, vec3xf(rigidbody->velocity, deltaTime / 1000.f));
 
     return 0;
 }
@@ -145,7 +129,7 @@ int updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transfo
 int destroyRigidBody ( GXRigidbody_t* rigidbody )
 {
     rigidbody->mass         = 0;
-    rigidbody->acceleration = (GXvec3_t){ 0.f,0.f,0.f };
+    rigidbody->acceleration = (vec3){ 0.f,0.f,0.f };
 
     free(rigidbody);
 

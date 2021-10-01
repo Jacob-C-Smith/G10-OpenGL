@@ -14,10 +14,10 @@
 ; 
 ; Offset for GXEntity_t
 ;
-; GXvec3_t  velocity     - 0x00
-; GXvec3_t  acceleration - 0x10
+; vec3  velocity     - 0x00
+; vec3  acceleration - 0x10
 ; float     mass         - 0x20
-; GXvec3_t* forces       - 0x28
+; vec3* forces       - 0x28
 ; size_t    forcesCount  - 0x30
 ; bool      useGravity   - 0x34
 ;

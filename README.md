@@ -65,9 +65,9 @@ struct GXCamera_s {
     char              *name;
 
     // View
-    GXvec3_t           where;
-    GXvec3_t           target;
-    GXvec3_t           up;
+    vec3           where;
+    vec3           target;
+    vec3           up;
 
     // Projection
     float              fov;
@@ -76,8 +76,8 @@ struct GXCamera_s {
     float              aspectRatio;
 
     // Matricies
-    GXmat4_t           view;
-    GXmat4_t           projection;
+    mat4           view;
+    mat4           projection;
 
     // Next
     struct GXCamera_s *next;
@@ -88,24 +88,24 @@ typedef struct GXCamera_s GXCamera_t;
 GXCamera_t*     createCamera            ( );
 GXCamera_t*     loadCamera              ( const char *path );
 GXCamera_t*     loadCameraAsJSON        ( char       *token );
-GXmat4_t        perspective             ( float       fov,    float aspect,     float near,   float far );
-extern void     AVXPerspective          ( GXmat4_t   *ret,    float fov,        float aspect, float near, float far );
+mat4        perspective             ( float       fov,    float aspect,     float near,   float far );
+extern void     AVXPerspective          ( mat4   *ret,    float fov,        float aspect, float near, float far );
 void            computeProjectionMatrix ( GXCamera_t *camera );
-extern void     AVXView                 ( GXvec3_t   *eye,    GXvec3_t *target, GXvec3_t *up, GXmat4_t *result );
-inline GXmat4_t lookAt                  ( GXvec3_t    eye,    GXvec3_t target,  GXvec3_t up );
+extern void     AVXView                 ( vec3   *eye,    vec3 *target, vec3 *up, mat4 *result );
+inline mat4 lookAt                  ( vec3    eye,    vec3 target,  vec3 up );
 inline void     computeViewMatrix       ( GXCamera_t *camera );
 int             destroyCamera           ( GXCamera_t *camera );
 ```
 #### ⌠createCamera⌡
-```GXCamera_t* createCamera(GXvec3_t where, GXvec3_t target, GXvec3_t up, float fov, float near, float far, float aspectRatio)``` will create a camera with the specified arguments.
+```GXCamera_t* createCamera(vec3 where, vec3 target, vec3 up, float fov, float near, float far, float aspectRatio)``` will create a camera with the specified arguments.
 ### ≡ Light ≡
 A light is used to calculate lighting.
 ```c
 struct GXLight_s
 {
     const char       *name;
-    GXvec4_t          color;    
-    GXvec4_t          location; 
+    vec4          color;    
+    vec4          location; 
     struct GXLight_s *next;
 };
 typedef struct GXLight_s GXLight_t;
@@ -230,8 +230,8 @@ GXShader_t *loadCompileShader ( const char  vertexPath[], const char fragmentPat
 int         useShader         ( GXShader_t *shader );
 void        setShaderInt      ( GXShader_t *shader, const char name[], int       value );
 void        setShaderFloat    ( GXShader_t *shader, const char name[], float     value );
-void        setShaderVec3     ( GXShader_t *shader, const char name[], GXvec3_t  vector );
-void        setShaderMat4     ( GXShader_t *shader, const char name[], GXmat4_t *m );
+void        setShaderVec3     ( GXShader_t *shader, const char name[], vec3  vector );
+void        setShaderMat4     ( GXShader_t *shader, const char name[], mat4 *m );
 int         unloadShader      ( GXShader_t *shader );
 ```
 
@@ -245,9 +245,9 @@ Returns a pointer to the loaded ```GXShader_t```.
 #### ⌠setShaderFloat⌡
 ```void setShaderFloat(GXShader_t* shader, const char name[], float value)``` will set a float in ```shader``` to ```value```.
 #### ⌠setShaderVec3⌡
-```void setShaderVec3 ( GXShader_t* shader, const char name[], GXvec3_t vector );``` will set a vector in ```shader``` to ```value```.
+```void setShaderVec3 ( GXShader_t* shader, const char name[], vec3 vector );``` will set a vector in ```shader``` to ```value```.
 #### ⌠setShaderMat4⌡
-```void setShaderMat4(GXShader_t* shader, const char name[], GXmat4_t* m)``` will set a float in ```shader``` to ```value```.
+```void setShaderMat4(GXShader_t* shader, const char name[], mat4* m)``` will set a float in ```shader``` to ```value```.
 #### ⌠unloadShader⌡
 ```int unloadShader(GXShader_t* shader)``` will depopulate all members of ```shader``` and deallocate the shader.
 ### ≡ Textures ≡
@@ -300,21 +300,21 @@ A transform is
 // Transform definition in G10
 struct GXTransform_s
 {
-	GXvec3_t location;
-	GXvec3_t rotation;
-	GXvec3_t scale;
+	vec3 location;
+	vec3 rotation;
+	vec3 scale;
 
-	GXmat4_t modelMatrix;
+	mat4 modelMatrix;
 };
 typedef struct GXTransform_s GXTransform_t;
 
 // Transform functions
-GXTransform_t* createTransform( GXvec3_t location, GXvec3_t rotation, GXvec3_t scale );
+GXTransform_t* createTransform( vec3 location, vec3 rotation, vec3 scale );
 int            unloadTransform( GXTransform_t* transform );
 ```
 
 #### ⌠createTransform⌡
-```GXTransform_t* createTransform(GXvec3_t location, GXvec3_t rotation, GXvec3_t scale)``` will create a GXtransform from the provided information.
+```GXTransform_t* createTransform(vec3 location, vec3 rotation, vec3 scale)``` will create a GXtransform from the provided information.
 
 #### ⌠unloadTransform⌡
 ```int unloadTransform(GXTransform_t* transform)``` will destroy the designated GXtransform.
@@ -359,12 +359,12 @@ Scenes may be stored in a JSON file
 ```json
 {
     "comment"   : "Made by Jacob Smith on 1/4/2021 at 22:30 GMT-7:00",
-    "name"      : "Example Scene",
+	"name"      : "Example Scene"
     "entities"  : [
             "gameassets/asset1.json",
             "gameassets/asset2.json",
             "gameassets/asset3.json" 
-    ],
+        ],
     "camera"   : {
         "where"       : [ 2,2,2 ],
         "target"      : [ 0,0,0 ],
@@ -373,19 +373,19 @@ Scenes may be stored in a JSON file
         "near"        : 0.1,
         "far"         : 100,
         "aspectRatio" : 1.77777777 
-    },
-    "lights"   : [
-	    {
+    }
+	"lights"   : [
+		    {
                "name"     : "Light 1",
                "color"    : [ 10.0, 10.0, 10.0 ],
                "position" : [ 3.0, 3.0, 3.0 ]
             },
-	    {
+			{
                "name"     : "Light 2",
                "color"    : [ 10.0, 10.0, 10.0 ],
                "position" : [ 3.0, 3.0, 3.0 ]
             }
-    ]
+	]
 }
 ```
 ### ⌠comment⌡

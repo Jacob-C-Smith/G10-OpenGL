@@ -32,7 +32,7 @@ _TEXT SEGMENT
 ; ?                                                      ?
 ;
 
-; extern void SSEPerspective ( GXmat4_t* ret, float fov, float aspect, float near, float far );
+; extern void SSEPerspective ( mat4* ret, float fov, float aspect, float near, float far );
 PUBLIC AVXPerspective
 AVXPerspective PROC
     ;1. Calculate tan(f/2)
@@ -49,23 +49,23 @@ AVXPerspective PROC
     ret
 AVXPerspective ENDP
 
-;extern void SSEView ( GXvec3_t* eye, GXvec3_t* target, GXvec3_t* up, GXmat4_t* result );        // ? Computes a view matrix from eye, target, and up vectors
+;extern void SSEView ( vec3* eye, vec3* target, vec3* up, mat4* result );        // ? Computes a view matrix from eye, target, and up vectors
 ;{ 
 ;	// Compute forward direction
-;	GXvec3_t f = normalize((GXvec3_t) {
+;	vec3 f = normalize((vec3) {
 ;		eye.x - target.x,
 ;		eye.y - target.y,
 ;		eye.z - target.z
 ;	});
 ;
 ;	// Compute left direction as cross product of up and forward
-;	GXvec3_t l = normalize(crossProductVec3(up, f));
+;	vec3 l = normalize(crossProductVec3(up, f));
 ;
 ;	// Recompute up
-;	GXvec3_t u = crossProductVec3(f, l);
+;	vec3 u = crossProductVec3(f, l);
 ;	
 ;	// Return the view matrix
-;	return (GXmat4_t) {
+;	return (mat4) {
 ;		l.x, u.x, f.x, 0,
 ;		l.y, u.y, f.y, 0,
 ;		l.z, u.z, f.z, 0,

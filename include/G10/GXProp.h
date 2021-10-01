@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <G10/GXMesh.h>
 #include <G10/GXTexture.h>
+#include <G10/GXMesh.h>
 
 // Props are kind of like diet entities. They are fixed, do not compute
 struct GXProp_s {
@@ -13,7 +13,6 @@ struct GXProp_s {
 	GXPart_t    *part;
 	GXTexture_t *texture;
 };
-typedef struct GXProp_s GXProp_t;
 
 GXProp_t* createProp     ( );
 

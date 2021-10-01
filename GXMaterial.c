@@ -32,10 +32,8 @@ GXMaterial_t* loadMaterial ( const char path[] )
     }
 
     // Uninitialized data
-    int          i;
     u8*          data;
-    size_t       len,
-                 rootTokenCount;
+    size_t       i;
 
     // Initialized data
     GXMaterial_t* ret          = calloc(1,sizeof(GXMaterial_t));
@@ -83,6 +81,8 @@ GXMaterial_t* loadMaterialAsJSON(char* token)
     {
         len = strlen(token), rootTokenCount = GXParseJSON(token, len, 0, 0);
         tokens = calloc(rootTokenCount, sizeof(JSONValue_t));
+        if (tokens == (void*)0)
+            return 0;
         GXParseJSON(token, len, rootTokenCount, tokens);
     }
 
@@ -95,6 +95,8 @@ GXMaterial_t* loadMaterialAsJSON(char* token)
         {
             size_t nameLen = strlen(tokens[k].content.nWhere);
             ret->name = calloc(nameLen + 1, sizeof(u8));
+            if (ret->name == (void*)0)
+                return 0;
             strncpy(ret->name, tokens[k].content.nWhere, nameLen);
             continue;
         }
@@ -195,98 +197,6 @@ GXMaterial_t* getMaterial( GXMaterial_t *materials, const char name[] )
             gPrintError("[G10] [Material] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
-    }
-}
-
-int assignMaterial ( GXMaterial_t* material, GXShader_t* shader )
-{
-    // Argument checking
-    {
-        #ifndef NDEBUG
-            if (material == 0)
-                goto nullMaterial;
-            albedoCheck:
-            if (material->albedo == 0)
-                goto nullAlbedo;
-            normalCheck:
-            if (material->normal == 0)
-                goto nullNormal;
-            roughCheck:
-            if (material->rough == 0)
-                goto nullRough;
-            metalCheck:
-            if (material->metal == 0)
-                goto nullMetal;
-            AOCheck:
-            if (material->AO == 0)
-                goto nullAO;
-        #endif
-        endArgumentCheck:;
-    }
-
-    //Bind the texture units to the textureIDs
-    size_t albedoIndex = loadTextureToTextureUnit(material->albedo);
-    size_t normalIndex = loadTextureToTextureUnit(material->normal);
-    size_t roughIndex  = loadTextureToTextureUnit(material->rough);
-    size_t metalIndex  = loadTextureToTextureUnit(material->metal);
-    size_t aoIndex     = loadTextureToTextureUnit(material->AO);
-
-    // Set the texture uniforms from the shader requested data
-    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Albedo), albedoIndex);
-    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Normal), normalIndex);
-    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Rough), roughIndex);
-    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_Metal), metalIndex);
-    setShaderInt(shader, (const char*)findValue(shader->requestedData, shader->requestedDataCount, GXSP_AO), aoIndex);
-
-    return 0;
-
-    // Error handling
-    {
-        nullMaterial:
-            #ifndef NDEBUG
-                gPrintError("[G10] [Material] Null pointer provided for parameter \"material\" in function \"%s\"\n", __FUNCSIG__);
-            #endif
-            return 0;
-        nullAlbedo:
-            #ifndef NDEBUG
-                gPrintError("[G10] [Material] No albedo was available to assign in material \"%s\" from function \"%s\"\n", material->name, __FUNCSIG__);
-                gPrintWarning("[G10] [Material] Using missing texture texture instead\n");
-                material->albedo = missingTexture;
-                goto normalCheck;
-            #endif
-            return 0;
-        nullNormal:
-            #ifndef NDEBUG
-                gPrintError("[G10] [Material] No normal was available to assign in material \"%s\" from function \"%s\"\n", material->name, __FUNCSIG__);
-                gPrintWarning("[G10] [Material] Using missing texture texture instead\n");
-                material->normal = missingTexture;
-                goto roughCheck;
-            #endif
-            return 0;
-        nullRough:
-            #ifndef NDEBUG
-                gPrintError("[G10] [Material] No roughness was available to assign in material \"%s\" from function \"%s\"\n", material->name, __FUNCSIG__);
-                gPrintWarning("[G10] [Material] Using missing texture texture instead\n");
-                material->rough = missingTexture;
-                goto metalCheck;
-            #endif
-                return 0;
-        nullMetal:
-            #ifndef NDEBUG
-                gPrintError("[G10] [Material] No metalness was available to assign in material \"%s\" from  function \"%s\"\n", material->name, __FUNCSIG__);
-                gPrintWarning("[G10] [Material] Using missing texture texture instead\n");
-                material->metal = missingTexture;
-                goto AOCheck;
-            #endif
-            return 0;           
-        nullAO:
-            #ifndef NDEBUG
-                gPrintError("[G10] [Material] No ambient occlusion was available to assign in material \"%s\" from function \"%s\"\n", material->name, __FUNCSIG__);
-                gPrintWarning("[G10] [Material] Using missing texture texture instead\n");
-                material->AO = missingTexture;
-                goto endArgumentCheck;
-            #endif
-            return 0;
     }
 }
 

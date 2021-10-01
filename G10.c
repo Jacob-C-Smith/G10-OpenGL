@@ -39,9 +39,8 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
             SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE ); 
         
         // Context attributes
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 
         // Create the OpenGL context
         lGlContext = SDL_GL_CreateContext(lWindow);
@@ -68,8 +67,9 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
         {
             // Enable depth testing and anti aliasing
             glEnable(GL_DEPTH_TEST);
-            glEnable(GL_MULTISAMPLE);
             glDepthFunc(GL_LEQUAL);
+            glEnable(GL_MULTISAMPLE);
+            
 
             // Initialize the active texture block
             {
@@ -263,6 +263,11 @@ int gPrintLog ( const char* const format, ... )
     va_end(aList);
 
     return 0;
+}
+
+int gClear ( )
+{
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 int gExit( SDL_Window* window, SDL_GLContext  glContext )

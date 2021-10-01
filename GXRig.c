@@ -18,9 +18,9 @@ GXBone_t* createBone ( )
     // Zero set everything
     ret->name           = (void*)0;
 
-    ret->head           = calloc(1,sizeof(GXvec3_t));
-    ret->tail           = calloc(1,sizeof(GXvec3_t));
-    ret->transformation = calloc(1,sizeof(GXmat4_t));
+    ret->head           = calloc(1,sizeof(vec3));
+    ret->tail           = calloc(1,sizeof(vec3));
+    ret->transformation = calloc(1,sizeof(mat4));
     
     ret->connected      = false;
 
@@ -40,7 +40,7 @@ GXRig_t* loadRig(const char* path)
     }
 
     // Uninitialized data
-    int          i;
+    size_t       i;
     char        *data;
     int          tokenCount;
     JSONValue_t *tokens;
@@ -142,7 +142,7 @@ GXBone_t* loadArmiture(const char* path)
     }
 
     // Uninitialized data
-    int          i;
+    size_t       i;
     char*        data;
     int          tokenCount;
     JSONValue_t* tokens;
@@ -152,32 +152,10 @@ GXBone_t* loadArmiture(const char* path)
     size_t    l   = 0;
     FILE*     f   = fopen(path, "rb");
 
-    // Load the file
-    {
-        // Check if file is valid
-        if (f == NULL)
-        {
-            gPrintError("[G10] [Rig] Failed to load file %s\n", path);
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(f, 0, SEEK_END);
-        i = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        data = calloc(i + 1,sizeof(u8));
-        if (data == 0)
-            return (void*)0;
-        fread(data, 1, i, f);
-
-        // We no longer need the file
-        fclose(f);
-
-        // For reasons beyond me, the null terminator isn't included.
-        data[i] = '\0';
-    }
+    // Load up the file
+    i    = gLoadFile(path, 0);
+    data = calloc(i, sizeof(u8));
+    gLoadFile(path, data);
 
     return loadRigAsJSON(data);
 }
@@ -277,7 +255,15 @@ GXBone_t* loadArmitureAsJSON(char* token)
 GXBone_t* findBone(GXRig_t* rig,  char* name)
 {
     // TODO: Argument check
-    
+    {
+        #ifndef NDEBUG
+        if (rig == (void*)0)
+            goto noRig;
+        if (name == (void*)0)
+            goto noName;
+        #endif
+    }
+
     // Create a pointer to the head of the list
     GXBone_t* i = rig->bones;
 
@@ -298,6 +284,16 @@ GXBone_t* findBone(GXRig_t* rig,  char* name)
         noMatch:
             #ifndef NDEBUG
                 gPrintError("[G10] [Rig] There is no bone in \"%s\" named \"%s\".", rig->name, name);
+            #endif
+            return 0;
+        noRig:
+            #ifndef NDEBUG
+                gPrintError("[G10] [Rig] No rig provided to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        noName:
+            #ifndef NDEBUG
+                gPrintError("[G10] [Rig] No name provided to function \"%s\"\n",__FUNCSIG__);
             #endif
             return 0;
     }
@@ -327,7 +323,8 @@ GXBone_t* searchBone(GXBone_t* bone, char* name, size_t searchDepth)
         else 
             i = i->next;
     }
-    return 0;
+
+    goto noMatch;
 
     // Error handling
     {
