@@ -1,4 +1,4 @@
-// Standard library
+﻿// Standard library
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,8 +12,8 @@
 #include <glad/glad.h>
 
 // G10
-#include <G10/G10.h>
 #include <G10/GXtypedef.h>
+#include <G10/G10.h>
 #include <G10/GXScene.h>
 #include <G10/GXCamera.h>
 #include <G10/GXEntity.h>
@@ -24,10 +24,11 @@
 #include <G10/GXPhysics.h>
 #include <G10/GXSplashscreen.h>
 #include <G10/GXHDR.h>
-
+#include <G10/GXBVH.h>
 
 // G10 arch
 #ifdef _M_X64
+// x86_64
 #include <G10/arch/x86_64/GXAVXmath.h>
 #include <G10/arch/x86_64/GXAVXlinear.h>
 #elif _M_ARM64
@@ -39,15 +40,17 @@
 // For some reason, SDL defines main. I don't know why, but we have to undef it.
 #undef main
 
-int main( int argc, const char *argv[] )
+int main ( int argc, const char *argv[] )
 {
     // Uninitialized data
    
     // Uninitialized G10 data
     GXScene_t    *scene;
+    GXServer_t   *server;
     u32           d,
                   currentTime;
-    
+    clock_t       c;
+
     // Uninitialized SDL data
     SDL_Window   *window;
     SDL_GLContext glContext;
@@ -104,14 +107,28 @@ int main( int argc, const char *argv[] )
         // Initialize SDL, GLAD, etc
         gInit(&window, &glContext);
 
-        // Splash screen code
-        #ifdef NDEBUG
-            createSplashscreen("G10/splash front.png", "G10/splash back.png");
-        #endif
-        
+        // Splash screen
+        {
+            #ifdef NDEBUG
+                createSplashscreen("G10/splash front.png", "G10/splash back.png");
+            #endif
+        }
+
+        // Time how long it takes to load the scene
+        c = clock();
+
         // Load the scene
         scene = loadScene(initialScene);
-        
+
+        // Compute and print how long it took to load the scene
+        {
+            c = clock() - c;
+            gPrintLog("[G10] Loaded scene \"%s\" in %.0f ms\n", initialScene, 1000*(float) c / CLOCKS_PER_SEC);
+        }
+
+        // Create a bounding volume heierarchy from the scene
+        createBVHFromScene(scene);
+
         // Splash screen animation
         {
             for (int i = 0; i > -15; i--)
@@ -122,14 +139,30 @@ int main( int argc, const char *argv[] )
             }
         }
 
-        #ifdef NDEBUG
-            destroySplashscreen();
-        #endif
+        // Destroy the splash screen
+        {
+            #ifdef NDEBUG
+                destroySplashscreen();
+            #endif
+        }
 
+        // Display the window
         SDL_ShowWindow(window);
 
     }
+
+    // Server testing
+    {
+        //server = createServer();
+        //connect(server, "172.31.87.192", 8877);
+        char* party[] = { "Seth", "Daniel", "Elias" };
         
+        char* name = calloc(255+1, sizeof(u8));
+
+        //sendConnectCommand(server, name, party);
+        //sendTextChat(server, "Hello, World!", 0x0F); 
+    }
+
     goto setGLViewportSizeFromWindow;
 
     // Main game loop
@@ -145,15 +178,19 @@ int main( int argc, const char *argv[] )
 
         // FPS readout
         {
-            printf("FPS: %.1f\r", (float)deltaTime * (float)1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
+            #ifndef NDEBUG
+                //printf("FPS: %.1f\r", (float)deltaTime * (float)1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
+            #endif
         }
 
         // TODO: Find a better way to process input.
         
         // Process input
-        while (SDL_PollEvent(&event))  {
-            switch (event.type)
-            {
+        {
+            // Process events
+            while (SDL_PollEvent(&event)) {
+                switch (event.type)
+                {
                 case SDL_QUIT:
                 {
                     running = 0;
@@ -162,44 +199,68 @@ int main( int argc, const char *argv[] )
                 case SDL_KEYDOWN:
                 {
                     const u8* keyboardState = SDL_GetKeyboardState(NULL);
-
+                    static float orientation  = 0.f;
+                    static float lOrientation = 0.f;
                     if (keyboardState[SDL_SCANCODE_G])
                     {
-                        GXPart_t* part = getPart(scene->entities->parts, "hair");
-                        part->transform->location.z += 1.f;
+                        orientation += 0.1f;
                     }
-                    if(keyboardState[SDL_SCANCODE_CAPSLOCK])
+                    if (keyboardState[SDL_SCANCODE_CAPSLOCK])
                     {
                         // Toggle mouse lock 
                         SDL_SetRelativeMouseMode(!SDL_GetRelativeMouseMode());
                     }
+
                     
-                    if (keyboardState[SDL_SCANCODE_U])
+                    // Turn keyboard input into orientation 
                     {
-                        scene->cameras->where.x += 0.1f;
-                    }
-                    if (keyboardState[SDL_SCANCODE_J])
-                    {
-                        scene->cameras->where.x -= 0.1f;
-                    }
-                    if (keyboardState[SDL_SCANCODE_I])
-                    {
-                        scene->cameras->where.y += 0.1f;
-                    }
-                    if (keyboardState[SDL_SCANCODE_K])
-                    {
-                        scene->cameras->where.y -= 0.1f;
-                    }
-                    if (keyboardState[SDL_SCANCODE_O])
-                    {
-                        scene->cameras->where.z += 0.1f;
-                    }
-                    if (keyboardState[SDL_SCANCODE_L])
-                    {
-                        scene->cameras->where.z -= 0.1f;
+                        if (keyboardState[SDL_SCANCODE_I])
+                            if (keyboardState[SDL_SCANCODE_J])
+                                orientation = (float) (M_PI - M_PI_4);         // ↖ IJ, 135°, 3π/4 rad
+                            else if (keyboardState[SDL_SCANCODE_L])
+                                orientation = (float)(M_PI_4);                 // ↗ IL, 45° , π/4  rad
+                            else
+                                orientation = (float)(M_PI_2);                 // ↑ I,  90° , π/2  rad
+                        else if (keyboardState[SDL_SCANCODE_J])
+                            if (keyboardState[SDL_SCANCODE_K])
+                                orientation = (float)(M_PI + M_PI_4);          // ↙ JK, 225°, 5π/4 rad
+                            else
+                                orientation = (float)(M_PI);                   // ← J,  180°, π    rad
+                        else if (keyboardState[SDL_SCANCODE_L])
+                            if (keyboardState[SDL_SCANCODE_K])
+                                orientation = (float)(M_PI + M_PI_2 + M_PI_4); // ↘ LK, 315°, 7π/4 rad
+                            else
+                                orientation = 0.f;                             // → L,  0°  , 0    rad
+                        else if (keyboardState[SDL_SCANCODE_K])
+                            orientation = (float)(M_PI + M_PI_2);              // ↓ K, 270° , 3π/2 rad
+                        else
+                            goto noInput;                                      // / (None)
                     }
                     
-                    if(keyboardState[SDL_SCANCODE_ESCAPE])
+
+                    GXEntity_t* tank = 0;
+                    tank = getEntity(scene, "Tank");
+                    GXTransform_t* transform = tank->transform;
+
+                    if (tank == 0)
+                        return 0;
+                    if (transform == 0)
+                        return 0;
+
+                    tank->transform->location.x += cosf(orientation ) * deltaTime,
+                    tank->transform->location.y += sinf(orientation ) * deltaTime;
+
+                    lOrientation = orientation;
+                    
+                    printf("%g\n", orientation);
+
+                    
+
+                    noInput:
+
+                    //sendDisplaceOrientCommand(server, tank);
+
+                    if (keyboardState[SDL_SCANCODE_ESCAPE])
                         running = 0;
 
                     vec3 tw;
@@ -207,31 +268,31 @@ int main( int argc, const char *argv[] )
 
                     scene->cameras->view = lookAt(scene->cameras->where, tw, scene->cameras->up);
                 }
-
                 case SDL_KEYUP:
                 {
                     //const u8* keyboardState = SDL_GetKeyboardState(NULL);
 
-                    //updateCameraFromInput(scene->cameras, keyboardState, deltaTime);
+                    //updateCameraFromKeyboardInput(scene->cameras, keyboardState, deltaTime);
                     vec3 tw;
                     addVec3(&tw, scene->cameras->target, scene->cameras->where);
                     scene->cameras->view = lookAt(scene->cameras->where, tw, scene->cameras->up);
 
                     break;
                 }
-                
                 case SDL_MOUSEMOTION:
                 {
+
+
                     if (SDL_GetRelativeMouseMode() == 0)
                         break;
                     GXCamera_t* a = scene->cameras;
-                    
+
                     static float hAng = 0.f,
-                                 vAng = 90.f;
-                        
+                        vAng = 90.f;
+
                     hAng += (float)event.motion.xrel * deltaTime * MOUSE_SENS * scene->cameras->fov / 90;
                     vAng += (float)event.motion.yrel * deltaTime * MOUSE_SENS * scene->cameras->fov / 90;
-                        
+
                     if (vAng > (float)M_PI_2 - 0.0001f)
                         vAng = (float)M_PI_2 - 0.0001f;
                     if (vAng < (float)-M_PI_2 + 0.0001f)
@@ -240,7 +301,7 @@ int main( int argc, const char *argv[] )
                     a->target.x = sinf(hAng) * cosf(vAng);
                     a->target.y = cosf(hAng) * cosf(vAng);
                     a->target.z = sinf(-vAng);
-                    
+
                     vec3 tw;
                     addVec3(&tw, a->target, a->where);
 
@@ -260,42 +321,43 @@ int main( int argc, const char *argv[] )
                         scene->cameras->fov = 89.99f;
                     if (scene->cameras->fov <= 1.f)
                         scene->cameras->fov = 1.f;
-                        
+
                     computeProjectionMatrix(scene->cameras);
                     break;
                 }
-                    
                 case SDL_WINDOWEVENT:
                     switch (event.window.event)
                     {
-                        case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    {
+                        // Respond to window resizing
+                    setGLViewportSizeFromWindow:
                         {
-                            // Respond to window resizing
-                            setGLViewportSizeFromWindow:
-                            {
-                                // Initialized data
-                                i32 w,
-                                    h;
+                            // Initialized data
+                            int w,
+                                h;
 
-                                // Pull window data
-                                SDL_GetWindowSize(window, &w, &h);
-                                scene->cameras->fov = (float)w / h;
+                            // Pull window data
+                            SDL_GetWindowSize(window, &w, &h);
+                            scene->cameras->fov = (float)w / h;
 
-                                // Notify OpenGL of the change
-                                glViewport(0, 0, w, h);
-                            }
-                            break;
+                            // Notify OpenGL of the change
+                            glViewport(0, 0, w, h);
                         }
-                        default:
-                            break;
+                        break;
+                    }
+                    default:
+                        break;
                     }
                 default:
                     break;
+                }
             }
-        }
 
-        const u8* keyboardState = SDL_GetKeyboardState(NULL);
-        updateCameraFromInput(scene->cameras, keyboardState, deltaTime);
+            // Update camera location
+            const u8* keyboardState = SDL_GetKeyboardState(NULL);
+            updateCameraFromKeyboardInput(scene->cameras, keyboardState, deltaTime);
+        }
 
         // Clear the screen
         gClear();
@@ -313,9 +375,9 @@ int main( int argc, const char *argv[] )
         SDL_GL_SwapWindow(window);
     }
 
-
     // G10 Unloading
     {
+        //sendDisconnectCommand(server);
         destroyScene(scene);
         gExit(window, glContext);
     }

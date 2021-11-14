@@ -17,12 +17,15 @@ struct GXMaterial_s {
 };
 
 // Constructors
-GXMaterial_t *createMaterial       ( );                                            // ✅ Creates an empty material
-GXMaterial_t *loadMaterial         ( const char    path[] );                       // ✅ Loads a material from a JSON file
-GXMaterial_t *loadMaterialAsJSON   ( char         *token );                        // ✅ Loads a material from a JSON object
+GXMaterial_t *createMaterial       ( void );                                            // ✅ Creates an empty material
+GXMaterial_t *loadMaterial         ( const char    path[] );                            // ✅ Loads a material from a JSON file
+GXMaterial_t *loadMaterialAsJSON   ( char         *token );                             // ✅ Loads a material from a JSON object
 
-// Finders 
-GXMaterial_t *getMaterial          ( GXMaterial_t *materials, const char name[] ); // 
+// Getters
+GXMaterial_t *getMaterial          ( GXMaterial_t *materials, const char name[] );      // ✅ Finds a material in a list of materials
+
+// Appemders
+int           appendMaterial       ( GXMaterial_t *head     , GXMaterial_t *material ); // ✅ Appends a material to the end of a list of materials
 
 // Destructors
-int           unloadMaterial       ( GXMaterial_t *material );                     // ✅ Destroys a material
+int           unloadMaterial       ( GXMaterial_t *material );                          // ✅ Destroys a material

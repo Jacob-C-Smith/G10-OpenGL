@@ -9,7 +9,7 @@
 
 #include <G10/GXEntity.h>
 
-vec3     *summateForces         ( vec3       *forces, size_t      forceCount); // 
-int       integrateDisplacement ( GXEntity_t *entity, float       deltaTime);  // 
-bool      collision             ( GXEntity_t *a,      GXEntity_t *b );         // 
-int       resolve               ( GXEntity_t *a,      GXEntity_t *b );         // 
+vec3 *summateForces         ( vec3       *forces, size_t      forceCount); // 
+int   integrateDisplacement ( GXEntity_t *entity, float       deltaTime);  // 
+bool  collision             ( GXEntity_t *a,      GXEntity_t *b );         // 
+int   resolve               ( GXEntity_t *a,      GXEntity_t *b );         // 

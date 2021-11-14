@@ -1,6 +1,6 @@
 #include <G10/GXLight.h>
 
-GXLight_t* createLight( )
+GXLight_t *createLight     ( )
 {
     // Initialized data
     GXLight_t* ret = calloc(1,sizeof(GXLight_t));
@@ -27,7 +27,7 @@ GXLight_t* createLight( )
     return ret;
 }
 
-GXLight_t* loadLight(const char path[])
+GXLight_t *loadLight       ( const char path[] )
 {
     // Uninitialized data
     u8*        data;
@@ -38,9 +38,9 @@ GXLight_t* loadLight(const char path[])
     FILE*        f = fopen(path, "rb");
 
     // Load up the file
-    i = gLoadFile(path, 0);
+    i = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     ret = loadLightAsJSON(data);
 
@@ -54,7 +54,7 @@ GXLight_t* loadLight(const char path[])
     return ret;
 }
 
-GXLight_t* loadLightAsJSON(char* token)
+GXLight_t *loadLightAsJSON ( char      *token )
 {
     // Initialized data
     GXLight_t*   ret        = createLight();
@@ -99,7 +99,7 @@ GXLight_t* loadLightAsJSON(char* token)
     return ret;
 }
 
-int destroyLight(GXLight_t* light)
+int        destroyLight    ( GXLight_t *light )
 {
     free((void*)light->name);
 

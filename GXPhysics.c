@@ -1,6 +1,6 @@
 #include <G10/GXPhysics.h>
 
-vec3* summateForces ( vec3* forces, size_t forceCount )
+vec3* summateForces       ( vec3       *forces, size_t forceCount )
 {
     
     forces[0].x = 0.f,
@@ -19,7 +19,7 @@ vec3* summateForces ( vec3* forces, size_t forceCount )
     return forces;
 }
 
-int integrateDisplacement(GXEntity_t* entity, float deltaTime)
+int integrateDisplacement ( GXEntity_t *entity, float  deltaTime)
 {
     // Argument check
     {
@@ -74,7 +74,7 @@ int integrateDisplacement(GXEntity_t* entity, float deltaTime)
     }
 }
 
-int integrateRotation ( GXEntity_t* entity )
+int integrateRotation     ( GXEntity_t *entity )
 {
     GXRigidbody_t* rigidbody = entity->rigidbody;
     GXTransform_t* transform = entity->transform;
@@ -88,7 +88,7 @@ int integrateRotation ( GXEntity_t* entity )
     return 0;
 }
 
-bool collision(GXEntity_t* a, GXEntity_t* b)
+bool collision            ( GXEntity_t *a, GXEntity_t *b )
 {
     // Initialized data
     vec3 aLocation = a->transform->location,
@@ -135,7 +135,7 @@ bool collision(GXEntity_t* a, GXEntity_t* b)
     return false;
 }
 
-int resolve(GXEntity_t* a, GXEntity_t* b)
+int resolve               ( GXEntity_t *a, GXEntity_t *b )
 {
 
     vec3  lastAVel = a->rigidbody->velocity,

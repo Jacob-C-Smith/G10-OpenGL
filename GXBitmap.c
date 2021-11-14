@@ -1,6 +1,6 @@
 #include <G10/GXBitmap.h>
 
-GXTexture_t *loadBMPImage ( const char path[] )
+GXTexture_t *loadBMPImage ( const char path[] ) 
 {
     // Argument check
     {
@@ -19,19 +19,23 @@ GXTexture_t *loadBMPImage ( const char path[] )
     FILE        *f   = fopen(path, "rb");
 
     // Check allocated memory
-    if (ret == 0)
-        return ret;
+    #ifndef NDEBUG
+        if (ret == 0)
+            return ret;
+    #endif
 
     // Load up the file
-    i = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, true);
     data = calloc(i, sizeof(u8));
     
-    if (data == (void*)0)
-        return 0;
-
-    gLoadFile(path, data);
-
+    // Check  allocated memory
+    #ifndef NDEBUG
+        if (data == (void*)0)
+            return 0;
+    #endif
     
+    // Load the file
+    gLoadFile(path, data, true);
 
     // Fill out width and height information
     ret->width  = *(size_t*)&data[0x12];

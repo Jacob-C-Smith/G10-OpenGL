@@ -1,6 +1,6 @@
 ﻿#include <G10/GXCamera.h>
 
-mat4 perspective ( float fov, float aspect, float nearClip, float farClip)
+mat4        perspective                   ( float        fov, float       aspect,        float nearClip,  float farClip)
 {
     /*
      * Compute perspective projection, where f = fov, a = aspect, n = near, and r = far
@@ -20,7 +20,7 @@ mat4 perspective ( float fov, float aspect, float nearClip, float farClip)
     };
 }
 
-GXCamera_t* createCamera( )
+GXCamera_t *createCamera                  ( )
 {
     // Allocate space for a camera struct
     GXCamera_t* ret = calloc(1,sizeof(GXCamera_t));
@@ -43,7 +43,7 @@ GXCamera_t* createCamera( )
     }
 }
 
-GXCamera_t* loadCamera( const char* path )
+GXCamera_t *loadCamera                    ( const char  *path )
 {
     // Initialized data
     GXCamera_t *ret      = 0;
@@ -52,9 +52,9 @@ GXCamera_t* loadCamera( const char* path )
     char       *data     = 0;
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     // Load the camera from data
     ret = loadCameraAsJSON(data);
@@ -65,7 +65,7 @@ GXCamera_t* loadCamera( const char* path )
     return ret;    
 }
 
-GXCamera_t* loadCameraAsJSON( char* token )
+GXCamera_t *loadCameraAsJSON              ( char        *token )
 {
     // Initialized data
     GXCamera_t*  ret        = createCamera();
@@ -84,6 +84,15 @@ GXCamera_t* loadCameraAsJSON( char* token )
         {
             size_t len = strlen(tokens[l].content.nWhere);
             ret->name  = calloc(len+1, sizeof(u8));
+
+            // Check allocated memory
+            {
+                #ifndef NDEBUG
+                    if(ret->name == (void*)0)
+                        goto noMem;
+                #endif
+            }
+
             strncpy(ret->name, (const char*)tokens[l].content.nWhere, len);
             ret->name[len] = '\0';
             continue;
@@ -158,15 +167,24 @@ GXCamera_t* loadCameraAsJSON( char* token )
     free(tokens);
 
     return ret;
+
+    // Error handling
+    {
+        #ifndef NDEBUG
+            noMem:
+            gPrintError("[G10] [Camera] Out of memory in call to function \"%s\"\n",__FUNCSIG__);
+            return 0;
+        #endif
+    }
 }
 
-void computeProjectionMatrix ( GXCamera_t* camera )
+void        computeProjectionMatrix       ( GXCamera_t* camera )
 {
     // Compute and set the projection matrix for the camera
     camera->projection = perspective(toRadians(camera->fov), camera->aspectRatio, camera->nearClip, camera->farClip);
 }
 
-int updateCameraFromInput ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime )
+int         updateCameraFromKeyboardInput ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime )
 {
     // Argument check
     {
@@ -211,10 +229,10 @@ int updateCameraFromInput ( GXCamera_t *camera, const u8 *keyboardState, float d
     }
 
     // Uncomment for orientation coords with newline
-    //printf("( %.2f, %.2f )\n", orientation.x, orientation.y);
+    // printf("( %.2f, %.2f )\n", orientation.x, orientation.y);
     
     // Uncomment for orientation coordinates without newline. 
-    //printf("( %.2f, %.2f )\r", orientation.x, orientation.y);
+    // printf("( %.2f, %.2f )\r", orientation.x, orientation.y);
 
     // Turn orientation into acceleration
     camera->acceleration.x = 1.f * orientation.x * camera->view.a + -orientation.y * 1.f * camera->view.c,
@@ -222,7 +240,6 @@ int updateCameraFromInput ( GXCamera_t *camera, const u8 *keyboardState, float d
     
     // Air resistance
     if (camera->velocity.x || camera->velocity.y)
-    {
         if (camera->velocity.x < 0.f)
             camera->acceleration.x += 0.001f;
         else
@@ -231,7 +248,7 @@ int updateCameraFromInput ( GXCamera_t *camera, const u8 *keyboardState, float d
             camera->acceleration.y += 0.001f;
         else
             camera->acceleration.y -= 0.001f;
-    }
+
 
     // Calculate v proj a                                                                                                                                                                                                                                                                                                                                      
     float n = AVXDot(&camera->acceleration, &camera->velocity);
@@ -241,9 +258,10 @@ int updateCameraFromInput ( GXCamera_t *camera, const u8 *keyboardState, float d
     
     float cosTheta = n / (c * d);
 
-    float lenvPa = length(vec3xf(camera->acceleration, n / d));
-    float lenAdT = length(vec3xf(camera->acceleration, deltaTime));
+    float lenvPa   = length(vec3xf(camera->acceleration, n / d));
+    float lenAdT   = length(vec3xf(camera->acceleration, deltaTime));
     float speedLim = 60;
+
     if (lenvPa < speedLim - lenAdT)
     {
         camera->velocity = vec3xf(camera->acceleration, deltaTime);
@@ -279,7 +297,7 @@ int updateCameraFromInput ( GXCamera_t *camera, const u8 *keyboardState, float d
     }
 }
 
-int destroyCamera ( GXCamera_t* camera )
+int         destroyCamera                 ( GXCamera_t* camera )
 {
     // Name
     free(camera->name);

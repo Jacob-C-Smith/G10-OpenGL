@@ -2,7 +2,7 @@
 
 // TODO: Rewrite the JSON parser in assembly with SIMD string instructions.
 //       That ought to be a fun challenge.
-int GXParseJSON ( char* text, size_t len, size_t count, JSONValue_t* where )
+int GXParseJSON ( char *text, size_t len, size_t count, JSONValue_t *where )
 {
     // Initialized data.
     size_t currentWhere = 0,

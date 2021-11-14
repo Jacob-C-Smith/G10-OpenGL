@@ -17,8 +17,8 @@ GXTexture_t *loadPNGImage ( const char path[] )
     
 
     // Initialized data
-    GXTexture_t* ret = createTexture();
-    SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
+    GXTexture_t *ret = createTexture();
+    SDL_RWops   *r   = SDL_RWFromFile(path, "rb");
     
     // Check allocated memory
     if (ret == 0)

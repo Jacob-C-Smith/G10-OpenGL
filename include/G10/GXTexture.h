@@ -12,20 +12,21 @@
 struct GXTexture_s
 {
     // Name
-    char        *name;
+    char                *name;
 
     // For OpenGL
-    unsigned int textureID;
-    unsigned int textureUnitIndex;
+    unsigned int         textureID,
+                         textureUnitIndex;
 
     // Resolution
-    size_t       width;
-    size_t       height;
+    size_t               width,
+                         height;
 
     // Color depth
-    size_t       bitsPerPixel;
+    size_t               bitsPerPixel;
 
-    u8           cubemap;
+    u8                   cubemap;
+    struct GXTexture_s  *next;
 };
 
 // Keeps track of what textures are being used by the GPU
@@ -38,11 +39,11 @@ typedef struct GXTextureUnit_s GXTextureUnit_t;
 
 
 // Constructors
-GXTexture_t *createTexture            ( );                    // ✅ Creates an empty texture
+GXTexture_t *createTexture            ( void );               // ✅ Creates an empty texture
 GXTexture_t *loadTexture              ( const char path[] );  // ✅ Loads a texture from the disk
 
 // Texture streaming
-unsigned int loadTextureToTextureUnit ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit
+unsigned int bindTextureToUnit ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit
 
 // Destructors
 int          unloadTexture            ( GXTexture_t *image ); // ✅ Unloads a texture and all of its contents

@@ -8,5 +8,5 @@
 
 int  createSplashscreen  ( const char *forePath, const char *backPath );
 void moveFront           ( int         x,        int         y );
-void renderTextures      ( );
-int  destroySplashscreen ( );
+void renderTextures      ( void );
+int  destroySplashscreen ( void );

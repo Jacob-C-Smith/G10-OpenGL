@@ -1,6 +1,6 @@
 ﻿#include <G10/GXPLY.h>
 
-GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
+GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
     
     // Commentary
     {
@@ -101,9 +101,9 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
     GXPLYfile_t   *plyFile            = calloc(1, sizeof(GXPLYfile_t));
 
     // Load the file
-    i = gLoadFile(path, 0);
+    i = gLoadFile(path, 0, true);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, true);
 
     i ^= i;
 
@@ -425,30 +425,31 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
             goto processVAO;
     }
     processVAO:
-    while (strncmp(&data[++i], "end_header", 10));
-    i += 11;
+    data = cData+11;
 
     // Here we set a few variables
-    vertexArray            = (float*)&data[i];
+    vertexArray            = (float*)data;
     verticesInBuffer       = plyFile->elements[0].nCount * plyFile->elements[0].sStride;
-    indices                = (void*)&data[i + verticesInBuffer];
+    indices                = (void*)&data[verticesInBuffer];
     part->elementsInBuffer = ((GLuint)plyFile->elements[1].nCount * (GLuint)3);
 
-    correctedIndicies      = calloc((size_t)part->elementsInBuffer+2, sizeof(float));
+    correctedIndicies      = calloc((size_t)part->elementsInBuffer, sizeof(u32));
 
     if (correctedIndicies == (void*)0)
         return (void*)0;
     
     size_t indcnt = 0;
-
+        
     // Fixes the indices
     for (i = 0; i < plyFile->elements[1].nCount; i++)
     {
-        correctedIndicies[i * 3 + 0] = indices[i].a;
-        correctedIndicies[i * 3 + 1] = indices[i].b;
-        correctedIndicies[i * 3 + 2] = indices[i].c;
+        correctedIndicies[(i * 3) + 0] = indices[i].a;
+        correctedIndicies[(i * 3) + 1] = indices[i].b;
+        correctedIndicies[(i * 3) + 2] = indices[i].c;
         #ifndef NDEBUG
-            indcnt += indices[0].count;
+            indcnt += indices[i].count;
+            if (!(indices[i].a < indices[i].b < indices[i].c))
+                gPrintWarning("[G10] [PLY] Irregular indices detected in face < %d %d %d >\n", indices[i].a, indices[i].b, indices[i].c);
         #endif
     }
 
@@ -498,7 +499,7 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
 
         case GXPLY_Bones:
         case GXPLY_Weights:
-            glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
+            glVertexAttribPointer(i, 4, GL_UNSIGNED_INT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
             vertexAttribOffset += 4;
             glEnableVertexAttribArray(i);
             break;
@@ -546,8 +547,8 @@ GXPart_t* loadPLY( const char path[], GXPart_t *part ) {
         free(plyFile);
     }
 
-    free(correctedIndicies);
-    free(data);
+    //free(correctedIndicies);
+    //free(data);
 
     // Count up properties
     return part;

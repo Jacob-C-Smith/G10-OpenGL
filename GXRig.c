@@ -1,37 +1,55 @@
 #include <G10/GXRig.h>
 
-GXRig_t* createRig()
+GXRig_t  *createRig          ( )
 {
     GXRig_t* ret = calloc(1,sizeof(GXBone_t));
 
-    ret->name    = (char*)0;
-    ret->bones   = (GXBone_t*)0;
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Camera] Out of memory.\n");
+        #endif
+        return 0;
+    }
 }
 
-GXBone_t* createBone ( )
+GXBone_t *createBone         ( )
 {
     // Allocate space
 	GXBone_t* ret       = calloc(1,sizeof(GXBone_t));
-	
-    // Zero set everything
-    ret->name           = (void*)0;
+    
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     ret->head           = calloc(1,sizeof(vec3));
     ret->tail           = calloc(1,sizeof(vec3));
     ret->transformation = calloc(1,sizeof(mat4));
     
-    ret->connected      = false;
-
-    ret->children       = 0;	
-
-    ret->next           = 0;
-    
     return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Camera] Out of memory.\n");
+        #endif
+        return 0;
+    }
 }
 
-GXRig_t* loadRig(const char* path)
+GXRig_t  *loadRig            ( const char *path )
 {
     // Argument Check
     {
@@ -50,9 +68,9 @@ GXRig_t* loadRig(const char* path)
     FILE        *f = fopen(path, "rb");
 
     // Load the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
     
     ret = loadRigAsJSON(data);
 
@@ -61,7 +79,7 @@ GXRig_t* loadRig(const char* path)
     return ret;
 }
 
-GXRig_t* loadRigAsJSON(char* token)
+GXRig_t  *loadRigAsJSON      ( char       *token )
 {
     // Argument check
     {
@@ -133,7 +151,7 @@ GXRig_t* loadRigAsJSON(char* token)
     }
 }
 
-GXBone_t* loadArmiture(const char* path)
+GXBone_t *loadArmiture       ( const char *path )
 {
     // Argument Check
     {
@@ -153,14 +171,14 @@ GXBone_t* loadArmiture(const char* path)
     FILE*     f   = fopen(path, "rb");
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     return loadRigAsJSON(data);
 }
 
-GXBone_t* loadArmitureAsJSON(char* token)
+GXBone_t *loadArmitureAsJSON ( char       *token)
 {
     // Argument check
     {
@@ -252,7 +270,7 @@ GXBone_t* loadArmitureAsJSON(char* token)
     }
 }
 
-GXBone_t* findBone(GXRig_t* rig,  char* name)
+GXBone_t *findBone           ( GXRig_t    *rig,  char *name)
 {
     // TODO: Argument check
     {
@@ -299,7 +317,7 @@ GXBone_t* findBone(GXRig_t* rig,  char* name)
     }
 }
 
-GXBone_t* searchBone(GXBone_t* bone, char* name, size_t searchDepth)
+GXBone_t *searchBone         ( GXBone_t   *bone, char *name, size_t searchDepth)
 {
     // Create a pointer to the head of the list
     GXBone_t* i = bone;
@@ -342,7 +360,7 @@ GXBone_t* searchBone(GXBone_t* bone, char* name, size_t searchDepth)
     }
 }
 
-int printRig ( GXBone_t* bone )
+int       printRig           ( GXBone_t   *bone )
 {
     // Initialized data
     static int indent = -PRINT_INDENT;
@@ -368,17 +386,17 @@ int printRig ( GXBone_t* bone )
     indent -= PRINT_INDENT;
 }
 
-GXBone_t* removeBone(GXRig_t* rig, GXBone_t* bone)
+GXBone_t *removeBone         ( GXRig_t    *rig,  GXBone_t *bone)
 {
     return bone;
 }
 
-int destroyRig(GXRig_t* rig)
+int       destroyRig         ( GXRig_t    *rig)
 {
     return 0;
 }
 
-int destroyBone(GXBone_t* bone)
+int       destroyBone        ( GXBone_t   *bone)
 {
 	return 0;
 }

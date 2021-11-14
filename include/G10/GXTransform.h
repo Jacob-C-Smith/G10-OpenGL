@@ -20,17 +20,19 @@ struct GXTransform_s
                scale;
     quaternion rotation;
 
-    mat4 modelMatrix;
+    mat4       modelMatrix;
 };
 #pragma pack (pop)
 
 
 // Constructors
-GXTransform_t *createTransform     ( vec3           location, quaternion rotation, vec3 scale ); // ✅ Creates a transform from location, rotation, and scale
+GXTransform_t *createTransform       ( vec3           location , quaternion rotation, vec3 scale ); // ✅ Creates a transform from location, rotation, and scale
 
 // Loaders
-GXTransform_t *loadTransform       ( const char     path[] );
-GXTransform_t *loadTransformAsJSON ( char          *token );
+GXTransform_t *loadTransform         ( const char     path[] );
+GXTransform_t *loadTransformAsJSON   ( char          *token );
+
+int            rotateAboutQuaternion ( GXTransform_t *transform, quaternion axis    , float theta );
 
 // Destructors
-int            destroyTransform    ( GXTransform_t *transform );                             // ✅ Destroys a transform
+int            destroyTransform      ( GXTransform_t *transform );                             // ✅ Destroys a transform

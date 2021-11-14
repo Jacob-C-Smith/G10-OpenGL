@@ -2,26 +2,30 @@
 
 GXTexture_t *missingTexture;
 
-GXMaterial_t* createMaterial ( )
+GXMaterial_t *createMaterial     ( )
 {
     // Initialized data
     GXMaterial_t* ret = calloc(1,sizeof(GXMaterial_t));
 
-    // Check allocated memory
-    if (ret == NULL)
-        return ret;
-
-    // Zero set the textures
-    ret->albedo = (void*)0;
-    ret->normal = (void*)0;
-    ret->rough  = (void*)0;
-    ret->metal  = (void*)0;
-    ret->AO     = (void*)0;
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Material] Out of memory.\n");
+        #endif
+        return 0;
+    }
 }
 
-GXMaterial_t* loadMaterial ( const char path[] )
+GXMaterial_t *loadMaterial       ( const char     path[] )
 {
     // Argument check
     {
@@ -46,9 +50,9 @@ GXMaterial_t* loadMaterial ( const char path[] )
     #endif
 
     // Load up the file
-    i = gLoadFile(path, 0);
+    i = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     ret = loadMaterialAsJSON(data);
 
@@ -67,7 +71,7 @@ GXMaterial_t* loadMaterial ( const char path[] )
     }
 }
 
-GXMaterial_t* loadMaterialAsJSON(char* token)
+GXMaterial_t *loadMaterialAsJSON ( char         *token)
 {
     // Uninitialized data
     size_t        len,
@@ -138,7 +142,7 @@ GXMaterial_t* loadMaterialAsJSON(char* token)
     return ret;
 }
 
-GXMaterial_t* getMaterial( GXMaterial_t *materials, const char name[] )
+GXMaterial_t *getMaterial        ( GXMaterial_t *materials, const char name[] )
 {
     // Argument checking
     {
@@ -200,7 +204,66 @@ GXMaterial_t* getMaterial( GXMaterial_t *materials, const char name[] )
     }
 }
 
-int unloadMaterial ( GXMaterial_t* material )
+int           appendMaterial     ( GXMaterial_t *head     , GXMaterial_t *material )
+{
+    // Argument checking
+    {
+        #ifndef NDEBUG
+            if(material == 0)
+                goto nullMaterial;
+        #endif
+    }
+
+    // Set the pointer to the head of the linked list
+    GXMaterial_t* i = head;
+
+    // Check if the head is null. If so, set the head to the mesh
+    if (i == 0)
+    {
+        head = material;
+        return 0;
+    }
+
+    // Search for the end of the linked list, and check every material 
+    while (i->next)
+    {
+        // Error checking
+        if (strcmp(i->name, material->name) == 0)
+            goto duplicateName;
+        i = i->next;
+    }
+
+    // Assign next as entity
+    i->next = material;
+
+    return 0;
+
+    // Error handling
+    {
+        // Two materials with the same name cannot exist in the same list
+        duplicateName:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Material] Material \"%s\" can not be appended because a material with that name already exists\n", material->name);
+        #endif
+        return 0;
+
+        // The head argument was null
+        nullHead:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Material] Null pointer provided for \"head\" in function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+
+        // The material argument was null
+        nullMaterial:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Material] Null pointer provided for \"part\" in function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
+}
+
+int           unloadMaterial     ( GXMaterial_t *material )
 {
     // Unload all of the textures
     unloadTexture(material->albedo);

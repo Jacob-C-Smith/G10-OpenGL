@@ -22,7 +22,7 @@ struct GXLight_s
     struct GXLight_s *next;     // The next light in the list
 };
 
-GXLight_t *createLight     (  );                    // ✅ Creates a blank light 
+GXLight_t *createLight     ( void );                // ✅ Creates a blank light 
 
 GXLight_t *loadLight       ( const char  path [] ); // ✅ Loads a light from a JSON file
 GXLight_t *loadLightAsJSON ( char       *token   ); // ✅ Loads a light from a JSON object

@@ -33,22 +33,29 @@ struct GXvec4_s {
 typedef struct GXvec4_s vec4;
 typedef struct GXvec4_s vec3;
 
+// 2x2 matrix
+struct GXmat2_s {
+    float a, b,
+          c, d;
+};
+typedef struct GXmat2_s mat2;
+
 // 4x4 matrix
 struct GXmat4_s {
-    float a, b, c, d;
-    float e, f, g, h;
-    float i, j, k, l;
-    float m, n, o, p;
+    float a, b, c, d,
+          e, f, g, h,
+          i, j, k, l,
+          m, n, o, p;
 };
 typedef struct GXmat4_s mat4;
 
 // Quaternion
 struct quaternion_s
 {
-    float u;
-    float i;
-    float j;
-    float k;
+    float u,
+          i,
+          j,
+          k;
 };
 typedef struct quaternion_s quaternion;
 
@@ -111,14 +118,18 @@ typedef struct GXCollider_s GXCollider_t;
 struct JSONValue_s;
 typedef struct JSONValue_s JSONValue_t;
 
-struct GXProp_s;
-typedef struct GXProp_s GXProp_t;
-
+// Armature
 struct GXRig_s;
 typedef struct GXRig_s GXRig_t;
 
+// Bone
 struct GXBone_s;
 typedef struct GXBone_s GXBone_t;
 
+// Server
 struct GXServer_s;
 typedef struct GXServer_s GXServer_t;
+
+// Bounding volume
+struct GXBV_s;
+typedef struct GXBV_s GXBV_t;

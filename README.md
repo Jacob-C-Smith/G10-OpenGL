@@ -280,7 +280,7 @@ GXTexture_t *createTexture            ( );                    // ✅ Creates an 
 GXTexture_t *loadTexture              ( const char path[] );  // ✅ Loads a texture from the disk
 
 // Texture streaming
-unsigned int loadTextureToTextureUnit ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit
+unsigned int bindTextureToUnit ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit
 
 // Destructors
 int          unloadTexture            ( GXTexture_t *image ); // ✅ Unloads a texture and all of its contents

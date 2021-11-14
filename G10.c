@@ -1,6 +1,6 @@
 #include <G10/G10.h>
 
-int gInit( SDL_Window **window, SDL_GLContext *glContext )
+int    gInit         ( SDL_Window      **window, SDL_GLContext *glContext )
 {
     // Argument Check
     {
@@ -18,7 +18,6 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
 
     // SDL + GLAD Initialization
     {
-
         // Initialize SDL
         if (SDL_Init(SDL_INIT_EVERYTHING))
             goto noSDL;
@@ -57,6 +56,11 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
         if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
             goto gladFailed;
 
+        #ifndef NDEBUG
+            if (lGlContext == (void*)0)
+                goto nullGLContext;
+        #endif
+
         // Enable VSync
         SDL_GL_SetSwapInterval(1);
 
@@ -67,9 +71,13 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
         {
             // Enable depth testing and anti aliasing
             glEnable(GL_DEPTH_TEST);
+            glEnable(GL_DEBUG_OUTPUT);
             glDepthFunc(GL_LEQUAL);
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+            glFrontFace(GL_CW);
             glEnable(GL_MULTISAMPLE);
-            
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
             // Initialize the active texture block
             {
@@ -97,7 +105,7 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
         // Load a missing texture texture
         {
             extern GXTexture_t* missingTexture;
-            missingTexture = loadTexture("G10/missingTexture.png");
+            missingTexture = loadTexture("G10/missing texture.png");
         }
     }
 
@@ -166,7 +174,7 @@ int gInit( SDL_Window **window, SDL_GLContext *glContext )
     }
 }
 
-size_t gLoadFile(const char* path, void* buffer)
+size_t gLoadFile     ( const char       *path,   void          *buffer   , bool binaryMode )
 {
     // Argument checking 
     {
@@ -178,7 +186,7 @@ size_t gLoadFile(const char* path, void* buffer)
 
     // Initialized data
     size_t  ret = 0;
-    FILE   *f   = fopen(path, "r");
+    FILE   *f   = fopen(path, (binaryMode) ? "rb" : "r");
     
     // Check if file is valid
     if (f == NULL)
@@ -214,7 +222,7 @@ size_t gLoadFile(const char* path, void* buffer)
     }
 }
 
-int gPrintError( const char* const format, ... )
+int    gPrintError   ( const char *const format, ... )
 {
     // We use the varadic argument list in vprintf
     va_list aList;
@@ -231,7 +239,7 @@ int gPrintError( const char* const format, ... )
     return 0;
 }
 
-int gPrintWarning(const char* const format, ...)
+int    gPrintWarning ( const char *const format, ... )
 {
     // We use the varadic argument list in vprintf
     va_list aList;
@@ -248,7 +256,7 @@ int gPrintWarning(const char* const format, ...)
     return 0;
 }
 
-int gPrintLog ( const char* const format, ... )
+int    gPrintLog     ( const char *const format, ... )
 {
     // We use the varadic argument list in vprintf
     va_list aList;
@@ -261,16 +269,26 @@ int gPrintLog ( const char* const format, ... )
     printf("\033[0m");
 
     va_end(aList);
+    va_end(aList);
 
     return 0;
 }
 
-int gClear ( )
+int    gClear        ( void ) 
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-int gExit( SDL_Window* window, SDL_GLContext  glContext )
+u8 gChecksum(u8* data, size_t len)
+{
+    u8 ret = 0;
+    for (size_t i = 0; i < len; i++)
+        ret += data[i];
+
+    return ~ret;
+}
+
+int    gExit         ( SDL_Window       *window, SDL_GLContext  glContext )
 {
     // SDL Deinitialization
     {

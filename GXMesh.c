@@ -2,27 +2,30 @@
 
 #include <G10/GXPLY.h>
 
-
-GXPart_t* createPart( )
+GXPart_t *createPart     ( )
 {
     // Initialized data
     GXPart_t* ret = calloc(1,sizeof(GXPart_t));
 
-    // Check allocated memory
-    if (ret == 0)
-        return ret;
-
-    // Set vertex arrays, vertex buffers, and element buffers to 0
-    ret->vertexArray      = 0;
-    ret->vertexBuffer     = 0;
-    ret->elementBuffer    = 0;
-    ret->elementsInBuffer = 0;
-    ret->next             = 0;
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Part] Out of memory.\n");
+        #endif
+        return 0;
+    }
 }
 
-GXPart_t* loadPart ( const char path[] )
+GXPart_t *loadPart       ( const char path[] )
 {
     // Uninitialized data
     GXPart_t    *ret;
@@ -36,9 +39,9 @@ GXPart_t* loadPart ( const char path[] )
     FILE*     f   = fopen(path, "rb");
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     ret = loadPartAsJSON(data);
 
@@ -47,11 +50,8 @@ GXPart_t* loadPart ( const char path[] )
     return ret;
 }
 
-GXPart_t* loadPartAsJSON ( char* token )
+GXPart_t *loadPartAsJSON ( char      *token )
 {
-    // TODO: Create a mesh JSON schematic
-    // TODO: Load as JSON
-
     // Argument check
     {
         #ifndef NDEBUG
@@ -61,12 +61,12 @@ GXPart_t* loadPartAsJSON ( char* token )
     }
 
     // Initialized data
-    GXPart_t*    ret        = createPart();
-    size_t       len        = strlen(token);
-    size_t       tokenCount = GXParseJSON(token, len, 0, (void*)0);
-    JSONValue_t* tokens     = calloc(tokenCount, sizeof(JSONValue_t));
+    GXPart_t    *ret        = createPart();
+    size_t       len        = strlen(token),
+                 tokenCount = GXParseJSON(token, len, 0, (void*)0);
+    JSONValue_t *tokens     = calloc(tokenCount, sizeof(JSONValue_t));
 
-    // Parse the camera object
+    // Parse the part object
     GXParseJSON(token, len, tokenCount, tokens);
 
     // Search through values and pull out relevent information
@@ -86,22 +86,18 @@ GXPart_t* loadPartAsJSON ( char* token )
             continue;
         }
 
-        // Process comment
-        else if (strcmp("comment", tokens[j].name) == 0)
-        {
-
-        }
-
         // Load from a path
         else if (strncmp("path", tokens[j].name,4) == 0)
         {
-            loadPLY(tokens[j].content.nWhere,ret);
+            loadPLY(tokens[j].content.nWhere, ret);
         }
 
         // Set material
         else if (strncmp("material", tokens[j].name,8) == 0)
         {
-            ret->material = (*(char*)tokens[j].content.nWhere=='{') ? loadMaterialAsJSON(tokens[j].content.nWhere) : loadMaterial(tokens[j].content.nWhere); 
+            size_t len = strlen(tokens[j].content.nWhere);
+            ret->material = calloc(1, len+1);
+            strncpy(ret->material, tokens[j].content.nWhere, len);
         }
     }
 
@@ -114,16 +110,14 @@ GXPart_t* loadPartAsJSON ( char* token )
     // Error handling
     {
         noToken:
-        
+        // TODO
         
             return 0;
-            // TODO
+            
     }
-    
-    return ret;
 }
 
-GXPart_t* getPart ( GXPart_t* head, const char name[] )
+GXPart_t *getPart        ( GXPart_t  *head, const char name[] )
 {
     // Argument checking
     {
@@ -176,7 +170,7 @@ GXPart_t* getPart ( GXPart_t* head, const char name[] )
     }
 }
 
-int appendPart ( GXPart_t* head, GXPart_t* part )
+int       appendPart     ( GXPart_t  *head, GXPart_t  *part )
 {
     // Argument checking
     {
@@ -235,7 +229,7 @@ int appendPart ( GXPart_t* head, GXPart_t* part )
     }
 }
 
-int drawPart ( GXPart_t* part )
+int       drawPart       ( GXPart_t  *part )
 {
     // Argument check
     {
@@ -259,8 +253,8 @@ int drawPart ( GXPart_t* part )
         return 0;
     }
 }
-
-GXPart_t *removePart( GXPart_t* head, const char name[] )
+ 
+GXPart_t *removePart     ( GXPart_t  *head, const char name[] )
 {
     // Argument check
     {
@@ -333,7 +327,7 @@ GXPart_t *removePart( GXPart_t* head, const char name[] )
     }
 }
 
-int destroyPart( GXPart_t* part )
+int       destroyPart    ( GXPart_t  *part )
 {
     // Argument check
     {

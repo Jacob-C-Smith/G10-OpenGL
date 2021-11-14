@@ -45,7 +45,7 @@ struct GXShader_s
 
 
 // Constructors
-GXShader_t        *createShader       ( );                                                                                      // ✅ Creates an empty shader.
+GXShader_t        *createShader       ( void );                                                                                 // ✅ Creates an empty shader.
 GXShader_t        *loadShader         ( const char  path[] );                                                                   // ✅ Load a shader from a JSON file.
 GXShader_t        *loadShaderAsJSON   ( char       *token );                                                                    // ✅ Load a shader from a JSON token.
 
@@ -67,7 +67,8 @@ void               setShaderMat4      ( GXShader_t *shader, const char       *na
 void               setShaderTexture   ( GXShader_t *shader, const char       *name,   GXTexture_t         *texture );           // ✅ Replaces a 4x4 matrix uniform
 void               setShaderTransform ( GXShader_t *shader, GXTransform_t    *transform );
 void               setShaderCamera    ( GXShader_t *shader, GXCamera_t       *camera );                                         // ✅ Replaces a 4x4 matrix uniform
-void               setCameraLights    ( GXShader_t *shader, GXLight_t        *light );                                          // ✅ Replaces a 4x4 matrix uniform
+void               setShaderLights    ( GXShader_t *shader, GXLight_t        *lights, size_t               numLights );         // ✅ Replaces a 4x4 matrix uniform
+void               setShaderMaterial  ( GXShader_t* shader, GXMaterial_t     *material );
 
 // Destructors
 int                unloadShader       ( GXShader_t *shader );                                                                   // ✅ Unloads a shader and deletes all its contents

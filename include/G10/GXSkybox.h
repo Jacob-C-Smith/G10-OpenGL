@@ -28,7 +28,7 @@ struct GXSkybox_s
                  renderbuffer;
 };
 
-GXSkybox_t *createSkybox     (  );                                        // ❌ Creates an empty skybox
+GXSkybox_t *createSkybox     ( void );                                    // ❌ Creates an empty skybox
 
 GXSkybox_t *loadSkybox       ( const char  path[] );                      // ❌ Loads a skybox from a file
 GXSkybox_t *loadSkyboxAsJSON ( char       *token );                       // ✅ Loads a skybox from a JSON token

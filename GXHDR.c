@@ -1,13 +1,13 @@
 #include <G10/GXHDR.h>
 
-float convertComponent(int expo, int val)
+float        convertComponent  ( int        expo,     int val )
 {
     float v = val / 256.0f;
     float d = (float)pow(2, expo);
     return v * d;
 }
 
-void rgbeToFloats(RGBE* scan, int len, float* cols)
+void         rgbeToFloats      ( RGBE      *scan,     int len, float *cols )
 {
     while (len-- > 0) {
         int expo = scan[0][3] - 128;
@@ -19,8 +19,7 @@ void rgbeToFloats(RGBE* scan, int len, float* cols)
     }
 }
 
-
-bool decodeScanline(RGBE* scanline, int len, FILE* file)
+bool         decodeScanline    ( RGBE      *scanline, int len, FILE  *file )
 {
     int i;
     int rshift = 0;
@@ -52,7 +51,7 @@ bool decodeScanline(RGBE* scanline, int len, FILE* file)
     return true;
 }
 
-bool decodeRLEScanline(RGBE* scanline, int len, FILE* file)
+bool         decodeRLEScanline ( RGBE      *scanline, int len, FILE  *file )
 {
     int  i, j;
 
@@ -95,11 +94,7 @@ bool decodeRLEScanline(RGBE* scanline, int len, FILE* file)
     return feof(file) ? false : true;
 }
 
-
-
-
-
-GXTexture_t* loadHDR( const char path[] )
+GXTexture_t *loadHDR           ( const char path[] )
 {
 	// Argument checking
 	{
@@ -126,9 +121,9 @@ GXTexture_t* loadHDR( const char path[] )
         return ret;
 
     // Load up the file
-    i = gLoadFile(path, 0);
+    i = gLoadFile(path, 0, true);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, true);
 
     cData = data;
     if (strncmp(cData, "#?RADIANCE",10) != 0)

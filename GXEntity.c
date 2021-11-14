@@ -1,49 +1,29 @@
 #include <G10/GXEntity.h>
 
-GXEntity_t* createEntity ( )
+GXEntity_t *createEntity     ( )
 {
     // Allocate space
     GXEntity_t* ret = calloc(1,sizeof(GXEntity_t)); 
-
-    // Check if valid
-    if (ret == 0)
-        return ret;
-
-    // Initialize to nullptr
-    ret->name      = (void*)0;
-    ret->parts     = (void*)0;
-    ret->shader    = (void*)0;
-    ret->transform = (void*)0;
-    ret->rigidbody = (void*)0;
-    ret->collider  = (void*)0;
-
-    ret->next      = (void*)0;
+    
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     return ret;
-}
 
-int drawEntity ( GXEntity_t* entity )
-{
-    // Assign the material
-    //assignMaterial(entity->material, entity->shader);
-
-    // Draw the mesh
-    GXPart_t* i = entity->parts;
-
-    // Draw the entire entity
-    while (i)
+    // Error handling
     {
-        setShaderTransform(entity->shader, entity->transform);
-        //assignMaterial(i->material, entity->shader);
-
-        drawPart(i);
-        i = i->next;
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Entity] Out of memory.\n");
+        #endif
+        return 0;
     }
-
-    return 0;
 }
 
-GXEntity_t* loadEntity ( const char path[] )
+GXEntity_t *loadEntity       ( const char path[] )
 {
     // Uninitialized data
     u8         *data;
@@ -51,16 +31,15 @@ GXEntity_t* loadEntity ( const char path[] )
 
     // Initialized data
     size_t      i   = 0;
-    FILE       *f   = fopen(path, "rb");
 
     #ifndef NDEBUG
         gPrintLog("[G10] [Entity] Loading \"%s\".\n", (char*)path);
     #endif	
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     ret  = loadEntityAsJSON(data);
 
@@ -68,22 +47,26 @@ GXEntity_t* loadEntity ( const char path[] )
     free(data);
 
     return ret;
-    invalidFile:
-        #ifndef NDEBUG
-            gPrintError("[G10] [Entity] Failed to load file %s\n", path);
-        #endif
-    return 0;
+
+    // Error handling
+    {
+        invalidFile:
+            #ifndef NDEBUG
+                gPrintError("[G10] [Entity] Failed to load file %s\n", path);
+            #endif
+        return 0;
+    }
 }
 
-GXEntity_t* loadEntityAsJSON ( char* token )
+GXEntity_t *loadEntityAsJSON ( char* token )
 {
     // Initialized data
-    GXEntity_t*  ret        = createEntity();
-    size_t       len        = strlen(token);
-    size_t       tokenCount = GXParseJSON(token, len, 0, (void*)0);
-    JSONValue_t* tokens     = calloc(tokenCount, sizeof(JSONValue_t));
+    GXEntity_t  *ret        = createEntity();
+    size_t       len        = strlen(token),
+                 tokenCount = GXParseJSON(token, len, 0, (void*)0);
+    JSONValue_t *tokens     = calloc(tokenCount, sizeof(JSONValue_t));
 
-    // Parse the camera object
+    // Parse the entity object
     GXParseJSON(token, len, tokenCount, tokens);
 
     // Search through values and pull out relevent information
@@ -96,14 +79,6 @@ GXEntity_t* loadEntityAsJSON ( char* token )
                 // Print out comment
                 gPrintLog("[G10] [Entity] Comment: \"%s\"\n", (char*)tokens[j].content.nWhere);
             #endif
-            continue;
-        }
-
-        // Set flags
-        else if (strcmp("flags", tokens[j].name) == 0)
-        {
-            // TODO: If flags are set, then we will use the provided flags. If flags are not set,
-            // we will detect what flags can be set automatically
             continue;
         }
 
@@ -135,10 +110,19 @@ GXEntity_t* loadEntityAsJSON ( char* token )
         // Process a shader
         else if (strcmp("shader", tokens[j].name) == 0)
         {
-            // TODO: Test inline shader
             ret->shader = (*(char*)tokens[j].content.nWhere == '{') ? loadShaderAsJSON((const char*)tokens[j].content.nWhere) : loadShader(tokens[j].content.nWhere);
 
             continue;
+        }
+
+        // Process materials
+        else if (strcmp("materials", tokens[j].name) == 0)
+        {
+            ret->materials = (*(char*)tokens[j].content.aWhere[0] == '{') ? loadMaterialAsJSON((const char*)tokens[j].content.aWhere[0]) : loadMaterial(tokens[j].content.aWhere[0]);
+
+            for (size_t k = 1; tokens[j].content.aWhere[k]; k++)
+                appendMaterial(ret->materials, (*(char*)tokens[j].content.aWhere[k] == '{') ? loadMaterialAsJSON((const char*)tokens[j].content.aWhere[k]) : loadMaterial(tokens[j].content.aWhere[k]));
+
         }
 
         // Process a transform
@@ -170,12 +154,29 @@ GXEntity_t* loadEntityAsJSON ( char* token )
 
     free(tokens);
 
-    ret->next   = 0;
-
     return ret;
 }
 
-int destroyEntity ( GXEntity_t* entity )
+int         drawEntity       ( GXEntity_t* entity)
+{
+    // Draw the parts
+    GXPart_t *i = entity->parts;
+
+    // Draw the entire entity
+    while (i)
+    {
+        entity->transform->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(entity->transform->rotation), translationScaleMat(entity->transform->location, entity->transform->scale));
+        setShaderTransform(entity->shader, entity->transform);
+        setShaderMaterial(entity->shader, getMaterial(entity->materials, i->material));
+
+        drawPart(i);
+        i = i->next;
+    }
+
+    return 0;
+}
+
+int         destroyEntity    ( GXEntity_t* entity )
 {
     // TODO: Use destructors functions
 

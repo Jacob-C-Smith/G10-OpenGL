@@ -7,22 +7,33 @@
 
 GXTextureUnit_t* activeTextures;
 
-GXTexture_t* createTexture ( )
+GXTexture_t *createTexture                ( )
 {
 	GXTexture_t* ret = calloc(1,sizeof(GXTexture_t));
-	if (ret == 0)
-		return ret;
 
-	ret->width              = 0,
-	ret->height             = 0,
-	ret->bitsPerPixel       = 0,
-	ret->textureID          = 0;
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
+
 	ret->textureUnitIndex   = -1; // Textures start out not being mapped
+
+    return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Texture] Out of memory.\n");
+        #endif
+        return 0;
+    }
 	
 	return ret;
 }
 
-GXTexture_t* loadTexture ( const char path[] )
+GXTexture_t *loadTexture                  ( const char   path[] )
 {
 	// Initialized data
 	char*        fileExtension = 1+strrchr(path, '.');
@@ -52,7 +63,7 @@ GXTexture_t* loadTexture ( const char path[] )
 	return ret;
 }
 
-unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
+unsigned int bindTextureToUnit     ( GXTexture_t *image )
 {
 	// Argument checking
 	{
@@ -70,7 +81,7 @@ unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
 	if(image->textureUnitIndex != -1)
 		return image->textureUnitIndex;
 
-	for (size_t i = 0; i < activeTextures->activeTextureCount; i++)
+	for (size_t i = 3; i < activeTextures->activeTextureCount; i++)
 	{
 		// Check if the active texture unit in the block is not allocated
 		if (activeTextures->activeTextureBlock[i] == 0)
@@ -101,14 +112,13 @@ unsigned int loadTextureToTextureUnit ( GXTexture_t* image )
 
 }
 
-unsigned int removeTextureFromTextureUnit(size_t index)
+unsigned int removeTextureFromTextureUnit ( size_t       index )
 {
 	activeTextures->activeTextureBlock[index] = 0;
 	return 0;
 }
 
-
-int unloadTexture ( GXTexture_t* image )
+int          unloadTexture                ( GXTexture_t *image )
 {
 	// Invalidate width, height.
 	image->width  = 0,
@@ -123,4 +133,3 @@ int unloadTexture ( GXTexture_t* image )
 
 	return 0;
 }
-

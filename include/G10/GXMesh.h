@@ -16,30 +16,31 @@
 struct GXPart_s
 {
     // Name
-    char               *name;
+    char            *name;
 
     // Material
-    size_t              materialSlot; 
-    GXMaterial_t       *material;
-    GXTransform_t      *transform;    // Local transform
+    const char      *material;
+
+    // Local transform
+    GXTransform_t   *transform;    
 
     // Vertex groups
-    size_t              vertexGroups;
+    size_t           vertexGroups;
 
     // Array
-    GLuint              vertexArray;
+    GLuint           vertexArray;
 
     // Geometric vertecies
-    GLuint              vertexBuffer;
-    GLuint              elementBuffer;
+    GLuint           vertexBuffer;
+    GLuint           elementBuffer;
 
-    GLuint              elementsInBuffer;
+    GLuint           elementsInBuffer;
 
-    struct GXPart_s    *next;
+    struct GXPart_s *next;
 };
 
 // Constructors
-GXPart_t    *createPart       ( );                                        // ✅ Creates an empty part
+GXPart_t    *createPart       ( void );                                   // ✅ Creates an empty part
 
 // Loaders
 GXPart_t    *loadPart         ( const char   path[] );                    // ✅ Loads a part from the disk

@@ -30,7 +30,7 @@ struct GXEntity_s
     struct GXEntity_s *next;      // Points to the next entity.
 };
 
-GXEntity_t* createEntity     ( );                                          // ✅ Creates an entity, assigns flags, and returns pointer to it
+GXEntity_t* createEntity     ( void );                                     // ✅ Creates an entity, assigns flags, and returns pointer to it
 
 GXEntity_t* loadEntity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
 GXEntity_t* loadEntityAsJSON ( char       *token  );                       // ✅ Loads an entity as a JSON object

@@ -1,13 +1,28 @@
 #include <G10/GXShader.h>
 
-GXShader_t* createShader()
+GXShader_t  *createShader       ( )
 {
     GXShader_t* ret = calloc(1, sizeof(GXShader_t));
+    
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Shader] Out of memory.\n");
+        #endif
+        return 0;
+    }
 }
 
-GXShader_t* loadShader(const char path[])
+GXShader_t  *loadShader         ( const char   path[])
 {
     // Uninitialized data
     size_t       i;
@@ -22,9 +37,9 @@ GXShader_t* loadShader(const char path[])
 
 
     // Load the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     ret = loadShaderAsJSON(data);
 
@@ -45,7 +60,7 @@ GXShader_t* loadShader(const char path[])
     }
 }
 
-GXShader_t* loadShaderAsJSON(char* token)
+GXShader_t  *loadShaderAsJSON   ( char        *token)
 {
     // Uninitialized data
     int                i;
@@ -125,7 +140,7 @@ GXShader_t* loadShaderAsJSON(char* token)
     return ret;
 }
 
-GXUniform_t *loadUniformAsJSON( char *token )
+GXUniform_t *loadUniformAsJSON  ( char        *token )
 {
     // Uninitialized data
     int                i;
@@ -154,7 +169,9 @@ GXUniform_t *loadUniformAsJSON( char *token )
     for (size_t j = 0; j < rootTokenCount; j++)
     {
         if (strcmp(tokens[j].name, "name") == 0)
+            // TODO: Should allocate space for a string and copy
             name = tokens[j].content.nWhere;
+
         if (strcmp(tokens[j].name, "type") == 0)
             if (tokens[j].type == GXJSONarray)
                 ret->type = GXUNIFSTRUCT;
@@ -181,7 +198,7 @@ GXUniform_t *loadUniformAsJSON( char *token )
     }
 }
 
-int appendUniform(GXUniform_t *list, GXUniform_t* uniform)
+int          appendUniform      ( GXUniform_t *list,         GXUniform_t   *uniform )
 {
     // Argument checking
     {
@@ -233,7 +250,7 @@ int appendUniform(GXUniform_t *list, GXUniform_t* uniform)
     }
 }
 
-GXShader_t* loadCompileShader ( const char vertexPath[], const char fragmentPath[], const char shaderName[] )
+GXShader_t  *loadCompileShader  ( const char   vertexPath[], const char     fragmentPath[],   const char    shaderName[] )
 {
     // Uninitialized data
     char       * vfdata,                            // Vertex shader text
@@ -307,7 +324,7 @@ GXShader_t* loadCompileShader ( const char vertexPath[], const char fragmentPath
 
 }
 
-int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragmentShaderText )
+int          compileFromText    ( GXShader_t  *shader,       char          *vertexShaderText, char         *fragmentShaderText )
 {
     // TODO: Argument check, error handling
 
@@ -389,7 +406,7 @@ int compileFromText ( GXShader_t* shader, char* vertexShaderText, char* fragment
     return 0;
 }
 
-int useShader ( GXShader_t* shader )
+int          useShader          ( GXShader_t  *shader )
 {
     if(shader)
         glUseProgram(shader->shaderProgramID);
@@ -397,36 +414,41 @@ int useShader ( GXShader_t* shader )
     return 0;
 }
 
-void setShaderInt ( GXShader_t* shader, const char *name, int value )
+void         setShaderInt       ( GXShader_t  *shader,       const char    *name,              int          value )
 {
     glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
-void setShaderFloat ( GXShader_t* shader, const char *name, float value )
+void         setShaderFloat     ( GXShader_t  *shader,       const char    *name,              float        value )
 {
     glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
 }
 
-void setShaderVec3 ( GXShader_t* shader, const char *name, vec3 vector )
+void         setShaderVec3      ( GXShader_t  *shader,       const char    *name,              vec3         vector )
 {
     glUniform3f(glGetUniformLocation(shader->shaderProgramID, name), vector.x, vector.y, vector.z);
 }
 
-void setShaderMat4 ( GXShader_t* shader, const char *name, mat4* m )
+void         setShaderMat4      ( GXShader_t  *shader,       const char    *name,              mat4        *m )
 {
     glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, (const float*)m);
 }
 
-void setShaderTexture ( GXShader_t* shader, const char* name, GXTexture_t* texture)
+void         setShaderTexture   ( GXShader_t  *shader,       const char    *name,              GXTexture_t *texture )
 {
-    setShaderInt(shader, name, loadTextureToTextureUnit(texture));
+    setShaderInt(shader, name, bindTextureToUnit(texture));
 }
-
-void setShaderTransform(GXShader_t* shader, GXTransform_t* transform)
+ 
+void         setShaderTransform ( GXShader_t  *shader,       GXTransform_t *transform )
 {
     GXUniform_t* i = shader->requestedData;
 
-    for (size_t j = 0; j < shader->requestedDataCount; j++)
+    // Update the model matrix
+    
+    
+    transform->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(transform->rotation), translationScaleMat(transform->location, transform->scale));
+
+    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
     {
         if (strcmp(i->keyValue->key, "model") == 0)
             setShaderMat4(shader, i->keyValue->value, &transform->modelMatrix);
@@ -434,36 +456,137 @@ void setShaderTransform(GXShader_t* shader, GXTransform_t* transform)
     }
 }
 
-void setShaderCamera ( GXShader_t* shader, GXCamera_t* camera)
+void         setShaderCamera    ( GXShader_t  *shader,       GXCamera_t    *camera )
 {
     GXUniform_t *i = shader->requestedData;
 
-    for (size_t j = 0; j < shader->requestedDataCount; j++)
+    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
     {
         if (strcmp(i->keyValue->key,"camera position") == 0)
             setShaderVec3(shader, i->keyValue->value, camera->where);
-        if (strcmp(i->keyValue->key, "view") == 0) {
+        if (strcmp(i->keyValue->key, "view") == 0) 
             setShaderMat4(shader, i->keyValue->value, &camera->view);
-        }
         if (strcmp(i->keyValue->key, "projection") == 0)
-        {
             setShaderMat4(shader, i->keyValue->value, &camera->projection);
-        }
         i = i->next;
     }
 }
 
-void setCameraLights(GXShader_t* shader, const char *name, GXLight_t* light)
+void         setShaderLights    ( GXShader_t  *shader,       GXLight_t     *lights,            size_t       numLights )
 {
+    GXUniform_t *i = shader->requestedData;
+    GXLight_t   *l = lights;
 
+    // Iterate through each uniform 
+    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
+    {
+        // Check if the uniform is light position
+        if (strcmp(i->keyValue->key, "light position") == 0)
+        {
+            char  *value       = i->keyValue->value;
+            size_t valueLength = strlen(value);
+
+            // Allocate for a string
+            char *buffer = calloc(valueLength + 8 + 2 + 1, sizeof(u8));
+
+            // Iterate through lights
+            for (size_t k = 0; k < numLights && l; k++)
+            {
+                size_t nl = k;
+                char  *p  = buffer + valueLength;
+
+                // Set each shader uniform in the array
+                strncpy(buffer, value, valueLength);
+
+                *p++ = '[';
+                *p++ = '0' + (nl % 10);
+                nl /= 10;
+                while (nl)
+                {
+                    *p++ = '0' + (nl % 10);
+                    nl /= 10;
+                }
+
+                *p++ = ']';
+                *p++ = '\0';
+
+                setShaderVec3(shader, buffer, l->location);
+                l = l->next;
+            }
+
+            free(buffer);
+
+
+            l = lights;
+        }
+
+        // Check if the uniform is light color
+        if (strcmp(i->keyValue->key, "light color") == 0)
+        {
+            char* value = i->keyValue->value;
+            size_t valueLength = strlen(value);
+
+            // Allocate for a string
+            char* buffer = calloc(valueLength + 8 + 2 + 1, sizeof(u8));
+
+            // Iterate through lights
+            for (size_t k = 0; k < numLights && l; k++)
+            {
+                size_t nl = k;
+                char* p = buffer + valueLength;
+
+                // Set each shader uniform in the array
+                strncpy(buffer, value, valueLength);
+
+                *p++ = '[';
+                *p++ = '0' + (nl % 10);
+                nl /= 10;
+                while (nl)
+                {
+                    *p++ = '0' + (nl % 10);
+                    nl /= 10;
+                }
+
+                *p++ = ']';
+                *p++ = '\0';
+                setShaderVec3(shader, buffer, l->color);
+                l = l->next;
+
+            }
+
+            free(buffer);
+            
+            l = lights;
+        }
+
+        i = i->next;
+    }
 }
 
-int setShaderMaterial ( GXShader_t* shader, GXMaterial_t* material )
+void         setShaderMaterial  ( GXShader_t  *shader,       GXMaterial_t  *material )
 {
+    GXUniform_t* i = shader->requestedData;
 
+    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
+    {
+        if (strcmp(i->keyValue->key, "albedo") == 0)
+            setShaderTexture(shader, i->keyValue->value, material->albedo);
+        if (strcmp(i->keyValue->key, "specular") == 0)
+            setShaderTexture(shader, i->keyValue->value, material->metal);
+        if (strcmp(i->keyValue->key, "normal") == 0)
+            setShaderTexture(shader, i->keyValue->value, material->normal);
+        if (strcmp(i->keyValue->key, "metal") == 0)
+            setShaderTexture(shader, i->keyValue->value, material->metal);
+        if (strcmp(i->keyValue->key, "rough") == 0)
+            setShaderTexture(shader, i->keyValue->value, material->rough);
+        if (strcmp(i->keyValue->key, "ao") == 0)
+            setShaderTexture(shader, i->keyValue->value, material->AO);
+
+        i = i->next;
+    }
 }
 
-int unloadShader ( GXShader_t* shader )
+int          unloadShader       ( GXShader_t  *shader )
 {
     // Deallocate associated data
     glDeleteProgram(shader->shaderProgramID);

@@ -1,23 +1,28 @@
 #include <G10/GXScene.h>
 
-GXScene_t* createScene ( )
+GXScene_t  *createScene     ( )
 {
     GXScene_t* ret = calloc(1,sizeof(GXScene_t));
 
-    if (ret == 0)
-        return ret;
-    
-    // Populate with 0's
-    ret->entities   = 0;
-    ret->cameras    = 0;
-    ret->lights     = 0;
-    ret->skybox     = 0;
-    ret->name       = 0;
+    // Check the memory
+    #ifndef NDEBUG
+        if (ret == 0)
+            goto noMem;
+    #endif
 
     return ret;
+
+    // Error handling
+    {
+        noMem:
+        #ifndef NDEBUG
+            gPrintError("[G10] [Scene] Out of memory.\n");
+        #endif
+        return 0;
+    }
 }
 
-GXScene_t* loadScene ( const char path[] )
+GXScene_t  *loadScene       ( const char path[] )
 {
     // Argument checking
     {
@@ -33,13 +38,12 @@ GXScene_t* loadScene ( const char path[] )
 
     // Initialized data
     size_t       l   = 0;
-    FILE        *f   = fopen(path, "rb");
     char        *data = 0;
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0,false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
     
     // Parse the file as JSON
     ret = loadSceneAsJSON(data);
@@ -58,7 +62,7 @@ GXScene_t* loadScene ( const char path[] )
     }
 }
 
-GXScene_t* loadSceneAsJSON(char* token)
+GXScene_t  *loadSceneAsJSON ( char*      token )
 {
     // Uninitialized data
     int          i = strlen(token),
@@ -129,7 +133,7 @@ GXScene_t* loadSceneAsJSON(char* token)
     return ret;
 }
 
-int appendEntity ( GXScene_t* scene, GXEntity_t* entity )
+int         appendEntity    ( GXScene_t* scene, GXEntity_t* entity )
 {
     // Argument checking
     {
@@ -190,7 +194,7 @@ int appendEntity ( GXScene_t* scene, GXEntity_t* entity )
     }
 }
 
-int appendCamera ( GXScene_t* scene, GXCamera_t* camera ) 
+int         appendCamera    ( GXScene_t* scene, GXCamera_t* camera ) 
 {
     // Argument checking
     {
@@ -242,7 +246,7 @@ int appendCamera ( GXScene_t* scene, GXCamera_t* camera )
         #endif
         return 0;
 
-        // The entity argument was null
+        // The camera argument was null
         nullCamera:
         #ifndef NDEBUG
             gPrintError("[G10] [Scene] Null pointer provided for camera in function \"%s\"\n", __FUNCSIG__);
@@ -251,7 +255,7 @@ int appendCamera ( GXScene_t* scene, GXCamera_t* camera )
     }
 }
 
-int appendLight ( GXScene_t* scene, GXLight_t* light )
+int         appendLight     ( GXScene_t* scene, GXLight_t*  light )
 {
     // Argument checking
     {
@@ -281,6 +285,7 @@ int appendLight ( GXScene_t* scene, GXLight_t* light )
             goto duplicateName;
         i = i->next;
     }
+
     // Assign next as light
     i->next = light;
 
@@ -310,20 +315,18 @@ int appendLight ( GXScene_t* scene, GXLight_t* light )
     }
 }
 
-int drawScene ( GXScene_t* scene ) 
+int         drawScene       ( GXScene_t* scene ) 
 {
     // Argument checking 
     {
         #ifndef NDEBUG
             if (scene == 0)
                 goto nullScene;
-            if (scene->entities == 0)
-                goto noEntities;
         #endif
     }
-
+    
     // Initialized data
-    GXEntity_t* i = scene->entities;
+    GXEntity_t *i = scene->entities;
 
     // Iterate through list until we hit nullptr
     while (i)
@@ -332,36 +335,15 @@ int drawScene ( GXScene_t* scene )
         {
             // Use it
             useShader(i->shader);
-            //setShaderInt(i->shader, "irradianceMap", loadTextureToTextureUnit(scene->skybox->irradianceCubemap));
-            setShaderTexture(i->shader, "irradianceMap", scene->skybox->irradianceCubemap);
+
             setShaderCamera(i->shader, scene->cameras);
         }
         
         // Set up lights
         {
-            GXLight_t* light = scene->lights;
-            if(light == (void*)0)
-                goto noLight;
-
-            char* buffer = calloc(512,sizeof(u8));
-            if (buffer == (void*)0)
-               return 0;
-
-            // TODO: Dynamically determine max lights from graphics settings and machine hardware
-            for(size_t j = 0; j < GX_MAX_LIGHTS && light; j++)
-            {				
-                /*
-                buffer[sprintf(buffer, "%s[%lld]\0", findValue(i->shader->requestedData,i->shader->requestedDataCount,GXSP_LightPosition), j) + 1] = 0;
-                setShaderVec3(i->shader, buffer, light->location);
-                buffer[sprintf(buffer, "%s[%lld]\0", findValue(i->shader->requestedData, i->shader->requestedDataCount, GXSP_LightColor), j) + 1] = 0;
-                setShaderVec3(i->shader, buffer, light->color);
-                */
-                light = light->next;
-            }
-
-            free(buffer);
+            //setShaderLights(i->shader, scene->lights, GX_MAX_LIGHTS);
         }
-        noLight:
+
 
         // Actually draw the entity
         drawEntity(i);
@@ -370,16 +352,11 @@ int drawScene ( GXScene_t* scene )
         i = i->next;
         
     }
-
+    
     drawSkybox:
     // Lastly, draw the skybox if there is a skybox
     if (scene->skybox)
         drawSkybox(scene->skybox, scene->cameras);
-    else
-    {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
     return 0;
 
     // Error handling
@@ -398,7 +375,7 @@ int drawScene ( GXScene_t* scene )
     
 }
 
-int computePhysics(GXScene_t* scene, float deltaTime)
+int         computePhysics  ( GXScene_t* scene, float       deltaTime )
 {
     GXEntity_t* i = scene->entities;
 
@@ -410,10 +387,30 @@ int computePhysics(GXScene_t* scene, float deltaTime)
         // Summate forces
         summateForces(i->rigidbody->forces, i->rigidbody->forcesCount);
 
-        // Calculate derivatives of displacement
-        // integrateDisplacement(i, deltaTime);
+        // Apply forces
+        {
+            // Calculate derivatives of displacement
+            // integrateDisplacement(i, deltaTime);
 
-        //integrateRotation(entity);
+            // Caclulate derivatives of rotation
+            // integrateRotation(i, deltaTime);
+        }
+
+        // Detect collisions
+        {
+            // Check for possible collisions using the BVH. 
+            
+            // If an intersection is found between bounding volumes, we compute a collision between two colliders.
+            
+            // If there is indeed a collission, we add the two entities to a list to be resolved
+
+        }
+
+        // Resolve constraints
+        {
+            // 
+        }
+
         noRigidbody:
         i = i->next;
     }
@@ -421,7 +418,7 @@ int computePhysics(GXScene_t* scene, float deltaTime)
     return 0;
 }
 
-GXEntity_t* getEntity ( GXScene_t* scene, const char name[] )
+GXEntity_t *getEntity       ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -448,7 +445,7 @@ GXEntity_t* getEntity ( GXScene_t* scene, const char name[] )
         i = i->next;
     }
     
-    // Unable to locate entity
+    // Unable to locate specified entity
     goto noMatch;
 
     // Error handling
@@ -483,7 +480,7 @@ GXEntity_t* getEntity ( GXScene_t* scene, const char name[] )
     }
 }
 
-GXCamera_t* getCamera ( GXScene_t* scene, const char name[] )
+GXCamera_t *getCamera       ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -510,7 +507,7 @@ GXCamera_t* getCamera ( GXScene_t* scene, const char name[] )
         i = i->next;
     }
 
-    // Unable to locate camera
+    // Unable to locate specified camera
     goto noMatch;
 
     // Error handling
@@ -545,7 +542,7 @@ GXCamera_t* getCamera ( GXScene_t* scene, const char name[] )
     }
 }
 
-GXLight_t* getLight( GXScene_t* scene, const char name[] )
+GXLight_t  *getLight        ( GXScene_t* scene, const char  name[] )
 {
     // Create a pointer to the head of the list
     GXLight_t* i = scene->lights;
@@ -562,8 +559,9 @@ GXLight_t* getLight( GXScene_t* scene, const char name[] )
         i = i->next;
     }
 
-    // Unable to locate light
+    // Unable to locate specified light
     goto noMatch;
+
     {
         noLights:
         #ifndef NDEBUG
@@ -579,7 +577,7 @@ GXLight_t* getLight( GXScene_t* scene, const char name[] )
     }
 }
 
-int setActiveCamera ( GXScene_t* scene, const char name[] )
+int         setActiveCamera ( GXScene_t* scene, const char  name[] )
 {
     // Arguments checking
     {
@@ -657,7 +655,7 @@ int setActiveCamera ( GXScene_t* scene, const char name[] )
     }
 }
 
-GXEntity_t* removeEntity( GXScene_t* scene, const char name[] )
+GXEntity_t *removeEntity    ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -738,7 +736,7 @@ GXEntity_t* removeEntity( GXScene_t* scene, const char name[] )
     }
 }
 
-GXCamera_t* removeCamera ( GXScene_t* scene, const char name[] )
+GXCamera_t *removeCamera    ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -816,8 +814,8 @@ GXCamera_t* removeCamera ( GXScene_t* scene, const char name[] )
         return 0;
     }
 }
-
-GXLight_t* removeLight( GXScene_t* scene, const char name[] )
+    
+GXLight_t  *removeLight     ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking 
     {
@@ -867,6 +865,7 @@ GXLight_t* removeLight( GXScene_t* scene, const char name[] )
         }
         i = i->next;
     }
+
     goto noMatch;
 
     // Error handling
@@ -898,7 +897,7 @@ GXLight_t* removeLight( GXScene_t* scene, const char name[] )
         }
 }
 
-int destroyScene ( GXScene_t* scene )
+int         destroyScene    ( GXScene_t* scene )
 {
     // Argument checking 
     {

@@ -8,13 +8,13 @@
 #include <G10/GXilmath.h>
 
 // ✅ Creates quaternion (0,0,0,0)
-inline quaternion makeQuaternion ( )
+inline quaternion    makeQuaternion               ( )
 {
     return (quaternion) { 0.f,0.f,0.f,0.f };
 }
 
 // ✅ Creates a quaternion from a vector in euler angles
-inline quaternion makeQuaternionFromEulerAngle ( vec3 v )
+inline quaternion    makeQuaternionFromEulerAngle ( vec3       v )
 {
     float sx = sinf(toRadians(v.x*2)), 
           sy = sinf(toRadians(v.y*2)), 
@@ -31,8 +31,8 @@ inline quaternion makeQuaternionFromEulerAngle ( vec3 v )
     };
 }
 
-// ✅ Multiplys two quaternions as vectors
-inline quaternion multiplyQuaternionVector ( quaternion q1, quaternion q2 )
+// ✅ Multiplies two quaternions as vectors
+inline quaternion    multiplyQuaternionVector     ( quaternion q1, quaternion q2 )
 {
     return (quaternion) {
         (-q1.i * q2.i - q1.j * q2.j - q1.k * q2.k),
@@ -42,8 +42,8 @@ inline quaternion multiplyQuaternionVector ( quaternion q1, quaternion q2 )
     };
 }
 
-// ✅ Multiplys two quaternions
-inline quaternion multiplyQuaternion ( quaternion q1, quaternion q2 )
+// ✅ Multiplies two quaternions
+inline quaternion    multiplyQuaternion           ( quaternion q1, quaternion q2 )
 {
     return (quaternion) {
         (q1.u * q2.u - q1.i * q2.i - q1.j * q2.j - q1.k * q2.k),
@@ -54,7 +54,7 @@ inline quaternion multiplyQuaternion ( quaternion q1, quaternion q2 )
 }
 
 // ✅ Creates a rotation matrix from a quaternion
-inline mat4     rotationMatrixFromQuaternion ( quaternion q )
+inline mat4          rotationMatrixFromQuaternion ( quaternion q )
 {
     return (mat4) {
         (q.u * q.u + q.i * q.i - q.j * q.j - q.k * q.k), (2 * q.i * q.j - 2 * q.k * q.u)                , (2 * q.i * q.k + 2 * q.j * q.u)                , 0,
@@ -64,7 +64,14 @@ inline mat4     rotationMatrixFromQuaternion ( quaternion q )
     };
 }
 
-inline quaternion qSlerp(quaternion q0, quaternion q1, float deltaTime)
+inline quaternion    normalizeQuaternion          ( quaternion q )
+{
+    quaternion ret = { 0.f, 0.f, 0.f, 0.f };
+    float vl = sqrtf((q.i * q.i) + (q.j * q.j) + (q.k * q.k));
+    return (quaternion) { 0.f, q.i / vl, q.j / vl, q.k / vl };
+}
+
+inline quaternion    qSlerp                       ( quaternion q0, quaternion q1, float deltaTime )
 {
     // Uninitialized data
     float sinht,

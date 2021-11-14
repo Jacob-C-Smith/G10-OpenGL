@@ -1,6 +1,6 @@
 #include <G10/GXTransform.h>
 
-GXTransform_t* createTransform ( vec3 location, quaternion rotation, vec3 scale )
+GXTransform_t *createTransform       ( vec3           location, quaternion rotation, vec3 scale )
 {
     // Allocate space
     GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
@@ -28,7 +28,7 @@ GXTransform_t* createTransform ( vec3 location, quaternion rotation, vec3 scale 
     return ret;
 }
 
-GXTransform_t* loadTransform ( const char path[] )
+GXTransform_t *loadTransform         ( const char     path[] )
 {
     // Argument check
     {
@@ -47,9 +47,9 @@ GXTransform_t* loadTransform ( const char path[] )
     FILE*          f = fopen(path, "rb");
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     ret = loadTransformAsJSON(data);
 
@@ -76,7 +76,7 @@ GXTransform_t* loadTransform ( const char path[] )
     }
 }
 
-GXTransform_t* loadTransformAsJSON ( char* token ) 
+GXTransform_t *loadTransformAsJSON   ( char          *token ) 
 {
     // Initialiazed data
     GXTransform_t* ret        = 0;
@@ -110,16 +110,40 @@ GXTransform_t* loadTransformAsJSON ( char* token )
     return createTransform(location, q, scale);
 }
 
+int            rotateAboutQuaternion ( GXTransform_t *transform, quaternion axis, float theta)
+{
+    /*
+    * To rotate around a quaternion, we multiply the transform
+    * quaternion a special quaternion called 'p' derived by multiplying
+    * u by sin( theta/2 ) and multiplying i, j, and k by cos( theta/2 ).
+    * Then, we multiply the inverse of p, henceforth ' p' '. This is analogous
+    * to complex multiplication.
+    */
 
+    float      halfAngle = theta / 2,
+               cosHalf   = cosf(halfAngle),
+               sinHalf   = sinf(halfAngle),
+               nSinHalf  = -sinf(halfAngle);
 
-int destroyTransform ( GXTransform_t* transform )
+    quaternion p         = { cosHalf * axis.u, sinHalf * axis.i, sinHalf * axis.j, sinHalf * axis.k },
+               pP        = { cosHalf * axis.u, nSinHalf * axis.i, nSinHalf * axis.j, nSinHalf * axis.k },
+               pAxis     = normalizeQuaternion(multiplyQuaternion(p, normalizeQuaternion(transform->rotation)));
+    
+    transform->rotation  = normalizeQuaternion(multiplyQuaternion(pAxis,pP));
+    return 0;
+}
+
+int            destroyTransform      ( GXTransform_t *transform )
 {
     // Zero set everything
-    transform->location    = (vec3){ 0,0,0 };
-    transform->rotation    = (quaternion){ 0,0,0,0 };
-    transform->scale       = (vec3){ 0,0,0 };
-    transform->modelMatrix = (mat4){ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
-
+    transform->location    = (vec3)       { 0,0,0 };
+    transform->rotation    = (quaternion) { 0,0,0,0 };
+    transform->scale       = (vec3)       { 0,0,0 };
+    transform->modelMatrix = (mat4)       { 0,0,0,0,
+                                            0,0,0,0,
+                                            0,0,0,0,
+                                            0,0,0,0 };
+     
     // Free the transform
     free(transform);
 

@@ -18,13 +18,13 @@ struct GXRigidbody_s
     float                 mass;                // The mass of the entity.
     float                 radius;              // Radius of the object
 
-    vec3              acceleration;        // The last acceleration of the entity.
-    vec3              velocity;            // The last velocity of the entity.
+    vec3                  acceleration;        // The last acceleration of the entity.
+    vec3                  velocity;            // The last velocity of the entity.
     
-    vec3              angularAcceleration; // The last angular acceleration of the entity.
-    vec3              angularVelocity;     // The last angular velocity of the entity.
+    vec3                  angularAcceleration; // The last angular acceleration of the entity.
+    vec3                  angularVelocity;     // The last angular velocity of the entity.
     
-    vec3             *forces;              // A list of forces acting on the entity.
+    vec3                 *forces;              // A list of forces acting on the entity.
     size_t                forcesCount;         // The number of forces acting on the entity.
 
     struct GXRigidbody_s *touching;            // List of objects the rigidbody is touching.
@@ -32,7 +32,7 @@ struct GXRigidbody_s
 
 
 // Constructors
-GXRigidbody_t         *createRigidbody                    ( );
+GXRigidbody_t         *createRigidbody                    ( void );
 GXRigidbody_t         *loadRigidbody                      ( const char     path[] );
 GXRigidbody_t         *loadRigidbodyAsJSON                ( char          *token);
 
@@ -50,7 +50,7 @@ extern void            computeAirResitanceForce           ( void          *entit
 extern void            computeAppliedForce                ( void          *entity );
 
 // Physics
-static inline vec3 applyForce                         ( GXRigidbody_t *rigidbody ) {
+static inline vec3 applyForce                             ( GXRigidbody_t *rigidbody ) {
     return vec3xf(rigidbody->acceleration, rigidbody->mass);
 }
 int                    updatePositionAndVelocity          ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 deltaTime ); // ✅ Updates the position and velocity vectors

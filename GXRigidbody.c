@@ -1,6 +1,6 @@
 #include <G10/GXRigidbody.h>
 
-GXRigidbody_t* createRigidbody ( )
+GXRigidbody_t *createRigidbody           ( )
 {
     // Initialized data
     GXRigidbody_t* ret = calloc(1,sizeof(GXRigidbody_t));
@@ -24,7 +24,7 @@ GXRigidbody_t* createRigidbody ( )
     return ret;
 }
 
-GXRigidbody_t* loadRigidbody(const char path[])
+GXRigidbody_t *loadRigidbody             ( const char     path[] )
 {
     // Initialized data
     GXRigidbody_t* ret      = 0;
@@ -33,9 +33,9 @@ GXRigidbody_t* loadRigidbody(const char path[])
     char*          data     = 0;
 
     // Load up the file
-    i    = gLoadFile(path, 0);
+    i    = gLoadFile(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data);
+    gLoadFile(path, data, false);
 
     // Load the camera from data
     ret = loadRigidbodyAsJSON(data);
@@ -51,7 +51,7 @@ GXRigidbody_t* loadRigidbody(const char path[])
     return 0;
 }
 
-GXRigidbody_t* loadRigidbodyAsJSON(char* token)
+GXRigidbody_t *loadRigidbodyAsJSON       ( char          *token )
 {
     // Initialized data
     GXRigidbody_t*  ret        = createRigidbody();
@@ -114,7 +114,7 @@ GXRigidbody_t* loadRigidbodyAsJSON(char* token)
     return ret;
 }
 
-int updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transform, u32 deltaTime )
+int            updatePositionAndVelocity ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 deltaTime )
 {
     // Initialized data
     vec3 f = applyForce(rigidbody);
@@ -126,7 +126,7 @@ int updatePositionAndVelocity ( GXRigidbody_t* rigidbody, GXTransform_t* transfo
     return 0;
 }
 
-int destroyRigidBody ( GXRigidbody_t* rigidbody )
+int            destroyRigidBody          ( GXRigidbody_t *rigidbody )
 {
     rigidbody->mass         = 0;
     rigidbody->acceleration = (vec3){ 0.f,0.f,0.f };

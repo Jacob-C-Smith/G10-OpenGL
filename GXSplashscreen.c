@@ -7,7 +7,7 @@ SDL_Texture  *back;
 SDL_Rect     fTexture,
 		     bTexture;
 
-int createSplashscreen ( const char *forePath, const char *backPath )
+int  createSplashscreen  ( const char *forePath, const char *backPath )
 {
 	// Uninitialized data
 	unsigned int fw, 
@@ -41,12 +41,12 @@ int createSplashscreen ( const char *forePath, const char *backPath )
 	return 0;
 }
 
-void moveFront(int x, int y)
+void moveFront           ( int         x,        int         y )
 {
 	fTexture.x = x; fTexture.y = y;
 }
 
-void renderTextures()
+void renderTextures      ( )
 {
 
 	// Clear the screen
@@ -60,7 +60,7 @@ void renderTextures()
 	SDL_RenderPresent(renderer);
 }
 
-int destroySplashscreen()
+int  destroySplashscreen ( )
 {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);

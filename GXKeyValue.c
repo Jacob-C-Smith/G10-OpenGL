@@ -1,6 +1,6 @@
 #include <G10/GXKeyValue.h>
 
-GXKeyValue_t* createKeyValue(char* key, char* value)
+GXKeyValue_t *createKeyValue ( char         *key,  char       *value)
 {
     // Argument check
     {
@@ -46,7 +46,7 @@ GXKeyValue_t* createKeyValue(char* key, char* value)
     }
 }
 
-const char *findValue ( GXKeyValue_t *list, const char *key)
+const char   *findValue      ( GXKeyValue_t *list, const char *key)
 {
     // Argument check
     {
