@@ -1,1 +1,0 @@
-Height maps are maps that use 16 bit single channel images to 

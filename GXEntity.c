@@ -147,7 +147,7 @@ GXEntity_t *loadEntityAsJSON ( char* token )
         else if (strcmp("collider", tokens[j].name) == 0)
         {
             // TODO: Write
-            //ret->collider = (*(char*)tokens[j].content.nWhere == '{') ? loadColliderAsJSON((char*)tokens[j].content.nWhere) : loadCollider((const char*)tokens[j].content.nWhere);
+            ret->collider = (*(char*)tokens[j].content.nWhere == '{') ? loadColliderAsJSON((char*)tokens[j].content.nWhere) : loadCollider((const char*)tokens[j].content.nWhere);
             continue;
         }
     }

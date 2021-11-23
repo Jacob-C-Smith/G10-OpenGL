@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <G10/GXtypedef.h>
 
@@ -11,6 +12,7 @@
 #include <G10/GXLight.h>
 #include <G10/GXPhysics.h>
 #include <G10/GXSkybox.h>
+#include <G10/GXBVH.h>
 
 #include <G10/arch/x86_64/GXAVXmath.h>
 
@@ -20,6 +22,7 @@ struct GXScene_s {
     GXEntity_t  *entities;
     GXCamera_t  *cameras;
     GXLight_t   *lights;
+    GXBV_t      *BVH;
     GXSkybox_t  *skybox;
 };
 
@@ -36,7 +39,7 @@ int         appendLight         ( GXScene_t *scene, GXLight_t  *light  ); // ✅
 // Drawing
 int         drawScene           ( GXScene_t *scene );                     // ✅ Iterates through the scene, drawing all valid entities where the GXEdrawable flag == 1
 
-// Physicas 
+// Physics 
 int         computePhysics      ( GXScene_t *scene, float deltaTime );
 
 // Accessors

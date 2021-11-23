@@ -65,21 +65,24 @@ GXScene_t  *loadScene       ( const char path[] )
 GXScene_t  *loadSceneAsJSON ( char*      token )
 {
     // Uninitialized data
-    int          i = strlen(token),
-                 tokenCount;
+    int          tokenCount;
     JSONValue_t *tokens;
 
     // Initialized data
     GXScene_t   *ret = createScene();
-    size_t       l   = 0;
+    size_t       l   = strlen(token);
+
+    // Time the function if in debug mode
+    #ifndef NDEBUG
+        clock_t c = clock();
+    #endif
 
     // Preparse the scene
-    l              = strlen(token);
-    tokenCount     = GXParseJSON(token, i, 0, (void*)0);
-    tokens         = calloc(tokenCount, sizeof(JSONValue_t));
+    tokenCount       = GXParseJSON(token, l, 0, (void*)0);
+    tokens           = calloc(tokenCount, sizeof(JSONValue_t));
 
     // Parse the scene
-    GXParseJSON(token, i, tokenCount, tokens);
+    GXParseJSON(token, l, tokenCount, tokens);
 
     // Find and exfiltrate pertinent information.
     for (size_t j = 0; j < tokenCount; j++)
@@ -128,8 +131,20 @@ GXScene_t  *loadSceneAsJSON ( char*      token )
         }
     }
 
+    // Construct a BVH tree from the scene
+    ret->BVH = createBVHFromScene(ret);
+
     // Finish up
     free(tokens);
+
+    // Compute and print how long it took to load the scene
+    #ifndef NDEBUG
+    {
+        c = clock() - c;
+        gPrintLog("[G10] Loaded scene \"%s\" in %.0f ms\n", ret->name, 1000 * (float)c / CLOCKS_PER_SEC);
+    }
+    #endif
+
     return ret;
 }
 
@@ -354,9 +369,11 @@ int         drawScene       ( GXScene_t* scene )
     }
     
     drawSkybox:
+
     // Lastly, draw the skybox if there is a skybox
     if (scene->skybox)
         drawSkybox(scene->skybox, scene->cameras);
+
     return 0;
 
     // Error handling
@@ -388,6 +405,7 @@ int         computePhysics  ( GXScene_t* scene, float       deltaTime )
         summateForces(i->rigidbody->forces, i->rigidbody->forcesCount);
 
         // Apply forces
+        if (i->rigidbody->type == active)
         {
             // Calculate derivatives of displacement
             // integrateDisplacement(i, deltaTime);
@@ -398,9 +416,18 @@ int         computePhysics  ( GXScene_t* scene, float       deltaTime )
 
         // Detect collisions
         {
-            // Check for possible collisions using the BVH. 
-            
-            // If an intersection is found between bounding volumes, we compute a collision between two colliders.
+
+            // Broad phase collision detection using the scenes BVH
+            {
+                GXBV_t *bvh = scene->BVH;
+
+
+            }
+
+            // Narrow phase collision detection between two colliders
+            {
+
+            }
             
             // If there is indeed a collission, we add the two entities to a list to be resolved
 

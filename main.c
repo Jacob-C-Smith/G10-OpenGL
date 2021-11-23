@@ -43,20 +43,26 @@
 int main ( int argc, const char *argv[] )
 {
     // Uninitialized data
-   
-    // Uninitialized G10 data
-    GXScene_t    *scene;
-    GXServer_t   *server;
     u32           d,
                   currentTime;
     clock_t       c;
 
+    GXPart_t     *cube;
+	GXShader_t   *shader;
+	
     // Uninitialized SDL data
     SDL_Window   *window;
     SDL_GLContext glContext;
     SDL_Event     event;
 
     // Initialized Data
+
+    // Initialized G10 data
+    GXScene_t    *scene        = 0;
+    GXServer_t   *server       = 0;
+    
+    bool          drawBVH      = false;
+
     float         deltaTime    = 0.01f,
                   yaw          = 0.f,
                   pitch        = 0.f,
@@ -110,24 +116,20 @@ int main ( int argc, const char *argv[] )
         // Splash screen
         {
             #ifdef NDEBUG
-                createSplashscreen("G10/splash front.png", "G10/splash back.png");
+                createSplashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
             #endif
         }
-
-        // Time how long it takes to load the scene
-        c = clock();
 
         // Load the scene
         scene = loadScene(initialScene);
 
-        // Compute and print how long it took to load the scene
         {
-            c = clock() - c;
-            gPrintLog("[G10] Loaded scene \"%s\" in %.0f ms\n", initialScene, 1000*(float) c / CLOCKS_PER_SEC);
+            printBV(scene->BVH, 0);
+            
+            // Load a cube and a solid color shader so we can draw bounding volumes
+            cube   = loadPart("G10/cube.json");
+            shader = loadShader("G10/shaders/G10 solid color.json");
         }
-
-        // Create a bounding volume heierarchy from the scene
-        createBVHFromScene(scene);
 
         // Splash screen animation
         {
@@ -151,17 +153,23 @@ int main ( int argc, const char *argv[] )
 
     }
 
-    // Server testing
+    // G10 Testing
     {
-        //server = createServer();
-        //connect(server, "172.31.87.192", 8877);
+
+    }
+
+    // Server testing
+    /*
+    {
+        server = createServer();
+        connect(server, " 172.27.162.87 ", 8877);
         char* party[] = { "Seth", "Daniel", "Elias" };
         
         char* name = calloc(255+1, sizeof(u8));
 
-        //sendConnectCommand(server, name, party);
-        //sendTextChat(server, "Hello, World!", 0x0F); 
-    }
+        sendConnectCommand(server, "Jake", party);
+        sendTextChat(server, "Hello, World!", 0x0F); 
+    }*/
 
     goto setGLViewportSizeFromWindow;
 
@@ -179,7 +187,7 @@ int main ( int argc, const char *argv[] )
         // FPS readout
         {
             #ifndef NDEBUG
-                //printf("FPS: %.1f\r", (float)deltaTime * (float)1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
+                printf("FPS: %.1f\r", (float)deltaTime * (float)1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
             #endif
         }
 
@@ -262,6 +270,10 @@ int main ( int argc, const char *argv[] )
 
                     if (keyboardState[SDL_SCANCODE_ESCAPE])
                         running = 0;
+
+                    // Turn on BVH drawings
+                    if (keyboardState[SDL_SCANCODE_F1])
+                        drawBVH = !drawBVH;
 
                     vec3 tw;
                     addVec3(&tw, scene->cameras->target, scene->cameras->where);
@@ -359,6 +371,12 @@ int main ( int argc, const char *argv[] )
             updateCameraFromKeyboardInput(scene->cameras, keyboardState, deltaTime);
         }
 
+        // Get response from server
+        {
+            //char *buffer = calloc(4096,1);
+            //recvCommand(server, buffer, 4096);       
+        }
+
         // Clear the screen
         gClear();
 
@@ -369,6 +387,10 @@ int main ( int argc, const char *argv[] )
 
             // Draw the scene
             drawScene(scene);
+
+            // Draw bounding volumes, if we are supposed to
+            if(drawBVH)
+                drawSceneBV(scene, cube, shader, 0);
         }
 
         // Swap the window 
@@ -377,7 +399,8 @@ int main ( int argc, const char *argv[] )
 
     // G10 Unloading
     {
-        //sendDisconnectCommand(server);
+        if(server)
+            sendDisconnectCommand(server);
         destroyScene(scene);
         gExit(window, glContext);
     }

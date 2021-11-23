@@ -90,48 +90,6 @@ int integrateRotation     ( GXEntity_t *entity )
 
 bool collision            ( GXEntity_t *a, GXEntity_t *b )
 {
-    // Initialized data
-    vec3 aLocation = a->transform->location,
-             bLocation = b->transform->location;
-
-    GXCollider_t  *aCollider  = a->collider,
-                  *bCollider  = b->collider;
-
-    if (aCollider->type == box && bCollider->type == box)
-    {
-        vec3 aMin = (vec3){ 0.f,0.f,0.f,0.f }, 
-                 aMax = (vec3){ 0.f,0.f,0.f,0.f }, 
-                 bMin = (vec3){ 0.f,0.f,0.f,0.f }, 
-                 bMax = (vec3){ 0.f,0.f,0.f,0.f };
-
-        aMin.x = aLocation.x - aCollider->collisionVector.x,
-        aMin.y = aLocation.y - aCollider->collisionVector.y,
-        aMin.z = aLocation.z - aCollider->collisionVector.z,
-        aMin.w = aLocation.w - aCollider->collisionVector.w;
-        
-        aMax.x = aLocation.x + aCollider->collisionVector.x,
-        aMax.y = aLocation.y + aCollider->collisionVector.y,
-        aMax.z = aLocation.z + aCollider->collisionVector.z,
-        aMax.w = aLocation.w + aCollider->collisionVector.w;
-
-        bMin.x = bLocation.x - bCollider->collisionVector.x,
-        bMin.y = bLocation.y - bCollider->collisionVector.y,
-        bMin.z = bLocation.z - bCollider->collisionVector.z,
-        bMin.w = bLocation.w - bCollider->collisionVector.w;
-        
-        bMax.x = bLocation.x - bCollider->collisionVector.x,
-        bMax.y = bLocation.y - bCollider->collisionVector.y,
-        bMax.z = bLocation.z - bCollider->collisionVector.z,
-        bMax.w = bLocation.w - bCollider->collisionVector.w;
-        
-        if (aMin.x <= bMax.x && aMax.x >= bMin.x &&
-            aMin.y <= bMax.y && aMax.y >= bMin.y &&
-            aMin.z <= bMax.z && aMax.z >= bMin.z)
-            return true;
-        else
-            return false;
-    }
-
     return false;
 }
 

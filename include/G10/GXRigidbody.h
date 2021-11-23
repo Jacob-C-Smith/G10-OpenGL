@@ -12,8 +12,15 @@
 #define AIR_DENSITY   1.225
 #define WATER_DENSITY 997
 
+enum rigidbodyType_e {
+    active  = 1,
+    passive = 2 
+};
+typedef enum rigidbodyType_e rigidbodyType_t;
+
 struct GXRigidbody_s
 {
+    rigidbodyType_t       type;                // Active or passive
 
     float                 mass;                // The mass of the entity.
     float                 radius;              // Radius of the object
@@ -24,12 +31,13 @@ struct GXRigidbody_s
     vec3                  angularAcceleration; // The last angular acceleration of the entity.
     vec3                  angularVelocity;     // The last angular velocity of the entity.
     
-    vec3                 *forces;              // A list of forces acting on the entity.
+    vec3                 *forces;              // A list of displacement forces acting on the entity.
     size_t                forcesCount;         // The number of forces acting on the entity.
 
-    struct GXRigidbody_s *touching;            // List of objects the rigidbody is touching.
-};
+    vec3                 *angularForces;       // A list of angular forces acting on the entity.
+    size_t                angularForcesCount;  // The number of angular forces acting on the entity.
 
+};
 
 // Constructors
 GXRigidbody_t         *createRigidbody                    ( void );

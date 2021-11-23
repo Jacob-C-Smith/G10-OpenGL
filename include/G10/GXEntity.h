@@ -30,12 +30,11 @@ struct GXEntity_s
     struct GXEntity_s *next;      // Points to the next entity.
 };
 
-GXEntity_t* createEntity     ( void );                                     // ✅ Creates an entity, assigns flags, and returns pointer to it
+GXEntity_t *createEntity     ( void );                                     // ✅ Creates an entity, assigns flags, and returns pointer to it
 
-GXEntity_t* loadEntity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
-GXEntity_t* loadEntityAsJSON ( char       *token  );                       // ✅ Loads an entity as a JSON object
+GXEntity_t *loadEntity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
+GXEntity_t *loadEntityAsJSON ( char       *token  );                       // ✅ Loads an entity as a JSON object
 
-//int         computePhysics   ( GXEntity_t *entity );                     // ❌ Computes physics for an entity
 int         drawEntity       ( GXEntity_t *entity );                       // ✅ Draws an entity if draw flag is set
 
 int         destroyEntity    ( GXEntity_t *entity );                       // ✅ Destroys the entity and all its contents

@@ -3,6 +3,7 @@
 #include <stdbool.h>
 
 #include <G10/G10.h>
+#include <G10/GXBVH.h>
 #include <G10/GXLinear.h>
 
 
@@ -20,7 +21,8 @@ typedef enum colliderType_e colliderType_t;
 struct GXCollider_s
 {
     colliderType_t type;
-    vec3           collisionVector;
+    GXBV_t        *bv;
+    
 };
 
 GXCollider_t* createCollider     ( void );                     // ❌ Creates an empty collider

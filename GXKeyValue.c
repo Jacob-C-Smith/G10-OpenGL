@@ -46,7 +46,7 @@ GXKeyValue_t *createKeyValue ( char         *key,  char       *value)
     }
 }
 
-const char   *findValue      ( GXKeyValue_t *list, const char *key)
+const char *findValue ( GXKeyValue_t *list, size_t count, char *key )
 {
     // Argument check
     {

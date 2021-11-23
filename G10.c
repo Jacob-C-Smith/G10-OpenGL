@@ -279,7 +279,7 @@ int    gClear        ( void )
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-u8 gChecksum(u8* data, size_t len)
+u8     gChecksum     ( u8               *data  , size_t         len)
 {
     u8 ret = 0;
     for (size_t i = 0; i < len; i++)

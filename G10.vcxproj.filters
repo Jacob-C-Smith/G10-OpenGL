@@ -28,6 +28,9 @@
     <Filter Include="Source Files\assembly\x86_64">
       <UniqueIdentifier>{2e8d31ef-59ba-4326-8daa-059516912ab7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\assembly\ARM">
+      <UniqueIdentifier>{365e575f-a9a1-42c7-9ea9-1e3113527860}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore">
@@ -252,9 +255,6 @@
       <Filter>Source Files\text</Filter>
     </Text>
     <Text Include="how to build.txt">
-      <Filter>Source Files\text</Filter>
-    </Text>
-    <Text Include="height mapping notes.txt">
       <Filter>Source Files\text</Filter>
     </Text>
   </ItemGroup>

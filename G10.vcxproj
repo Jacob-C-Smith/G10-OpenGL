@@ -293,7 +293,6 @@
   <ItemGroup>
     <Text Include="acknowledgements.txt" />
     <Text Include="benchmarks.txt" />
-    <Text Include="height mapping notes.txt" />
     <Text Include="how to build.txt" />
   </ItemGroup>
   <ItemGroup>

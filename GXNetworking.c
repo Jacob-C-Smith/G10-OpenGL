@@ -6,11 +6,12 @@ GXServer_t *createServer     ( )
 	GXServer_t* ret = calloc(1,sizeof(GXServer_t));
 	
     // Check the memory
-    #ifndef NDEBUG
-        if (ret == 0)
-            goto noMem;
-    #endif
-
+	{
+		#ifndef NDEBUG
+			if (ret == 0)
+				goto noMem;
+		#endif
+	}
     return ret;
 
     // Error handling
@@ -174,14 +175,15 @@ int sendConnectCommand(GXServer_t* server, char* name, char** party)
 
 int         sendTextChat     ( GXServer_t* server, char* message, GXCommands_t channel )
 {
-	size_t  len    = strlen(message);
-	char   *buffer = calloc(len + 5, sizeof(u8));
+	size_t  len       = strlen(message)+5;
+	char   *buffer    = calloc(len, sizeof(u8));
 
-	*(u16*)buffer  = (u16)COMMAND_CHAT;
-	buffer[2]      = channel;
+	*(u16*)buffer     = (u16)COMMAND_CHAT;
+	buffer[2]         = channel;
+	*(u16*)&buffer[3] = (u16)len;
 
-	strncpy(&buffer[3], message, len);
-	sendCommand(server, buffer, 0);
+	strncpy(&buffer[5], message, len);
+	sendCommand(server, buffer, len);
 	free(buffer);
 
 	return 0;
@@ -197,6 +199,44 @@ int sendDisconnectCommand ( GXServer_t *server )
 	sendCommand(server, buffer, len);
 	free(buffer);
 
+	return 0;
+}
+
+int recvCommand ( GXServer_t* server, char* buffer, size_t len )
+{
+	
+	SDLNet_TCP_Recv(server->socket, buffer, len);
+	return 0;
+
+}
+
+int parseCommand ( char *commands, size_t len )
+{
+	char  *command = commands;
+	u16    cId     = *(u16*)command;
+
+	switch (cId)
+	{
+		case COMMAND_NOOP:
+			gPrintLog("[G10] [Networking] No operation\n");
+			break;
+		case COMMAND_CONNECT:
+			break;
+		case COMMAND_DISPLACE_ROTATE:
+			break;
+		case COMMAND_CHAT:
+			parseChatCommand(command);
+			break;
+		case COMMAND_DISCONNECT:
+			break;
+	}
+	return 0;
+}
+
+int parseChatCommand(char* chatCommand)
+{
+	u16 cId     = *(u16*)chatCommand;
+	u16 channel = *(u16*)chatCommand + 2;
 	return 0;
 }
 
