@@ -7,7 +7,7 @@
 #include <G10/GXtypedef.h>
 
 // ✅ Adds vector a to vector b. Returns new vector
-static void addVec3 ( vec3 *r, vec3 a, vec3 b )
+static void add_vec3 ( vec3 *r, vec3 a, vec3 b )
 {
     r->x = a.x + b.x,
     r->y = a.y + b.y,
@@ -16,7 +16,7 @@ static void addVec3 ( vec3 *r, vec3 a, vec3 b )
 }
 
 // ✅ Subtracts vector a from vector b. Returns new vector
-static void subVec3 ( vec3 *r, vec3 a, vec3 b )
+static void sub_vec3 ( vec3 *r, vec3 a, vec3 b )
 {
     r->x = a.x - b.x,
     r->y = a.y - b.y,
@@ -29,13 +29,13 @@ static float length ( vec3 a )
     return sqrtf(a.x * a.x + a.y * a.y + a.z * a.z);
 }
 
-static float dotProductVec3(vec3 a, vec3 b)
+static float dot_product_vec3(vec3 a, vec3 b)
 {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
 // ✅ Computes the cross product of 2 3D vectors
-static vec3 crossProductVec3 ( vec3 a, vec3 b )
+static vec3 cross_product_vec3 ( vec3 a, vec3 b )
 {
     return (vec3) {
         a.y * b.z - a.z * b.y,
@@ -45,7 +45,7 @@ static vec3 crossProductVec3 ( vec3 a, vec3 b )
 }
 
 // ✅ Multiplies the components of one vector by the components of another
-static void vec3xvec3 ( vec3 *r, vec3 a, vec3 b )
+static void mul_vec3_vec3 ( vec3 *r, vec3 a, vec3 b )
 {
     r->x = a.x * b.x,
     r->y = a.y * b.y,
@@ -54,7 +54,7 @@ static void vec3xvec3 ( vec3 *r, vec3 a, vec3 b )
 }
 
 // ✅ Divides the components of a vector by a scalar
-static void divVec3f( vec3 *r, vec3 a, float s )
+static void div_vec3_f( vec3 *r, vec3 a, float s )
 {
     r->x = a.x / s,
     r->y = a.y / s,
@@ -63,7 +63,7 @@ static void divVec3f( vec3 *r, vec3 a, float s )
 
 
 // ✅ Multiplies a vector by a scalar value
-static vec3 vec3xf ( vec3 v, float s )
+static vec3 mul_vec3_f ( vec3 v, float s )
 {
     return (vec3) {
         v.x * s,
@@ -81,7 +81,7 @@ static vec3 normalize ( vec3 v )
 }
 
 // ✅ Multiplies a matrix by a vector
-static vec2 mat2xvec2 ( mat2 m, vec2 v)
+static vec2 mul_mat2_vec2 ( mat2 m, vec2 v)
 {
     return (vec2) {
         m.a*v.x+m.b*v.y,
@@ -90,7 +90,7 @@ static vec2 mat2xvec2 ( mat2 m, vec2 v)
 }
 
 // ✅ Multiplies a matrix by a vector
-static vec4 mat4xvec4 ( mat4 m, vec4 v )
+static vec4 mul_mat4_vec4 ( mat4 m, vec4 v )
 {
     return (vec4) {
         m.a* v.x + m.b * v.y + m.c * v.z + m.d * v.w,
@@ -101,16 +101,16 @@ static vec4 mat4xvec4 ( mat4 m, vec4 v )
 }
 
 // ✅ Multiplies a matrix by a matrix
-static mat2 mat2xmat2 ( mat2 m, mat2 n )
+static mat2 mul_mat2_mat2 ( mat2 m, mat2 n )
 {
     return (mat2) {
         m.a* n.a + m.b * n.c, m.a* n.b + m.b * n.d,
-            m.c* n.a + m.d * n.c, m.c* n.b + m.d * n.d
+        m.c* n.a + m.d * n.c, m.c* n.b + m.d * n.d
     };
 }
 
 // ✅ Multiplies a matrix by a matrix
-static mat4 mat4xmat4 ( mat4 m, mat4 n )
+static mat4 mul_mat4_mat4 ( mat4 m, mat4 n )
 {
     return (mat4) {
         (m.a * n.a + m.b * n.e + m.c * n.i + m.d * n.m), (m.a * n.b + m.b * n.f + m.c * n.j + m.d * n.n), (m.a * n.c + m.b * n.g + m.c * n.k + m.d * n.o), (m.a * n.d + m.b * n.h + m.c * n.l + m.d * n.p),
@@ -121,7 +121,7 @@ static mat4 mat4xmat4 ( mat4 m, mat4 n )
 }
 
 // ✅ Computes the inverse of a matrix
-static mat2 mat2rcp(mat2 m)
+static mat2 rcp_mat2(mat2 m)
 {
     return (mat2) {
         m.a, m.c,
@@ -130,7 +130,7 @@ static mat2 mat2rcp(mat2 m)
 }
 
 // ✅ Computes the inverse of a matrix
-static mat4 mat4rcp(mat4 m)
+static mat4 rcp_mat4(mat4 m)
 {
     return (mat4) {
         (m.a), (m.e), (m.i), (m.m),
@@ -141,7 +141,7 @@ static mat4 mat4rcp(mat4 m)
 }
 
 // ✅ Returns the identity matrix
-static mat2 identityMat2()
+static mat2 identity_mat2()
 {
     return (mat2) {
         1, 0,
@@ -150,7 +150,7 @@ static mat2 identityMat2()
 }
 
 // ✅ Returns the identity matrix
-static mat4 identityMat4 ( )
+static mat4 identity_mat4 ( )
 {
     return (mat4) {
         1, 0, 0, 0,
@@ -161,7 +161,7 @@ static mat4 identityMat4 ( )
 }
 
 // ✅ Computes a translation matrix from a translation vector
-static mat4 translationMat ( vec3 v )
+static mat4 translation_mat4 ( vec3 v )
 {
     return (mat4) {
         1, 0, 0, 0,
@@ -171,30 +171,18 @@ static mat4 translationMat ( vec3 v )
     };
 }
 
-// ✅ Computes scale matrix from a scale vector
-static mat4 scaleMat ( vec3 v )
-{
-    return (mat4) {
-        v.x, 0, 0, 0,
-        0, v.y, 0, 0,
-        0, 0, v.z, 0,
-        0, 0, 0, 1
-    };
-}
-
-// ✅ Computes a translationScale matrix from a translation vector and a scale vector
-static mat4 translationScaleMat ( vec3 translation, vec3 scale )
+static mat4 scale_mat4 ( vec3 scale )
 {
     return (mat4) {
         scale.x, 0, 0, 0,
         0, scale.y, 0, 0,
         0, 0, scale.z, 0,
-        translation.x, translation.y, translation.z, 1
+        0, 0, 0      , 1
     };
-}
+};
 
 // ✅ Computes a rotation matrix from a rotation vector
-static mat4 rotationMatrixFromVec ( vec3 rotation )
+static mat4 rotation_mat4_from_vec3 ( vec3 rotation )
 {
     return (mat4) {
         cosf(rotation.x) + powf(rotation.x, 2) * (1 - cosf(rotation.x))                 , rotation.x* rotation.y* (1 - cosf(rotation.y)) - rotation.z * sinf(rotation.y)  , rotation.x* rotation.z* (1 - cosf(rotation.z)) + rotation.y * sinf(rotation.z), 0,
@@ -205,7 +193,7 @@ static mat4 rotationMatrixFromVec ( vec3 rotation )
 }
 
 // ✅ Computes a model matrix from a location, rotation, and scale vector.
-static mat4 generateModelMatrixFromVec ( vec3 location, vec3 rotation, vec3 scale )
+static mat4 model_mat4_from_vec3 ( vec3 location, vec3 rotation, vec3 scale )
 {
-    return (translationScaleMat(location,scale),rotationMatrixFromVec(rotation));
+    return (translationScaleMat(location,scale),rotation_mat4_from_vec3(rotation));
 }

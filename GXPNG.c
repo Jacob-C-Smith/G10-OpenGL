@@ -1,6 +1,6 @@
 #include <G10/GXPNG.h>
 
-GXTexture_t *loadPNGImage ( const char path[] )
+GXTexture_t *load_png_image ( const char path[] )
 {
     // Argument checking
     {
@@ -17,7 +17,7 @@ GXTexture_t *loadPNGImage ( const char path[] )
     
 
     // Initialized data
-    GXTexture_t *ret = createTexture();
+    GXTexture_t *ret = create_texture();
     SDL_RWops   *r   = SDL_RWFromFile(path, "rb");
     
     // Check allocated memory
@@ -46,8 +46,8 @@ GXTexture_t *loadPNGImage ( const char path[] )
     // Set up the OpenGL texture 
     {
         // Create a texture ID
-        glGenTextures(1, &ret->textureID);
-        glBindTexture(GL_TEXTURE_2D, ret->textureID);
+        glGenTextures(1, &ret->texture_id);
+        glBindTexture(GL_TEXTURE_2D, ret->texture_id);
 
         // Point it to the right place, use some ternarry operaters to determine color depth
         glTexImage2D(GL_TEXTURE_2D, 0, (image->format->BytesPerPixel == 1) ? GL_RED : ((image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA), ret->width, ret->height, 0, (image->format->BytesPerPixel == 1) ? GL_RED : (image->format->BytesPerPixel == 3) ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -66,7 +66,7 @@ GXTexture_t *loadPNGImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        gPrintLog("[G10] [Texture] [PNG] Loaded file \"%s\"\n", path);
+        g_print_log("[G10] [Texture] [PNG] Loaded file \"%s\"\n", path);
     #endif 
     
     return ret;
@@ -75,13 +75,13 @@ GXTexture_t *loadPNGImage ( const char path[] )
     {
         invalidFile:
         #ifndef NDEBUG
-            gPrintError("[G10] [Texture] [PNG] Failed to load file %s\n", path);
+            g_print_error("[G10] [Texture] [PNG] Failed to load file %s\n", path);
         #endif
         return 0;
 
         noPath:
         #ifndef NDEBUG
-            gPrintError("[G10] [Texture] [PNG] No path provided\n");
+            g_print_error("[G10] [Texture] [PNG] No path provided\n");
         #endif
         return 0;
     }

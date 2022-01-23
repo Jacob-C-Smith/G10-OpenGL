@@ -1,6 +1,6 @@
 ﻿#include <G10/GXPLY.h>
 
-GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
+GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
     
     // Commentary
     {
@@ -101,9 +101,9 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
     GXPLYfile_t   *plyFile            = calloc(1, sizeof(GXPLYfile_t));
 
     // Load the file
-    i = gLoadFile(path, 0, true);
+    i = g_load_file(path, 0, true);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, true);
+    g_load_file(path, data, true);
 
     i ^= i;
 
@@ -130,7 +130,7 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
                 {
                     i = 0;
                     while (cData[++i] != '\n');
-                    gPrintLog("[G10] [PLY] Comment in file \"%s\" : %.*s\n", path, i-8, &cData[8]);
+                    g_print_log("[G10] [PLY] Comment in file \"%s\" : %.*s\n", path, i-8, &cData[8]);
                 }
             #endif
 
@@ -418,10 +418,10 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
         #endif
         goto processVAO;
         missingVerts:
-            gPrintLog("[G10] [PLY] Missing vertex attributes detected in \"%s\"\n",path);
+            g_print_log("[G10] [PLY] Missing vertex attributes detected in \"%s\"\n",path);
             goto processVAO;
         irregularVertices:
-            gPrintLog("[G10] [PLY] Detected irregular vertex attribute grouping in \"%s\"\n", path);
+            g_print_log("[G10] [PLY] Detected irregular vertex attribute grouping in \"%s\"\n", path);
             goto processVAO;
     }
     processVAO:
@@ -431,9 +431,9 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
     vertexArray            = (float*)data;
     verticesInBuffer       = plyFile->elements[0].nCount * plyFile->elements[0].sStride;
     indices                = (void*)&data[verticesInBuffer];
-    part->elementsInBuffer = ((GLuint)plyFile->elements[1].nCount * (GLuint)3);
+    part->elements_in_buffer = ((GLuint)plyFile->elements[1].nCount * (GLuint)3);
 
-    correctedIndicies      = calloc((size_t)part->elementsInBuffer, sizeof(u32));
+    correctedIndicies      = calloc((size_t)part->elements_in_buffer, sizeof(u32));
 
     if (correctedIndicies == (void*)0)
         return (void*)0;
@@ -449,7 +449,7 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
         #ifndef NDEBUG
             indcnt += indices[i].count;
             if (!(indices[i].a < indices[i].b < indices[i].c))
-                gPrintWarning("[G10] [PLY] Irregular indices detected in face < %d %d %d >\n", indices[i].a, indices[i].b, indices[i].c);
+                g_print_warning("[G10] [PLY] Irregular indices detected in face < %d %d %d >\n", indices[i].a, indices[i].b, indices[i].c);
         #endif
     }
 
@@ -461,18 +461,18 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
     // Create buffers
     {
         // Generate the vertex array and all of its contents, as well as the element buffer
-        glGenVertexArrays(1, &part->vertexArray);
-        glGenBuffers(1, &part->vertexBuffer);
-        glGenBuffers(1, &part->elementBuffer);
+        glGenVertexArrays(1, &part->vertex_array);
+        glGenBuffers(1, &part->vertex_buffer);
+        glGenBuffers(1, &part->element_buffer);
 
-        glBindVertexArray(part->vertexArray);
+        glBindVertexArray(part->vertex_array);
 
         // Populate and enable the vertex buffer, element buffer, and UV coordinates
-        glBindBuffer(GL_ARRAY_BUFFER, part->vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, part->vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, verticesInBuffer, vertexArray, GL_STATIC_DRAW);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, part->elementBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, part->elementsInBuffer * sizeof(u32), correctedIndicies, GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, part->element_buffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, part->elements_in_buffer * sizeof(u32), correctedIndicies, GL_STATIC_DRAW);
     }
     
     for (int i = 0; vertexGroupCount > i; i++)
@@ -498,12 +498,15 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
             break;
 
         case GXPLY_Bones:
-        case GXPLY_Weights:
-            glVertexAttribPointer(i, 4, GL_UNSIGNED_INT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
+            glVertexAttribIPointer(i, 4, GL_INT, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
             vertexAttribOffset += 4;
             glEnableVertexAttribArray(i);
             break;
-
+        case GXPLY_Weights:
+            glVertexAttribPointer(i, 4, GL_FLOAT, GL_FALSE, plyFile->elements[0].sStride, vertexAttribOffset * sizeof(float));
+            vertexAttribOffset += 4;
+            glEnableVertexAttribArray(i);
+            break;
         }
     }
     i ^= i;
@@ -556,25 +559,25 @@ GXPart_t *loadPLY ( const char path[], GXPart_t *part ) {
     // Error handling
     {
         noFile:
-            gPrintError("[G10] [PLY] Failed to load file %s\n", path);
+            g_print_error("[G10] [PLY] Failed to load file %s\n", path);
             return 0;
         noPart:
-            gPrintError("[G10] [PLY] Null pointer provided for parameter part in call to %s\n", __FUNCSIG__);
+            g_print_error("[G10] [PLY] Null pointer provided for parameter part in call to %s\n", __FUNCSIG__);
             return 0;
         noPath:
-            gPrintError("[G10] [PLY] Null pointer provided for parameter path in call to %s\n", __FUNCSIG__);
+            g_print_error("[G10] [PLY] Null pointer provided for parameter path in call to %s\n", __FUNCSIG__);
             return 0;
         invalidHeader:
-            gPrintError("[G10] [PLY] Invalid header detected in file \"%s\"\n",path);
+            g_print_error("[G10] [PLY] Invalid header detected in file \"%s\"\n",path);
             return 0;
         noDoubleSupport:
-            gPrintError("[G10] [PLY] Double detected in element \"%s\" in file \"%s\"\n", plyFile->elements[j].name, path);
+            g_print_error("[G10] [PLY] Double detected in element \"%s\" in file \"%s\"\n", plyFile->elements[j].name, path);
             return 0;
         unrecognizedPropertyType:
-            gPrintError("[G10] [PLY] Unrecognized property type detected in file \"%s\"\n", path);
+            g_print_error("[G10] [PLY] Unrecognized property type detected in file \"%s\"\n", path);
             return 0;
         nonTriangulated:
-            gPrintError("[G10] [PLY] Detected non triangulated faces in file \"%s\"\n", path);
+            g_print_error("[G10] [PLY] Detected non triangulated faces in file \"%s\"\n", path);
             return 0;
     }
 }

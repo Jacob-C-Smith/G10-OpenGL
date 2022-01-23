@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include <G10/GXLinear.h>
-#include <G10/GXJSON.h>
+#include <JSON/JSON.h>
 #include <G10/GXQuaternion.h>
 
 // Because the transform struct will often interact with AVX instructions, 
@@ -20,19 +20,21 @@ struct GXTransform_s
                scale;
     quaternion rotation;
 
-    mat4       modelMatrix;
+    mat4       model_matrix;
 };
 #pragma pack (pop)
 
 
 // Constructors
-GXTransform_t *createTransform       ( vec3           location , quaternion rotation, vec3 scale ); // ✅ Creates a transform from location, rotation, and scale
+GXTransform_t *create_transform        ( vec3           location , quaternion     rotation, vec3  scale ); // ✅ Creates a transform from location, rotation, and scale
 
 // Loaders
-GXTransform_t *loadTransform         ( const char     path[] );
-GXTransform_t *loadTransformAsJSON   ( char          *token );
+GXTransform_t *load_transform          ( const char     path[] );
+GXTransform_t *load_transform_as_json  ( char          *token );
 
-int            rotateAboutQuaternion ( GXTransform_t *transform, quaternion axis    , float theta );
+void           make_model_matrix       ( mat4          *r,         GXTransform_t *transform );
+
+int            rotate_about_quaternion ( GXTransform_t *transform, quaternion     axis    , float theta );
 
 // Destructors
-int            destroyTransform      ( GXTransform_t *transform );                             // ✅ Destroys a transform
+int            destroy_transform       ( GXTransform_t *transform );                             // ✅ Destroys a transform

@@ -10,4 +10,4 @@
 
 typedef u8 RGBE[4];
 
-GXTexture_t *loadHDR( const char path[] );
+GXTexture_t *load_hdr ( const char path[] );

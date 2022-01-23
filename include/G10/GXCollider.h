@@ -9,25 +9,28 @@
 
 enum colliderType_e
 {
-    box        = 1,
-    sphere     = 2,
-    capsule    = 3,
-    cylinder   = 4,
-    cone       = 5,
-    convexhull = 6
+    plane      = 1,
+    box        = 2,
+    sphere     = 3,
+    capsule    = 4,
+    cylinder   = 5,
+    cone       = 6,
+    convexhull = 7,
+    invalid    = 0
 };
 typedef enum colliderType_e colliderType_t;
 
 struct GXCollider_s
 {
-    colliderType_t type;
-    GXBV_t        *bv;
-    
+    GXBV_t         *bv;
+    colliderType_t  type;
+    void           *convex_hull;
+    vec3            dimensions;
 };
 
-GXCollider_t* createCollider     ( void );                     // ❌ Creates an empty collider
+GXCollider_t* create_collider       ( void );                     // ❌ Creates an empty collider
 
-GXCollider_t* loadCollider       ( const char   *path );       // ❌ Creates and loads a collider from a path and populates it
-GXCollider_t* loadColliderAsJSON ( char         *token );      // ❌ Creates a collider from JSON text
+GXCollider_t* load_collider         ( const char   *path );       // ❌ Creates and loads a collider from a path and populates it
+GXCollider_t* load_collider_as_json ( char         *token );      // ❌ Creates a collider from JSON text
 
-int           destroyCollider    ( GXCollider_t *collider );   // ❌ Destroys a collider
+int           destroy_collider      ( GXCollider_t *collider );   // ❌ Destroys a collider

@@ -61,8 +61,8 @@ _TEXT SEGMENT
 ;
 ; velocity (new) = acceleration * delta time + velocity (last)
 ; position (new) = velocity * delta time + position (last)
-PUBLIC calculateDerivativesOfDisplacement
-calculateDerivativesOfDisplacement PROC
+PUBLIC calculate_derivatives_of_displacement
+calculate_derivatives_of_displacement PROC
     mov rdx, rcx                  ; Copy the pointer to the entity
 
     ; Dereference both of the pointers
@@ -94,9 +94,9 @@ calculateDerivativesOfDisplacement PROC
     ; Done
     ret
 
-calculateDerivativesOfDisplacement ENDP
+calculate_derivatives_of_displacement ENDP
 
-PUBLIC calculateDerivativesOfRotation
+PUBLIC calculate_derivatives_of_rotation
     mov rdx, rcx                  ; Copy the pointer to the entity
 
     ; Dereference both of the pointers
@@ -128,8 +128,8 @@ PUBLIC calculateDerivativesOfRotation
     ; Done
     ret
 
-calculateDerivativesOfRotation PROC
+calculate_derivatives_of_rotation PROC
 
-calculateDerivativesOfRotation ENDP
+calculate_derivatives_of_rotation ENDP
 
 END

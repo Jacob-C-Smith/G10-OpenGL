@@ -1,6 +1,6 @@
 #include <G10/GXLight.h>
 
-GXLight_t *createLight     ( )
+GXLight_t *create_light     ( )
 {
     // Initialized data
     GXLight_t* ret = calloc(1,sizeof(GXLight_t));
@@ -27,7 +27,7 @@ GXLight_t *createLight     ( )
     return ret;
 }
 
-GXLight_t *loadLight       ( const char path[] )
+GXLight_t *load_light       ( const char path[] )
 {
     // Uninitialized data
     u8*        data;
@@ -38,14 +38,14 @@ GXLight_t *loadLight       ( const char path[] )
     FILE*        f = fopen(path, "rb");
 
     // Load up the file
-    i = gLoadFile(path, 0, false);
+    i = g_load_file(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, false);
+    g_load_file(path, data, false);
 
-    ret = loadLightAsJSON(data);
+    ret = load_light_as_json(data);
 
     #ifndef NDEBUG
-        gPrintLog("[G10] [Light] Loading \"%s\".\n", (char*)path);
+        g_print_log("[G10] [Light] Loading \"%s\".\n", (char*)path);
     #endif	
 
     // Finish up
@@ -54,41 +54,41 @@ GXLight_t *loadLight       ( const char path[] )
     return ret;
 }
 
-GXLight_t *loadLightAsJSON ( char      *token )
+GXLight_t *load_light_as_json ( char      *token )
 {
     // Initialized data
-    GXLight_t*   ret        = createLight();
+    GXLight_t*   ret        = create_light();
     size_t       len        = strlen(token);
-    size_t       tokenCount = GXParseJSON(token, len, 0, (void*)0);
-    JSONValue_t* tokens     = calloc(tokenCount, sizeof(JSONValue_t));
+    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
+    JSONToken_t* tokens     = calloc(tokenCount, sizeof(JSONToken_t));
 
     // Parse the camera object
-    GXParseJSON(token, len, tokenCount, tokens);
+    parse_json(token, len, tokenCount, tokens);
 
     // Iterate through key / value pairs to find relevent information
     for (size_t l = 0; l < tokenCount; l++)
     {
         // Parse out the light name
-        if (strcmp("name", tokens[l].name) == 0)
+        if (strcmp("name", tokens[l].key) == 0)
         {
-            ret->name = calloc(strlen(tokens[l].content.nWhere)+1,sizeof(u8));
+            ret->name = calloc(strlen(tokens[l].value.n_where)+1,sizeof(u8));
             if (ret->name == (void*)0)
                 return 0;
-            strcpy(ret->name, (const char*)tokens[l].content.nWhere);
+            strcpy(ret->name, (const char*)tokens[l].value.n_where);
             continue;
         }
 
         // Parse out light color
-        if (strcmp("color", tokens[l].name) == 0)
+        if (strcmp("color", tokens[l].key) == 0)
         {
-            ret->color = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->color = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
             continue;
         }
 
         // Parse out light position
-        if (strcmp("position", tokens[l].name) == 0)
+        if (strcmp("position", tokens[l].key) == 0)
         {
-            ret->location = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->location = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
             continue;
         }
     }
@@ -99,7 +99,7 @@ GXLight_t *loadLightAsJSON ( char      *token )
     return ret;
 }
 
-int        destroyLight    ( GXLight_t *light )
+int        destroy_light    ( GXLight_t *light )
 {
     free((void*)light->name);
 

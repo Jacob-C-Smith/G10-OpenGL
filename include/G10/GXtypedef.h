@@ -59,43 +59,55 @@ struct quaternion_s
 };
 typedef struct quaternion_s quaternion;
 
-// Scene object
+// Insatnce 
+struct GXInstance_s;
+typedef struct GXInstance_s GXInstance_t;
+
+// Bind
+struct GXBind_s;
+typedef struct GXBind_s GXBind_t;
+
+// Input
+struct GXInput_s;
+typedef struct GXInput_s GXInput_t;
+
+// Scene type
 struct GXScene_s;
 typedef struct GXScene_s GXScene_t;
 
-// Entity object
+// Entity type
 struct GXEntity_s;
 typedef struct GXEntity_s GXEntity_t;
 
-// Camera object
+// Camera type
 struct GXCamera_s;
 typedef struct GXCamera_s GXCamera_t;
 
-// Light object
+// Light type
 struct GXLight_s;
 typedef struct GXLight_s GXLight_t;
 
-// Skybox object
+// Bounding volume 
+struct GXBV_s;
+typedef struct GXBV_s GXBV_t;
+
+// Skybox type
 struct GXSkybox_s;
 typedef struct GXSkybox_s GXSkybox_t;
 
-// Part object
+// Part type
 struct GXPart_s;
 typedef struct GXPart_s GXPart_t;
 
-// Shader object
+// Shader type
 struct GXShader_s;
 typedef struct GXShader_s GXShader_t;
 
-// Shader uniform object
+// Shader uniform 
 struct GXUniform_s;
 typedef struct GXUniform_s GXUniform_t;
 
-// Key value
-struct GXKeyValue_s;
-typedef struct GXKeyValue_s GXKeyValue_t;
-
-// Material object
+// Material 
 struct GXMaterial_s;
 typedef struct GXMaterial_s GXMaterial_t;
 
@@ -115,12 +127,13 @@ typedef struct GXRigidbody_s GXRigidbody_t;
 struct GXCollider_s;
 typedef struct GXCollider_s GXCollider_t;
 
-struct JSONValue_s;
-typedef struct JSONValue_s JSONValue_t;
-
 // Armature
 struct GXRig_s;
 typedef struct GXRig_s GXRig_t;
+
+// Pose
+struct GXPose_s;
+typedef struct GXPose_s GXPose_t;
 
 // Bone
 struct GXBone_s;
@@ -130,6 +143,6 @@ typedef struct GXBone_s GXBone_t;
 struct GXServer_s;
 typedef struct GXServer_s GXServer_t;
 
-// Bounding volume
-struct GXBV_s;
-typedef struct GXBV_s GXBV_t;
+// Command
+struct GXCommand_s;
+typedef struct GXCommand_s GXCommand_t;

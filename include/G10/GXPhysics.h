@@ -9,5 +9,5 @@
 
 #include <G10/GXEntity.h>
 
-vec3 *summateForces         ( vec3       *forces, size_t      forceCount); // 
-int   integrateDisplacement ( GXEntity_t *entity, float       deltaTime);  // 
+vec3 *summate_forces         ( vec3       *forces, size_t      forceCount); // 
+int   integrate_displacement ( GXEntity_t *entity, float       deltaTime);  // 

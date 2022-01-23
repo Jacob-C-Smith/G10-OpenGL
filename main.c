@@ -15,6 +15,7 @@
 #include <G10/GXtypedef.h>
 #include <G10/G10.h>
 #include <G10/GXScene.h>
+#include <G10/GXInput.h>
 #include <G10/GXCamera.h>
 #include <G10/GXEntity.h>
 #include <G10/GXRigidbody.h>
@@ -42,33 +43,17 @@
 
 int main ( int argc, const char *argv[] )
 {
-    // Uninitialized data
-    u32           d,
-                  currentTime;
-    clock_t       c;
-
-    GXPart_t     *cube;
-	GXShader_t   *shader;
-	
-    // Uninitialized SDL data
-    SDL_Window   *window;
-    SDL_GLContext glContext;
-    SDL_Event     event;
-
-    // Initialized Data
-
     // Initialized G10 data
+    GXInstance_t *instance     = 0;
     GXScene_t    *scene        = 0;
     GXServer_t   *server       = 0;
-    
+    GXInput_t    *input        = load_input("G10/input.json");
+
     bool          drawBVH      = false;
 
-    float         deltaTime    = 0.01f,
-                  yaw          = 0.f,
+    float         yaw          = 0.f,
                   pitch        = 0.f,
-                  camSpeed     = 3.f;
-    u8            running      = 1;
-    u32	          lastTime     = 0;
+                  camSpeed     = 300.f;
     const char   *initialScene = 0,
                  *initialIP    = 0;
 
@@ -77,7 +62,7 @@ int main ( int argc, const char *argv[] )
         // Iterate through arguments
         for (size_t i = 1; i < argc; i++)
         {
-            // Help
+            // Help 
             if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
             {
                 // Initialize SDL
@@ -108,116 +93,106 @@ int main ( int argc, const char *argv[] )
         }
     }
 
-    // G10 Initialization  
+    // Initialize G10
     {
-        // Initialize SDL, GLAD, etc
-        gInit(&window, &glContext);
-
-        // Splash screen
-        {
-            #ifdef NDEBUG
-                createSplashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
-            #endif
-        }
-
-        // Load the scene
-        scene = loadScene(initialScene);
-
-        {
-            printBV(scene->BVH, 0);
-            
-            // Load a cube and a solid color shader so we can draw bounding volumes
-            cube   = loadPart("G10/cube.json");
-            shader = loadShader("G10/shaders/G10 solid color.json");
-        }
-
-        // Splash screen animation
-        {
-            for (int i = 0; i > -15; i--)
-            {
-                moveFront(i, i);
-                renderTextures();
-                SDL_Delay(100);
-            }
-        }
-
-        // Destroy the splash screen
-        {
-            #ifdef NDEBUG
-                destroySplashscreen();
-            #endif
-        }
-
-        // Display the window
-        SDL_ShowWindow(window);
-
+        #ifndef NDEBUG
+            instance = g_init("G10/debug instance.json");
+        #else 
+            instance = g_init("G10/release inscance.json");
+        #endif
     }
 
-    // G10 Testing
+    // Create a splash screen
     {
-
+        #ifdef NDEBUG
+            create_splashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
+        #endif
     }
 
-    // Server testing
-    /*
-    {
-        server = createServer();
-        connect(server, " 172.27.162.87 ", 8877);
-        char* party[] = { "Seth", "Daniel", "Elias" };
-        
-        char* name = calloc(255+1, sizeof(u8));
+    // Load the scene
+    scene = load_scene("Nitric Acid Plant/Nitric Acid Plant.json");
 
-        sendConnectCommand(server, "Jake", party);
-        sendTextChat(server, "Hello, World!", 0x0F); 
-    }*/
+    // Splash screen animation
+    {
+        for (int i = 0; i > -15; i--)
+        {
+            move_front(i, i);
+            render_textures();
+            SDL_Delay(100);
+        }
+    }
+
+    // Destroy the splash screen
+    {
+        #ifdef NDEBUG
+            destroy_splashscreen();
+        #endif
+    }
+
+    instance->running = true;
 
     goto setGLViewportSizeFromWindow;
 
     // Main game loop
-    while (running)
+    while (instance->running)
     {
-        // Calculate delta time
-        {
-            currentTime = SDL_GetTicks();
-            d           = currentTime - lastTime;
-            lastTime    = currentTime;
-            deltaTime   = (float)1 / d;
-        }
+        // Compute delta time
+        g_delta(instance);
 
-        // FPS readout
+        // Clear the screen
+        g_clear();
+
+        // Debug only FPS readout
         {
             #ifndef NDEBUG
-                printf("FPS: %.1f\r", (float)deltaTime * (float)1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
+                printf("FPS: %.1f\r", (float)instance->deltaTime * (float)1000.f); // Uses CR instead of CR LF to provide a (kind of) realtime readout of the FPS
             #endif
         }
 
-        // TODO: Find a better way to process input.
-        
+        // TODO: Finish callback events
         // Process input
         {
             // Process events
-            while (SDL_PollEvent(&event)) {
-                switch (event.type)
+            while (SDL_PollEvent(&instance->event)) {
+                switch (instance->event.type)
                 {
                 case SDL_QUIT:
                 {
-                    running = 0;
+                    instance->running = false;
                     break;
                 }
                 case SDL_KEYDOWN:
                 {
-                    const u8* keyboardState = SDL_GetKeyboardState(NULL);
-                    static float orientation  = 0.f;
-                    static float lOrientation = 0.f;
-                    if (keyboardState[SDL_SCANCODE_G])
+                    const  u8   *keyboardState = SDL_GetKeyboardState(NULL);
+                    static float orientation   = 0.f;
+                    static float lOrientation  = 0.f;
+                    static vec3  offset        = { 0.f, 0.f, 0.f };
+
+                    if (keyboardState[SDL_SCANCODE_F1])
                     {
-                        orientation += 0.1f;
+                        GXScene_t *lScene = scene;
+                        scene = 0;
+                        scene = load_scene("Nitric Acid Plant/Nitric Acid Plant.json");
+                        destroy_scene(lScene);
                     }
+
+                    if (keyboardState[SDL_SCANCODE_KP_8])
+                        scene->cameras->where.z += 0.1f;
+                    if (keyboardState[SDL_SCANCODE_KP_2])
+                        scene->cameras->where.z -= 0.1f;
+
+                    if (keyboardState[SDL_SCANCODE_U])
+                        offset.x += 0.05f;
+                    if (keyboardState[SDL_SCANCODE_I])
+                        offset.y += 0.05f;
+                    if (keyboardState[SDL_SCANCODE_O])
+                        offset.z += 0.05f;
+                    
+
+
                     if (keyboardState[SDL_SCANCODE_CAPSLOCK])
-                    {
                         // Toggle mouse lock 
                         SDL_SetRelativeMouseMode(!SDL_GetRelativeMouseMode());
-                    }
 
                     
                     // Turn keyboard input into orientation 
@@ -245,49 +220,27 @@ int main ( int argc, const char *argv[] )
                             goto noInput;                                      // / (None)
                     }
                     
-
-                    GXEntity_t* tank = 0;
-                    tank = getEntity(scene, "Tank");
-                    GXTransform_t* transform = tank->transform;
-
-                    if (tank == 0)
-                        return 0;
-                    if (transform == 0)
-                        return 0;
-
-                    tank->transform->location.x += cosf(orientation ) * deltaTime,
-                    tank->transform->location.y += sinf(orientation ) * deltaTime;
-
-                    lOrientation = orientation;
-                    
-                    printf("%g\n", orientation);
-
-                    
-
                     noInput:
 
                     //sendDisplaceOrientCommand(server, tank);
 
                     if (keyboardState[SDL_SCANCODE_ESCAPE])
-                        running = 0;
+                        instance->running = 0;
 
                     // Turn on BVH drawings
                     if (keyboardState[SDL_SCANCODE_F1])
                         drawBVH = !drawBVH;
 
                     vec3 tw;
-                    addVec3(&tw, scene->cameras->target, scene->cameras->where);
+                    add_vec3(&tw, scene->cameras->target, scene->cameras->where);
 
-                    scene->cameras->view = lookAt(scene->cameras->where, tw, scene->cameras->up);
+                    scene->cameras->view = look_at(scene->cameras->where, tw, scene->cameras->up);
                 }
                 case SDL_KEYUP:
                 {
-                    //const u8* keyboardState = SDL_GetKeyboardState(NULL);
-
-                    //updateCameraFromKeyboardInput(scene->cameras, keyboardState, deltaTime);
                     vec3 tw;
-                    addVec3(&tw, scene->cameras->target, scene->cameras->where);
-                    scene->cameras->view = lookAt(scene->cameras->where, tw, scene->cameras->up);
+                    add_vec3(&tw, scene->cameras->target, scene->cameras->where);
+                    scene->cameras->view = look_at(scene->cameras->where, tw, scene->cameras->up);
 
                     break;
                 }
@@ -297,13 +250,14 @@ int main ( int argc, const char *argv[] )
 
                     if (SDL_GetRelativeMouseMode() == 0)
                         break;
+
                     GXCamera_t* a = scene->cameras;
 
-                    static float hAng = 0.f,
-                        vAng = 90.f;
+                    static float hAng = 90.f,
+                                 vAng = 90.f;
 
-                    hAng += (float)event.motion.xrel * deltaTime * MOUSE_SENS * scene->cameras->fov / 90;
-                    vAng += (float)event.motion.yrel * deltaTime * MOUSE_SENS * scene->cameras->fov / 90;
+                    hAng += (float)instance->event.motion.xrel * instance->deltaTime * MOUSE_SENS * scene->cameras->fov / 90;
+                    vAng += (float)instance->event.motion.yrel * instance->deltaTime * MOUSE_SENS * scene->cameras->fov / 90;
 
                     if (vAng > (float)M_PI_2 - 0.0001f)
                         vAng = (float)M_PI_2 - 0.0001f;
@@ -315,22 +269,22 @@ int main ( int argc, const char *argv[] )
                     a->target.z = sinf(-vAng);
 
                     vec3 tw;
-                    addVec3(&tw, a->target, a->where);
+                    add_vec3(&tw, a->target, a->where);
 
-                    a->view = lookAt(a->where, tw, a->up);
+                    a->view = look_at(a->where, tw, a->up);
                     break;
                 }
                 case SDL_MOUSEWHEEL:
                 {
                     // Up or down?
-                    if (event.wheel.y < 0)
+                    if (instance->event.wheel.y < 0)
                         scene->cameras->fov += 1.f;
-                    if (event.wheel.y > 0)
+                    if (instance->event.wheel.y > 0)
                         scene->cameras->fov -= 1.f;
 
                     // Clamp to 90 degrees
-                    if (scene->cameras->fov >= 89.99f)
-                        scene->cameras->fov = 89.99f;
+                    if (scene->cameras->fov >= 89.98f)
+                        scene->cameras->fov = 89.98f;
                     if (scene->cameras->fov <= 1.f)
                         scene->cameras->fov = 1.f;
 
@@ -338,20 +292,20 @@ int main ( int argc, const char *argv[] )
                     break;
                 }
                 case SDL_WINDOWEVENT:
-                    switch (event.window.event)
+                    switch (instance->event.window.event)
                     {
                     case SDL_WINDOWEVENT_SIZE_CHANGED:
                     {
                         // Respond to window resizing
-                    setGLViewportSizeFromWindow:
+                        setGLViewportSizeFromWindow:
                         {
                             // Initialized data
                             int w,
                                 h;
 
                             // Pull window data
-                            SDL_GetWindowSize(window, &w, &h);
-                            scene->cameras->fov = (float)w / h;
+                            SDL_GetWindowSize(instance->window, &w, &h);
+                            scene->cameras->aspect_ratio = (float)w / h;
 
                             // Notify OpenGL of the change
                             glViewport(0, 0, w, h);
@@ -368,41 +322,35 @@ int main ( int argc, const char *argv[] )
 
             // Update camera location
             const u8* keyboardState = SDL_GetKeyboardState(NULL);
-            updateCameraFromKeyboardInput(scene->cameras, keyboardState, deltaTime);
+            update_camera_from_keyboard_input(scene->cameras, keyboardState, instance->deltaTime);
         }
-
-        // Get response from server
-        {
-            //char *buffer = calloc(4096,1);
-            //recvCommand(server, buffer, 4096);       
-        }
-
-        // Clear the screen
-        gClear();
 
         // G10
         {
             // Compute physics
-            computePhysics(scene, deltaTime);
+            if(scene)
+                //compute_physics(scene, deltaTime);
 
             // Draw the scene
-            drawScene(scene);
+            if(scene)
+                draw_scene(scene);
 
-            // Draw bounding volumes, if we are supposed to
-            if(drawBVH)
-                drawSceneBV(scene, cube, shader, 0);
+            // Post drawing
+
         }
 
         // Swap the window 
-        SDL_GL_SwapWindow(window);
+        g_swap(instance);
     }
 
     // G10 Unloading
     {
         if(server)
-            sendDisconnectCommand(server);
-        destroyScene(scene);
-        gExit(window, glContext);
+            destroy_server(server);
+        if(scene)
+            destroy_scene(scene);
+
+        g_exit(instance);
     }
 
     return 0;

@@ -94,7 +94,7 @@ bool         decodeRLEScanline ( RGBE      *scanline, int len, FILE  *file )
     return feof(file) ? false : true;
 }
 
-GXTexture_t *loadHDR           ( const char path[] )
+GXTexture_t *load_hdr           ( const char path[] )
 {
 	// Argument checking
 	{
@@ -109,7 +109,7 @@ GXTexture_t *loadHDR           ( const char path[] )
     char        *cData;
 
     // Initialized data
-    GXTexture_t *ret    = createTexture();
+    GXTexture_t *ret    = create_texture();
     FILE        *f      = fopen(path, "rb");
     size_t       format = 0,
                  w      = 0,
@@ -121,9 +121,9 @@ GXTexture_t *loadHDR           ( const char path[] )
         return ret;
 
     // Load up the file
-    i = gLoadFile(path, 0, true);
+    i = g_load_file(path, 0, true);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, true);
+    g_load_file(path, data, true);
 
     cData = data;
     if (strncmp(cData, "#?RADIANCE",10) != 0)
@@ -194,8 +194,8 @@ GXTexture_t *loadHDR           ( const char path[] )
     // Set up the OpenGL texture 
     {
         // Create a texture ID
-        glGenTextures(1, &ret->textureID);
-        glBindTexture(GL_TEXTURE_2D, ret->textureID);
+        glGenTextures(1, &ret->texture_id);
+        glBindTexture(GL_TEXTURE_2D, ret->texture_id);
 
         // Point it to the right place
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, w, h, 0, GL_RGB, GL_FLOAT, c);
@@ -214,7 +214,7 @@ GXTexture_t *loadHDR           ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        gPrintLog("[G10] [HDR] Loaded file \"%s\"\n\n", path);
+        g_print_log("[G10] [HDR] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;
@@ -223,19 +223,19 @@ GXTexture_t *loadHDR           ( const char path[] )
 	{
 		noPath:
 		#ifndef NDEBUG
-			gPrintError("[G10] [HDR] No path provided for parameter \"path\" in function \"%s\"\n", __FUNCSIG__);
+			g_print_error("[G10] [HDR] No path provided for parameter \"path\" in function \"%s\"\n", __FUNCSIG__);
 		#endif
 		return 0;
 
         invalidFile:
         #ifndef NDEBUG
-            gPrintError("[G10] [HDR] Could not open file \"%s\"\n",path);
+            g_print_error("[G10] [HDR] Could not open file \"%s\"\n",path);
         #endif
         return 0;
 
         badFormat:
         #ifndef NDEBUG
-            gPrintError("[G10] [HDR] Bad format in file \"%s\"\n", path);
+            g_print_error("[G10] [HDR] Bad format in file \"%s\"\n", path);
         #endif
         return 0;
 	}

@@ -1,6 +1,6 @@
 #include <G10/GXBitmap.h>
 
-GXTexture_t *loadBMPImage ( const char path[] ) 
+GXTexture_t *load_bmp_image ( const char path[] ) 
 {
     // Argument check
     {
@@ -15,7 +15,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
     size_t       i;
     
     // Initialized data
-    GXTexture_t *ret = createTexture();
+    GXTexture_t *ret = create_texture();
     FILE        *f   = fopen(path, "rb");
 
     // Check allocated memory
@@ -25,7 +25,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
     #endif
 
     // Load up the file
-    i    = gLoadFile(path, 0, true);
+    i    = g_load_file(path, 0, true);
     data = calloc(i, sizeof(u8));
     
     // Check  allocated memory
@@ -35,7 +35,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
     #endif
     
     // Load the file
-    gLoadFile(path, data, true);
+    g_load_file(path, data, true);
 
     // Fill out width and height information
     ret->width  = *(size_t*)&data[0x12];
@@ -44,8 +44,8 @@ GXTexture_t *loadBMPImage ( const char path[] )
     // Set up the OpenGL texture 
     {
         // Create a texture ID
-        glGenTextures(1, &ret->textureID);
-        glBindTexture(GL_TEXTURE_2D, ret->textureID);
+        glGenTextures(1, &ret->texture_id);
+        glBindTexture(GL_TEXTURE_2D, ret->texture_id);
 
         // Point it to the right place
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (int)ret->width, (int)ret->height, 0, GL_BGR, GL_UNSIGNED_BYTE, &data[0x36]);
@@ -63,7 +63,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        gPrintLog("[G10] [BMP] Loaded file \"%s\"\n\n", path);
+        g_print_log("[G10] [BMP] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;
@@ -73,7 +73,7 @@ GXTexture_t *loadBMPImage ( const char path[] )
         // No path supplied
         noPath:
             #ifndef NDEBUG
-                gPrintError("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
+                g_print_error("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
             #endif
             return 0;
     }

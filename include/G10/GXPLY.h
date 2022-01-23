@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+// OpenGL
+#include <glad/glad.h>
+
 #include <G10/GXtypedef.h>
 #include <G10/GXMesh.h>
 
@@ -122,4 +125,4 @@ struct GXPLYindex_s {
 #pragma pack (pop)
 typedef struct GXPLYindex_s GXPLYindex_t;
 
-GXPart_t *loadPLY ( const char path[], GXPart_t *part ); // ✅ Loads a PLY file from path and returns a pointer to GXMesh_t
+GXPart_t *load_ply ( const char path[], GXPart_t *part ); // ✅ Loads a PLY file from path and returns a pointer to GXMesh_t

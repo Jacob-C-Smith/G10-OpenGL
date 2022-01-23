@@ -1,6 +1,6 @@
 #include <G10/GXPhysics.h>
 
-vec3* summateForces       ( vec3       *forces, size_t forceCount )
+vec3* summate_forces       ( vec3       *forces, size_t forceCount )
 {
     
     forces[0].x = 0.f,
@@ -17,75 +17,6 @@ vec3* summateForces       ( vec3       *forces, size_t forceCount )
     }
     AVXSumVecs(forceCount, forces + 16);
     return forces;
-}
-
-int integrateDisplacement ( GXEntity_t *entity, float  deltaTime)
-{
-    // Argument check
-    {
-        #ifndef NDEBUG
-            if(entity==(void*)0)
-                goto noEntity;
-            if(entity->transform == (void*)0)
-                goto noTransform;
-            if (entity->rigidbody == (void*)0);
-                goto noRigidbody;
-        #endif
-    }
-
-    GXRigidbody_t* rigidbody  = entity->rigidbody;
-    GXTransform_t* transform  = entity->transform;
-
-    rigidbody->acceleration.x = (rigidbody->forces->x / rigidbody->mass) * deltaTime,
-    rigidbody->acceleration.y = (rigidbody->forces->y / rigidbody->mass) * deltaTime,
-    rigidbody->acceleration.z = (rigidbody->forces->z / rigidbody->mass) * deltaTime,
-    rigidbody->acceleration.w = (rigidbody->forces->w / rigidbody->mass) * deltaTime;
-
-    rigidbody->velocity.x     += (float) 0.5 * (rigidbody->acceleration.x * fabsf(rigidbody->acceleration.x)),
-    rigidbody->velocity.y     += (float) 0.5 * (rigidbody->acceleration.y * fabsf(rigidbody->acceleration.y)),
-    rigidbody->velocity.z     += (float) 0.5 * (rigidbody->acceleration.z * fabsf(rigidbody->acceleration.z)),
-    rigidbody->velocity.w     += (float) 0.5 * (rigidbody->acceleration.w * fabsf(rigidbody->acceleration.w));
-
-    transform->location.x     += (float) 0.5 * (rigidbody->velocity.x * fabsf(rigidbody->velocity.x)),
-    transform->location.y     += (float) 0.5 * (rigidbody->velocity.y * fabsf(rigidbody->velocity.y)),
-    transform->location.z     += (float) 0.5 * (rigidbody->velocity.z * fabsf(rigidbody->velocity.z)),
-    transform->location.w     += (float) 0.5 * (rigidbody->velocity.w * fabsf(rigidbody->velocity.w));
-
-    return 0;
-
-    // Argument check
-    {
-    noEntity:
-        #ifndef NDEBUG
-            gPrintError("[G10] [Physics] No entity provided to function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
-    noTransform:
-        #ifndef NDEBUG
-            gPrintError("[G10] [Physics] No transform in entity \"%s\" in call to function \"%s\"\n", entity->name, __FUNCSIG__);
-        #endif
-        return 0;
-    noRigidbody:
-        #ifndef NDEBUG
-            gPrintError("[G10] [Physics] No rigidbody in entity \"%s\" in call to function \"%s\"\n", entity->name, __FUNCSIG__);
-        #endif
-        return 0;
-
-    }
-}
-
-int integrateRotation     ( GXEntity_t *entity )
-{
-    GXRigidbody_t* rigidbody = entity->rigidbody;
-    GXTransform_t* transform = entity->transform;
-    /* TODO: Fix
-    transform->rotation.x += (float) 0.5 * (rigidbody->angularVelocity.x * fabsf(rigidbody->angularVelocity.x)),
-    transform->rotation.y += (float) 0.5 * (rigidbody->angularVelocity.y * fabsf(rigidbody->angularVelocity.y)),
-    transform->rotation.z += (float) 0.5 * (rigidbody->angularVelocity.z * fabsf(rigidbody->angularVelocity.z)),
-    transform->rotation.w += (float) 0.5 * (rigidbody->angularVelocity.w * fabsf(rigidbody->angularVelocity.w));
-    */
-
-    return 0;
 }
 
 bool collision            ( GXEntity_t *a, GXEntity_t *b )
@@ -129,10 +60,10 @@ int processPhysics ( GXEntity_t* entity )
     AVXSumVecs(entity->rigidbody->forcesCount, entity->rigidbody->forces);
 
     // Calculate new acceleration, velocity, and position
-    calculateDerivativesOfDisplacement(entity, 0);
+    calculate_derivatives_of_displacement(entity, 0);
     
     // TODO: Calculate angular acceleration, velocity, and rotation
-    calculateDerivativesOfRotation(entity, 0);
+    calculate_derivatives_of_rotation(entity, 0);
 
     // TODO: Detect collisions
     // TODO: Implement BVH algorithm
@@ -140,7 +71,7 @@ int processPhysics ( GXEntity_t* entity )
 	return 0;
 }
 
-int summateForces(GXEntity_t* entity)
+int summate_forces(GXEntity_t* entity)
 {
     return 0;
 }

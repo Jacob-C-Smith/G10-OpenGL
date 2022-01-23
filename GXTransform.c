@@ -1,7 +1,10 @@
 #include <G10/GXTransform.h>
 
-GXTransform_t *createTransform       ( vec3           location, quaternion rotation, vec3 scale )
+// TODO: Refactor into allocator, write a constructor
+GXTransform_t *create_transform       ( vec3           location, quaternion rotation, vec3 scale )
 {
+    // TODO: Argument check
+
     // Allocate space
     GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
 
@@ -15,11 +18,11 @@ GXTransform_t *createTransform       ( vec3           location, quaternion rotat
     ret->scale    = scale;
 
     // Create a model matrix from the location, rotation, and scale
-    ret->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(rotation), translationScaleMat(location, scale));
+    make_model_matrix( &ret->model_matrix, ret );
 
     // Debug information
     #ifndef NDEBUG
-        gPrintLog("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
+        g_print_log("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
                   "                                         rotation (%f,%f,%f,%f)\n"
                   "                                         scale    (%f,%f,%f)\n"
                   , location.x, location.y, location.z, rotation.u, rotation.i, rotation.j, rotation.k, scale.x, scale.y, scale.z);
@@ -28,7 +31,7 @@ GXTransform_t *createTransform       ( vec3           location, quaternion rotat
     return ret;
 }
 
-GXTransform_t *loadTransform         ( const char     path[] )
+GXTransform_t *load_transform         ( const char     path[] )
 {
     // Argument check
     {
@@ -47,11 +50,11 @@ GXTransform_t *loadTransform         ( const char     path[] )
     FILE*          f = fopen(path, "rb");
 
     // Load up the file
-    i    = gLoadFile(path, 0, false);
+    i    = g_load_file(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, false);
+    g_load_file(path, data, false);
 
-    ret = loadTransformAsJSON(data);
+    ret = load_transform_as_json(data);
 
     // Finish up
     free(data);
@@ -63,55 +66,71 @@ GXTransform_t *loadTransform         ( const char     path[] )
         // File not found
         invalidFile:
         #ifndef NDEBUG
-            gPrintError("[G10] [Transform] Failed to load file %s\n", path);
+            g_print_error("[G10] [Transform] Failed to load file %s\n", path);
         #endif
         return 0;
 
         // Path was null pointer
         noArgument:
         #ifndef NDEBUG
-            gPrintError("[G10] [Transform] No file supplied for path in function %s\n", __FUNCSIG__);
+            g_print_error("[G10] [Transform] No file supplied for path in function %s\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXTransform_t *loadTransformAsJSON   ( char          *token ) 
+GXTransform_t *load_transform_as_json   ( char          *token ) 
 {
+    // TODO: Argument check
+    
     // Initialiazed data
     GXTransform_t* ret        = 0;
     size_t         len        = strlen(token),
-                   tokenCount = GXParseJSON(token, len, 0, 0);
-    JSONValue_t*   tokens     = calloc(tokenCount, sizeof(JSONValue_t));
+                   tokenCount = parse_json(token, len, 0, 0);
+    JSONToken_t*   tokens     = calloc(tokenCount, sizeof(JSONToken_t));
     vec3           location   = { 0,0,0 },
                    scale      = { 0,0,0 };
     quaternion     q          = { 0,0,0,0 };
 
     // Parse JSON Values
-    GXParseJSON(token, len, tokenCount, tokens);
+    parse_json(token, len, tokenCount, tokens);
 
     // Find and assign location, rotation, and scale vectors
     for (size_t k = 0; k < tokenCount; k++)
-        if (strcmp("location", tokens[k].name) == 0)
-            location = (vec3){ (float)atof(tokens[k].content.aWhere[0]), (float)atof(tokens[k].content.aWhere[1]), (float)atof(tokens[k].content.aWhere[2]) };
-        else if (strcmp("rotation", tokens[k].name) == 0)
-            q = makeQuaternionFromEulerAngle((vec3) { (float)atof(tokens[k].content.aWhere[0]), (float)atof(tokens[k].content.aWhere[1]), (float)atof(tokens[k].content.aWhere[2]) });
-        else if (strcmp("quaternion", tokens[k].name) == 0)
-            q = (quaternion){ (float)atof(tokens[k].content.aWhere[0]), (float)atof(tokens[k].content.aWhere[1]), (float)atof(tokens[k].content.aWhere[2]) , (float)atof(tokens[k].content.aWhere[3]) };
-        else if ( strcmp( "scale", tokens[k].name ) == 0 )
-            scale    = (vec3) { ( float ) atof(tokens[k].content.aWhere[0] ), ( float ) atof(tokens[k].content.aWhere[1] ), ( float ) atof(tokens[k].content.aWhere[2] ) };
+        if (strcmp("location", tokens[k].key) == 0)
+            location = (vec3){ (float)atof(tokens[k].value.a_where[0]), (float)atof(tokens[k].value.a_where[1]), (float)atof(tokens[k].value.a_where[2]) };
+        else if (strcmp("rotation", tokens[k].key) == 0)
+            q        = make_quaternion_from_euler_angle((vec3) { (float)atof(tokens[k].value.a_where[0]), (float)atof(tokens[k].value.a_where[1]), (float)atof(tokens[k].value.a_where[2]) });
+        else if (strcmp("quaternion", tokens[k].key) == 0)
+            q        = (quaternion){ (float)atof(tokens[k].value.a_where[0]), (float)atof(tokens[k].value.a_where[1]), (float)atof(tokens[k].value.a_where[2]) , (float)atof(tokens[k].value.a_where[3]) };
+        else if ( strcmp( "scale", tokens[k].key) == 0 )
+            scale    = (vec3) { ( float ) atof(tokens[k].value.a_where[0] ), ( float ) atof(tokens[k].value.a_where[1] ), ( float ) atof(tokens[k].value.a_where[2] ) };
     
     // Free subcontents
     free(tokens);
 
 
-    // TODO: Rewrite createTransform 
     // Process transform
-    return createTransform(location, q, scale);
+    return create_transform(location, q, scale);
+    // TODO: Error handling
+
 }
 
-int            rotateAboutQuaternion ( GXTransform_t *transform, quaternion axis, float theta)
+void make_model_matrix(mat4 *r, GXTransform_t* transform)
 {
+    // TODO: Argument check
+    mat4 sca = scale_mat4(transform->scale),
+         rot = rotation_mat4_from_quaternion(transform->rotation),
+         tra = translation_mat4(transform->location),
+         ts  = mul_mat4_mat4(sca, tra);
+    *r = mul_mat4_mat4(rot, ts);
+    // TODO: Error handling
+
+}
+
+int            rotate_about_quaternion ( GXTransform_t *transform, quaternion axis, float theta)
+{
+    // TODO: Argument check
     /*
     * To rotate around a quaternion, we multiply the transform
     * quaternion a special quaternion called 'p' derived by multiplying
@@ -122,24 +141,25 @@ int            rotateAboutQuaternion ( GXTransform_t *transform, quaternion axis
 
     float      halfAngle = theta / 2,
                cosHalf   = cosf(halfAngle),
-               sinHalf   = sinf(halfAngle),
-               nSinHalf  = -sinf(halfAngle);
-
-    quaternion p         = { cosHalf * axis.u, sinHalf * axis.i, sinHalf * axis.j, sinHalf * axis.k },
-               pP        = { cosHalf * axis.u, nSinHalf * axis.i, nSinHalf * axis.j, nSinHalf * axis.k },
-               pAxis     = normalizeQuaternion(multiplyQuaternion(p, normalizeQuaternion(transform->rotation)));
+               sinHalf   = sinf(halfAngle);
+    vec3       newIJK    = { transform->rotation.i,transform->rotation.j,transform->rotation.k };
     
-    transform->rotation  = normalizeQuaternion(multiplyQuaternion(pAxis,pP));
+    rotate_vec3_by_quaternion(&newIJK, newIJK, axis);
+    transform->rotation = (quaternion){ cosHalf, sinHalf * newIJK.x, sinHalf * newIJK.y, sinHalf * newIJK.z };
+
     return 0;
+    // TODO: Error handling
+
 }
 
-int            destroyTransform      ( GXTransform_t *transform )
+int            destroy_transform      ( GXTransform_t *transform )
 {
+    // TODO: Argument check
     // Zero set everything
     transform->location    = (vec3)       { 0,0,0 };
     transform->rotation    = (quaternion) { 0,0,0,0 };
     transform->scale       = (vec3)       { 0,0,0 };
-    transform->modelMatrix = (mat4)       { 0,0,0,0,
+    transform->model_matrix = (mat4)       { 0,0,0,0,
                                             0,0,0,0,
                                             0,0,0,0,
                                             0,0,0,0 };
@@ -148,4 +168,6 @@ int            destroyTransform      ( GXTransform_t *transform )
     free(transform);
 
     return 0;
+    // TODO: Error handling
+
 }

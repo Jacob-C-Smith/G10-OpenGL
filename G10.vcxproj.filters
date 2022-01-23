@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\arch">
-      <UniqueIdentifier>{fe311e11-f9eb-48e8-807c-bf90dbd55c76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\arch\x86_64">
-      <UniqueIdentifier>{9d52a5ce-6fbb-4895-9ac8-7a16f8200ef0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\text">
       <UniqueIdentifier>{b6e7d49f-6b77-4af2-9d0b-5d78c0565581}</UniqueIdentifier>
     </Filter>
@@ -30,6 +24,45 @@
     </Filter>
     <Filter Include="Source Files\assembly\ARM">
       <UniqueIdentifier>{365e575f-a9a1-42c7-9ea9-1e3113527860}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10">
+      <UniqueIdentifier>{9ed44460-90dd-4ce6-ba73-c4296df353b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\texture">
+      <UniqueIdentifier>{530bad72-8b24-4ee1-85e2-b8487dd0a1c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\mesh">
+      <UniqueIdentifier>{27909343-a3bb-489c-a404-b9c5f7085eb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\scene">
+      <UniqueIdentifier>{7d742d88-fdf1-4f3d-af68-8615fc110f02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\physics">
+      <UniqueIdentifier>{5ffdca4b-eace-47d8-89d1-53322122a5f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\math">
+      <UniqueIdentifier>{60c130eb-aace-4cec-b639-6d2d50cf17a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\networking">
+      <UniqueIdentifier>{d6ddba73-2c17-4b5f-b9e7-49657a4da962}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\input">
+      <UniqueIdentifier>{8747b85f-86ff-4fd3-8768-33454ca94fd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\arch">
+      <UniqueIdentifier>{fe311e11-f9eb-48e8-807c-bf90dbd55c76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\arch\x86_64">
+      <UniqueIdentifier>{9d52a5ce-6fbb-4895-9ac8-7a16f8200ef0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\rig">
+      <UniqueIdentifier>{ddd7e484-e9c3-492f-afb0-95f2de027733}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\entity">
+      <UniqueIdentifier>{1b6eb7cf-42cd-4b53-829e-5a3c0a4b0be0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\camera">
+      <UniqueIdentifier>{ef80b865-d302-4da4-90a3-f102a635bdcd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,9 +93,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GXJPG.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GXJSON.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GXMesh.c">
@@ -113,9 +143,6 @@
     <ClCompile Include="GXPhysics.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GXKeyValue.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GXSplashscreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -128,103 +155,112 @@
     <ClCompile Include="GXBVH.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GXQuaternion.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXFlycam.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXInput.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\G10\GXCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXEntity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXilmath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXJSON.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXLinear.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXPLY.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXQuaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXScene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\G10\GXtypedef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXTransform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXMaterial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXRigidbody.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXCollider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\GXLight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\G10.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXKeyValue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXNetworking.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXRig.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\G10\arch\x86_64\GXAVXmath.h">
-      <Filter>Header Files\arch\x86_64</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXPhysics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXSplashscreen.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXSkybox.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\G10\arch\x86_64</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\arch\x86_64\GXAVXlinear.h">
-      <Filter>Header Files\arch\x86_64</Filter>
+      <Filter>Header Files\G10\arch\x86_64</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\GXHDR.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="include\G10\G10.h">
+      <Filter>Header Files\G10</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXBitmap.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\G10\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXHDR.h">
+      <Filter>Header Files\G10\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXTexture.h">
+      <Filter>Header Files\G10\texture</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXPNG.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\G10\texture</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXJPG.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\G10\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXEntity.h">
+      <Filter>Header Files\G10\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXLight.h">
+      <Filter>Header Files\G10\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXShader.h">
+      <Filter>Header Files\G10\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXRigidbody.h">
+      <Filter>Header Files\G10\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCollider.h">
+      <Filter>Header Files\G10\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXMesh.h">
+      <Filter>Header Files\G10\entity</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXBVH.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\G10\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCamera.h">
+      <Filter>Header Files\G10\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXMaterial.h">
+      <Filter>Header Files\G10\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXSplashscreen.h">
+      <Filter>Header Files\G10</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXTransform.h">
+      <Filter>Header Files\G10\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXPLY.h">
+      <Filter>Header Files\G10\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXilmath.h">
+      <Filter>Header Files\G10\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXLinear.h">
+      <Filter>Header Files\G10\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXPhysics.h">
+      <Filter>Header Files\G10\physics</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXQuaternion.h">
+      <Filter>Header Files\G10\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXSkybox.h">
+      <Filter>Header Files\G10\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXNetworking.h">
+      <Filter>Header Files\G10\networking</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXRig.h">
+      <Filter>Header Files\G10\rig</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXFlycam.h">
+      <Filter>Header Files\G10\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXInput.h">
+      <Filter>Header Files\G10\input</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXScene.h">
+      <Filter>Header Files\G10</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
 #include <G10/GXJPG.h>
 
-GXTexture_t* loadJPGImage ( const char path[] )
+GXTexture_t* load_jpg_image ( const char path[] )
 {
     // Uninitialized data
     SDL_Surface* image;
@@ -8,7 +8,7 @@ GXTexture_t* loadJPGImage ( const char path[] )
     u8*          data;
 
     // Initialized data
-    GXTexture_t* ret = createTexture();
+    GXTexture_t* ret = create_texture();
     SDL_RWops*   r   = SDL_RWFromFile(path, "rb");
 
     // Check allocated memory
@@ -38,8 +38,8 @@ GXTexture_t* loadJPGImage ( const char path[] )
     // Set up the OpenGL texture 
     {
         // Create a texture ID
-        glGenTextures(1, &ret->textureID);
-        glBindTexture(GL_TEXTURE_2D, ret->textureID);
+        glGenTextures(1, &ret->texture_id);
+        glBindTexture(GL_TEXTURE_2D, ret->texture_id);
 
         // Point it to the right place
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ret->width, ret->height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -58,14 +58,14 @@ GXTexture_t* loadJPGImage ( const char path[] )
 
     // Debugger logging
     #ifndef NDEBUG
-        gPrintLog("[G10] [JPG] Loaded file \"%s\"\n\n", path);
+        g_print_log("[G10] [JPG] Loaded file \"%s\"\n\n", path);
     #endif 
 
     return ret;
 
     invalidFile:
     #ifndef NDEBUG
-        gPrintError("[G10] Failed to load file %s\n", path);
+        g_print_error("[G10] Failed to load file %s\n", path);
     #endif
     return 0;
 }

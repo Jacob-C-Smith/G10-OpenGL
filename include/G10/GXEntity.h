@@ -3,10 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
 #include <G10/GXtypedef.h>
 #include <G10/G10.h>
-#include <G10/GXJSON.h>
+#include <JSON/JSON.h>
 
 #include <G10/GXLinear.h>
 
@@ -16,6 +15,7 @@
 #include <G10/GXMaterial.h>
 #include <G10/GXRigidbody.h>
 #include <G10/GXCollider.h>
+#include <G10/GXRig.h>
 
 struct GXEntity_s
 {
@@ -26,15 +26,16 @@ struct GXEntity_s
     GXTransform_t     *transform; // A transform
     GXRigidbody_t     *rigidbody; // A rigidbody
     GXCollider_t      *collider;  // A collider
+    GXRig_t           *rigs;      // A list of rigs
 
     struct GXEntity_s *next;      // Points to the next entity.
 };
 
-GXEntity_t *createEntity     ( void );                                     // ✅ Creates an entity, assigns flags, and returns pointer to it
+GXEntity_t *create_entity     ( void );                                     // ✅ Creates an entity, assigns flags, and returns pointer to it
 
-GXEntity_t *loadEntity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
-GXEntity_t *loadEntityAsJSON ( char       *token  );                       // ✅ Loads an entity as a JSON object
+GXEntity_t *load_entity       ( const char  path[] );                       // ✅ Loads an entity from the JSON file at path; Automatically populates it according to the JSON file.
+GXEntity_t *load_entity_as_json ( char       *token  );                       // ✅ Loads an entity as a JSON object
 
-int         drawEntity       ( GXEntity_t *entity );                       // ✅ Draws an entity if draw flag is set
+int         draw_entity       ( GXEntity_t *entity );                       // ✅ Draws an entity if draw flag is set
 
-int         destroyEntity    ( GXEntity_t *entity );                       // ✅ Destroys the entity and all its contents
+int         destroy_entity    ( GXEntity_t *entity );                       // ✅ Destroys the entity and all its contents

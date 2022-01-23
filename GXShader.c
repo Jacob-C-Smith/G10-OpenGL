@@ -1,6 +1,6 @@
 #include <G10/GXShader.h>
 
-GXShader_t  *createShader       ( )
+GXShader_t  *create_shader       ( )
 {
     GXShader_t* ret = calloc(1, sizeof(GXShader_t));
     
@@ -16,32 +16,33 @@ GXShader_t  *createShader       ( )
     {
         noMem:
         #ifndef NDEBUG
-            gPrintError("[G10] [Shader] Out of memory.\n");
+            g_print_error("[G10] [Shader] Out of memory.\n");
         #endif
         return 0;
     }
 }
 
-GXShader_t  *loadShader         ( const char   path[])
+GXShader_t  *load_shader         ( const char   path[])
 {
+    // TODO: Argument check
     // Uninitialized data
     size_t       i;
     char        *data;
     GXShader_t  *ret;
     size_t       len,
                  rootTokenCount;
-    JSONValue_t *tokens;
+    JSONToken_t *tokens;
 
     // Initialized data
     FILE        *f = fopen(path, "rb");
 
 
     // Load the file
-    i    = gLoadFile(path, 0, false);
+    i    = g_load_file(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, false);
+    g_load_file(path, data, false);
 
-    ret = loadShaderAsJSON(data);
+    ret = load_shader_as_json(data);
 
     #ifndef NDEBUG
         if(ret == (void*)0)
@@ -54,23 +55,24 @@ GXShader_t  *loadShader         ( const char   path[])
     {
     badFile:
         #ifndef NDEBUG
-            gPrintError("[G10] [Shader] Unable to parse \"%s\"\n",path);
+            g_print_error("[G10] [Shader] Unable to parse \"%s\"\n",path);
         #endif
         return 0;
     }
 }
 
-GXShader_t  *loadShaderAsJSON   ( char        *token)
+GXShader_t  *load_shader_as_json   ( char        *token)
 {
+    // TODO: Argument check
     // Uninitialized data
     int                i;
     char              *data;
     size_t             len,
                        rootTokenCount;
-    JSONValue_t       *tokens;
+    JSONToken_t       *tokens;
 
     // Initialized data
-    GXShader_t        *ret                = createShader();
+    GXShader_t        *ret                = create_shader();
     char              *vertexPath         = 0,
                       *fragmentPath       = 0,
                       *shaderName         = 0;
@@ -81,43 +83,43 @@ GXShader_t  *loadShaderAsJSON   ( char        *token)
     // Preparse JSON
     {
         len            = strlen(token),
-        rootTokenCount = GXParseJSON(token, len, 0, 0);
-        tokens         = calloc(rootTokenCount, sizeof(JSONValue_t));
+        rootTokenCount = parse_json(token, len, 0, 0);
+        tokens         = calloc(rootTokenCount, sizeof(JSONToken_t));
     }
 
     // Parse JSON Values
-    GXParseJSON(token, len, rootTokenCount, tokens);
+    parse_json(token, len, rootTokenCount, tokens);
 
     // Find and load the shaders and token
     for (size_t j = 0; j < rootTokenCount; j++)
     {
         // Point to the vertex shader
-        if (strcmp("vertex shader path", tokens[j].name) == 0)
+        if (strcmp("vertex shader path", tokens[j].key) == 0)
         {
-            vertexPath = tokens[j].content.nWhere;
+            vertexPath = tokens[j].value.n_where;
             continue;
         }
 
         // Point to the fragment shader
-        else if (strcmp("fragment shader path", tokens[j].name) == 0)
+        else if (strcmp("fragment shader path", tokens[j].key) == 0)
         {
-            fragmentPath = tokens[j].content.nWhere;
+            fragmentPath = tokens[j].value.n_where;
             continue;
         }
 
         // Copy out the name of the shader
-        else if (strcmp("name", tokens[j].name) == 0)
+        else if (strcmp("name", tokens[j].key) == 0)
         {
-            shaderName = tokens[j].content.nWhere;
+            shaderName = tokens[j].value.n_where;
             continue;
         }
 
         // Copy out requested data
-        else if (strcmp("uniforms", tokens[j].name) == 0)
+        else if (strcmp("uniforms", tokens[j].key) == 0)
         {
-            requestedData = loadUniformAsJSON(tokens[j].content.aWhere[0]);
-            for ( requestedDataCount = 1; tokens[j].content.aWhere[requestedDataCount]; requestedDataCount++)
-                appendUniform(requestedData, loadUniformAsJSON(tokens[j].content.aWhere[requestedDataCount]));
+            requestedData = load_uniform_as_json(tokens[j].value.a_where[0]);
+            for ( requestedDataCount = 1; tokens[j].value.a_where[requestedDataCount]; requestedDataCount++)
+                appendUniform(requestedData, load_uniform_as_json(tokens[j].value.a_where[requestedDataCount]));
 
 
 
@@ -127,10 +129,10 @@ GXShader_t  *loadShaderAsJSON   ( char        *token)
 
     // Spin up the shader, set the name and the requested data
     {
-        ret                     = loadCompileShader(vertexPath, fragmentPath, shaderName);
+        ret                     = load_compile_shader(vertexPath, fragmentPath, shaderName);
         ret->name               = shaderName;
-        ret->requestedDataCount = requestedDataCount;
-        ret->requestedData      = requestedData;
+        ret->requested_data_count = requestedDataCount;
+        ret->requested_data      = requestedData;
     }
 
     // Free subcontents
@@ -138,19 +140,23 @@ GXShader_t  *loadShaderAsJSON   ( char        *token)
 
     // Set the shader
     return ret;
+
+    // TODO: Error handling
+
 }
 
-GXUniform_t *loadUniformAsJSON  ( char        *token )
+GXUniform_t *load_uniform_as_json  ( char        *token )
 {
+    // TODO: Argument check
     // Uninitialized data
     int                i;
     char              *data;
-    GXUniform_t       *ret = calloc(1,sizeof(GXUniform_t));
     size_t             len,
                        rootTokenCount;
-    JSONValue_t       *tokens;
+    JSONToken_t       *tokens;
 
     // Initialized data
+    GXUniform_t       *ret          = calloc(1,sizeof(GXUniform_t));
     char              *name         = 0,
                       *uniformName  = 0;
     u32                type         = 0;
@@ -158,33 +164,52 @@ GXUniform_t *loadUniformAsJSON  ( char        *token )
     // Preparse JSON
     {
         len            = strlen(token),
-        rootTokenCount = GXParseJSON(token, len, 0, 0);
-        tokens         = calloc(rootTokenCount, sizeof(JSONValue_t));
+        rootTokenCount = parse_json(token, len, 0, 0);
+        tokens         = calloc(rootTokenCount, sizeof(JSONToken_t));
     }
 
     // Parse JSON Values
-    GXParseJSON(token, len, rootTokenCount, tokens);
+    parse_json(token, len, rootTokenCount, tokens);
 
     // Find and load the shaders and token
     for (size_t j = 0; j < rootTokenCount; j++)
     {
-        if (strcmp(tokens[j].name, "name") == 0)
-            // TODO: Should allocate space for a string and copy
-            name = tokens[j].content.nWhere;
+        if (strcmp(tokens[j].key, "name") == 0)
+        {
 
-        if (strcmp(tokens[j].name, "type") == 0)
-            if (tokens[j].type == GXJSONarray)
+            // Allocate for the string and copy it 
+            char  *name = tokens[j].value.n_where;
+            size_t len  = strlen(name);
+            ret->key    = calloc(len+1, sizeof(char));
+
+            strncpy(ret->key, name, len);
+            continue;
+        }
+
+        if (strcmp(tokens[j].key, "type") == 0)
+        {
+            if (tokens[j].type == JSONarray)
                 ret->type = GXUNIFSTRUCT;
             else
-                ret->type = *(u32*)tokens[j].content.nWhere;
-        if (strcmp(tokens[j].name, "uniform name") == 0)
-            uniformName = tokens[j].content.nWhere;
+                ret->type = *(u32*)tokens[j].value.n_where;
+            continue;
+        }
+        if (strcmp(tokens[j].key, "uniform name") == 0)
+        {
+
+            // Allocate for the string and copy it 
+            char   *uniformName = tokens[j].value.n_where;
+            size_t  len         = strlen(uniformName);
+            ret->value = calloc(len + 1, sizeof(char));
+
+            strncpy(ret->value, uniformName, len);
+            continue;
+        }
     }
 
-    if (name && uniformName)
-        ret->keyValue = createKeyValue(name, uniformName);
-    else
+    if (!(ret->key || ret->value))
         return 0;
+
     return ret;
 
     // Error handling
@@ -192,7 +217,7 @@ GXUniform_t *loadUniformAsJSON  ( char        *token )
 
         unknownUniformType:
         #ifndef NDEBUG
-            gPrintError("[G10] [Shader] Unknown uniform type ");
+            g_print_error("[G10] [Shader] Unknown uniform type ");
         #endif
         return 0;
     }
@@ -222,7 +247,7 @@ int          appendUniform      ( GXUniform_t *list,         GXUniform_t   *unif
     while (i->next)
     {
         // Error checking
-        if (strcmp(i->keyValue->key, uniform->keyValue->key) == 0)
+        if (strcmp(i->key, uniform->key) == 0)
             goto duplicateName;
         i = i->next;
     }
@@ -237,21 +262,22 @@ int          appendUniform      ( GXUniform_t *list,         GXUniform_t   *unif
         // Two parts with the same name cannot exist in the same mesh
         duplicateName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Shader] Uniform \"%s\" can not be appended because a uniform with that name already exists\n", uniform->keyValue->key);
+            g_print_error("[G10] [Shader] Uniform \"%s\" can not be appended because a uniform with that name already exists\n", uniform->key);
         #endif
         return 0;
 
         // The part argument was null
         nullUniform:
         #ifndef NDEBUG
-            gPrintError("[G10] [Shader] Null pointer provided for \"uniform\" in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Shader] Null pointer provided for \"uniform\" in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXShader_t  *loadCompileShader  ( const char   vertexPath[], const char     fragmentPath[],   const char    shaderName[] )
+GXShader_t  *load_compile_shader  ( const char   vertexPath[], const char     fragmentPath[],   const char    shaderName[] )
 {
+    // TODO: Argument check
     // Uninitialized data
     char       * vfdata,                            // Vertex shader text
                * ffdata;                            // Fragment shader text
@@ -278,13 +304,13 @@ GXShader_t  *loadCompileShader  ( const char   vertexPath[], const char     frag
         // Check files
         if (vf == NULL)
         {
-            gPrintError("[G10] [Shader] Failed to load file %s\n", vertexPath);
+            g_print_error("[G10] [Shader] Failed to load file %s\n", vertexPath);
             return (void*)0;
         }
 
         if (ff == NULL)
         {
-            gPrintError("[G10] [Shader] Failed to load file %s\n", fragmentPath);
+            g_print_error("[G10] [Shader] Failed to load file %s\n", fragmentPath);
             return (void*)0;
         }
 
@@ -313,7 +339,7 @@ GXShader_t  *loadCompileShader  ( const char   vertexPath[], const char     frag
         ffdata[ffi] = '\0';
     }
 
-    compileFromText(ret, vfdata, ffdata);
+    compile_from_text(ret, vfdata, ffdata);
 
     // We no longer need the shader text
     free(vfdata);
@@ -321,12 +347,13 @@ GXShader_t  *loadCompileShader  ( const char   vertexPath[], const char     frag
 
 
     return ret;
+    // TODO: Error handling
 
 }
 
-int          compileFromText    ( GXShader_t  *shader,       char          *vertexShaderText, char         *fragmentShaderText )
+int          compile_from_text    ( GXShader_t  *shader,       char          *vertexShaderText, char         *fragmentShaderText )
 {
-    // TODO: Argument check, error handling
+    // TODO: Argument check
 
     // Uninitialized data
     unsigned int vShader, // OpenGL vertex shader
@@ -372,118 +399,151 @@ int          compileFromText    ( GXShader_t  *shader,       char          *vert
     }
 
     // Create a shader program
-    shader->shaderProgramID = glCreateProgram();
+    shader->shader_program_id = glCreateProgram();
 
     // Attach both of the shaders 
-    glAttachShader(shader->shaderProgramID, vShader);
-    glAttachShader(shader->shaderProgramID, fShader);
+    glAttachShader(shader->shader_program_id, vShader);
+    glAttachShader(shader->shader_program_id, fShader);
 
     // Link the program
-    glLinkProgram(shader->shaderProgramID);
+    glLinkProgram(shader->shader_program_id);
 
     // Clear status and check to make sure the shader program compiled correctly
     status ^= 0;
 
-    glGetProgramiv(shader->shaderProgramID, GL_LINK_STATUS, &status);
+    glGetProgramiv(shader->shader_program_id, GL_LINK_STATUS, &status);
     if (!status)
     {
         char* log = calloc(512,sizeof(u8));
         if (log == 0)
             return 0;
-        glGetProgramInfoLog(shader->shaderProgramID, 512, NULL, log);
+        glGetProgramInfoLog(shader->shader_program_id, 512, NULL, log);
         printf(log);
         free(log);
     }
 
     // Detach the shaders
-    glDetachShader(shader->shaderProgramID, vShader);
-    glDetachShader(shader->shaderProgramID, fShader);
+    glDetachShader(shader->shader_program_id, vShader);
+    glDetachShader(shader->shader_program_id, fShader);
 
     // Destroy the shader programs we don't need anymore
     glDeleteShader(vShader);
     glDeleteShader(fShader);
 
     return 0;
+    // TODO: Error handling
+
 }
 
-int          useShader          ( GXShader_t  *shader )
+int          use_shader          ( GXShader_t  *shader )
 {
-    if(shader)
-        glUseProgram(shader->shaderProgramID);
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if (shader == (void*)0)
+                goto noShader;
+        #endif
+    }
 
-    return 0;
+    glUseProgram(shader->shader_program_id);
+
+    return 1;
+
+    // Error handling
+    {
+    noShader:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Shader] Null pointer provided for \"shader\" in function %s\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
-void         setShaderInt       ( GXShader_t  *shader,       const char    *name,              int          value )
+void         set_shader_int       ( GXShader_t  *shader,       const char    *name,              int          value )
 {
-    glUniform1i(glGetUniformLocation(shader->shaderProgramID, name),value);
+    // TODO: Argument check
+    glUniform1i(glGetUniformLocation(shader->shader_program_id, name),value);
+    // TODO: Error handling
 }
 
-void         setShaderFloat     ( GXShader_t  *shader,       const char    *name,              float        value )
+void         set_shader_float     ( GXShader_t  *shader,       const char    *name,              float        value )
 {
-    glUniform1f(glGetUniformLocation(shader->shaderProgramID, name),value);
+    // TODO: Argument check
+    glUniform1f(glGetUniformLocation(shader->shader_program_id, name),value);
+    // TODO: Error handling
 }
 
-void         setShaderVec3      ( GXShader_t  *shader,       const char    *name,              vec3         vector )
+void         set_shader_vec3      ( GXShader_t  *shader,       const char    *name,              vec3         vector )
 {
-    glUniform3f(glGetUniformLocation(shader->shaderProgramID, name), vector.x, vector.y, vector.z);
+    // TODO: Argument check
+    glUniform3f(glGetUniformLocation(shader->shader_program_id, name), vector.x, vector.y, vector.z);
+    // TODO: Error handling
 }
 
-void         setShaderMat4      ( GXShader_t  *shader,       const char    *name,              mat4        *m )
+void         set_shader_mat4      ( GXShader_t  *shader,       const char    *name,              mat4        *m )
 {
-    glUniformMatrix4fv(glGetUniformLocation(shader->shaderProgramID, name), 1, GL_FALSE, (const float*)m);
+    // TODO: Argument check
+    glUniformMatrix4fv(glGetUniformLocation(shader->shader_program_id, name), 1, GL_FALSE, (const float*)m);
+    // TODO: Error handling
 }
 
-void         setShaderTexture   ( GXShader_t  *shader,       const char    *name,              GXTexture_t *texture )
+void         set_shader_texture   ( GXShader_t  *shader,       const char    *name,              GXTexture_t *texture )
 {
-    setShaderInt(shader, name, bindTextureToUnit(texture));
+    // TODO: Argument check
+    set_shader_int(shader, name, bind_texture_to_unit(texture));
+    // TODO: Error handling
 }
  
-void         setShaderTransform ( GXShader_t  *shader,       GXTransform_t *transform )
+void         set_shader_transform ( GXShader_t  *shader,       GXTransform_t *transform )
 {
-    GXUniform_t* i = shader->requestedData;
+    // TODO: Argument check
+    GXUniform_t* i = shader->requested_data;
 
     // Update the model matrix
     
     
-    transform->modelMatrix = mat4xmat4(rotationMatrixFromQuaternion(transform->rotation), translationScaleMat(transform->location, transform->scale));
+    transform->model_matrix = mul_mat4_mat4(mul_mat4_mat4(scale_mat4(transform->scale), rotation_mat4_from_quaternion(transform->rotation)), translation_mat4(transform->location));
 
-    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
+    for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {
-        if (strcmp(i->keyValue->key, "model") == 0)
-            setShaderMat4(shader, i->keyValue->value, &transform->modelMatrix);
+        if (strcmp(i->key, "model") == 0)
+            set_shader_mat4(shader, i->value, &transform->model_matrix);
         i = i->next;
     }
+    // TODO: Error handlings
 }
 
-void         setShaderCamera    ( GXShader_t  *shader,       GXCamera_t    *camera )
+void         set_shader_camera    ( GXShader_t  *shader,       GXCamera_t    *camera )
 {
-    GXUniform_t *i = shader->requestedData;
+    // TODO: Argument check
+    GXUniform_t *i = shader->requested_data;
 
-    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
+    for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {
-        if (strcmp(i->keyValue->key,"camera position") == 0)
-            setShaderVec3(shader, i->keyValue->value, camera->where);
-        if (strcmp(i->keyValue->key, "view") == 0) 
-            setShaderMat4(shader, i->keyValue->value, &camera->view);
-        if (strcmp(i->keyValue->key, "projection") == 0)
-            setShaderMat4(shader, i->keyValue->value, &camera->projection);
+        if (strcmp(i->key,"camera position") == 0)
+            set_shader_vec3(shader, i->value, camera->where);
+        if (strcmp(i->key, "view") == 0) 
+            set_shader_mat4(shader, i->value, &camera->view);
+        if (strcmp(i->key, "projection") == 0)
+            set_shader_mat4(shader, i->value, &camera->projection);
         i = i->next;
     }
+    // TODO: Error handling
 }
 
-void         setShaderLights    ( GXShader_t  *shader,       GXLight_t     *lights,            size_t       numLights )
+void         set_shader_lights    ( GXShader_t  *shader,       GXLight_t     *lights,            size_t       numLights )
 {
-    GXUniform_t *i = shader->requestedData;
+    // TODO: Argument check
+    GXUniform_t *i = shader->requested_data;
     GXLight_t   *l = lights;
 
     // Iterate through each uniform 
-    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
+    for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {
         // Check if the uniform is light position
-        if (strcmp(i->keyValue->key, "light position") == 0)
+        if (strcmp(i->key, "light position") == 0)
         {
-            char  *value       = i->keyValue->value;
+            char  *value       = i->value;
             size_t valueLength = strlen(value);
 
             // Allocate for a string
@@ -510,7 +570,7 @@ void         setShaderLights    ( GXShader_t  *shader,       GXLight_t     *ligh
                 *p++ = ']';
                 *p++ = '\0';
 
-                setShaderVec3(shader, buffer, l->location);
+                set_shader_vec3(shader, buffer, l->location);
                 l = l->next;
             }
 
@@ -521,9 +581,9 @@ void         setShaderLights    ( GXShader_t  *shader,       GXLight_t     *ligh
         }
 
         // Check if the uniform is light color
-        if (strcmp(i->keyValue->key, "light color") == 0)
+        if (strcmp(i->key, "light color") == 0)
         {
-            char* value = i->keyValue->value;
+            char* value = i->value;
             size_t valueLength = strlen(value);
 
             // Allocate for a string
@@ -549,7 +609,7 @@ void         setShaderLights    ( GXShader_t  *shader,       GXLight_t     *ligh
 
                 *p++ = ']';
                 *p++ = '\0';
-                setShaderVec3(shader, buffer, l->color);
+                set_shader_vec3(shader, buffer, l->color);
                 l = l->next;
 
             }
@@ -561,38 +621,149 @@ void         setShaderLights    ( GXShader_t  *shader,       GXLight_t     *ligh
 
         i = i->next;
     }
+    // TODO: Error handlings
 }
 
-void         setShaderMaterial  ( GXShader_t  *shader,       GXMaterial_t  *material )
+void         set_shader_material  ( GXShader_t  *shader,       GXMaterial_t  *material )
 {
-    GXUniform_t* i = shader->requestedData;
+    // TODO: Argument check
+    GXUniform_t* i = shader->requested_data;
 
-    for (size_t j = 0; j < shader->requestedDataCount && i; j++)
+    for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {
-        if (strcmp(i->keyValue->key, "albedo") == 0)
-            setShaderTexture(shader, i->keyValue->value, material->albedo);
-        if (strcmp(i->keyValue->key, "specular") == 0)
-            setShaderTexture(shader, i->keyValue->value, material->metal);
-        if (strcmp(i->keyValue->key, "normal") == 0)
-            setShaderTexture(shader, i->keyValue->value, material->normal);
-        if (strcmp(i->keyValue->key, "metal") == 0)
-            setShaderTexture(shader, i->keyValue->value, material->metal);
-        if (strcmp(i->keyValue->key, "rough") == 0)
-            setShaderTexture(shader, i->keyValue->value, material->rough);
-        if (strcmp(i->keyValue->key, "ao") == 0)
-            setShaderTexture(shader, i->keyValue->value, material->AO);
+        if (strcmp(i->key, "albedo") == 0)
+        {
+            set_shader_texture(shader, i->value, material->albedo);
+            continue;
+        }
+        if (strcmp(i->key, "specular") == 0)
+        {
+            set_shader_texture(shader, i->value, material->metal);
+            continue;
+        }
+        if (strcmp(i->key, "normal") == 0)
+        {
+            set_shader_texture(shader, i->value, material->normal);
+            continue;
+        }
+        if (strcmp(i->key, "metal") == 0)
+        {
+            set_shader_texture(shader, i->value, material->metal);
+            continue;
+        }
+        if (strcmp(i->key, "rough") == 0)
+        {
+            set_shader_texture(shader, i->value, material->rough);
+            continue;
+        }
+        if (strcmp(i->key, "ao") == 0)
+        {
+            set_shader_texture(shader, i->value, material->ao);
+            continue;
+        }
 
         i = i->next;
     }
+    // TODO: Error handling
 }
 
-int          unloadShader       ( GXShader_t  *shader )
+void         set_shader_ibl(GXShader_t* shader, GXSkybox_t* skybox)
 {
+    // TODO: Argument check
+    GXUniform_t* i = shader->requested_data;
+
+    for (size_t j = 0; j < shader->requested_data_count && i; j++)
+    {
+        if (strcmp(i->key, "irradiance cubemap") == 0)
+            set_shader_texture(shader, i->value, skybox->irradiance_cubemap);
+        if (strcmp(i->key, "prefilter cubemap") == 0)
+            set_shader_texture(shader, i->value, skybox->prefilter_cubemap);
+        if (strcmp(i->key, "BRDF LUT") == 0)
+            set_shader_texture(shader, i->value, skybox->lut);
+
+        i = i->next;
+    }
+    // TODO: Error handling
+}
+
+void         set_shader_bone(GXShader_t* shader, const char* uniformName, GXBone_t* bone)
+{
+    // TODO: Argument check
+    // Initialized data
+    GXUniform_t *i              = shader->requested_data;
+    GXBone_t    *lBone          = bone;
+
+    size_t       uniformNameLen = strlen(uniformName);
+    size_t       index          = bone->index;
+    char        *p              = calloc(uniformNameLen+20,sizeof(u8)),
+                *ret            = p;
+    
+    // Iterate through all bones
+    while (lBone)
+    {
+        // Construct the uniform name and index
+        sprintf(p, "%s[%d]", uniformName, index);
+
+        set_shader_int(shader, ret, index);
+        
+        memset(ret, ' ', uniformNameLen + 20);
+
+        if (lBone->children)
+            set_shader_bone(shader, uniformName,  lBone->children);
+
+        lBone = lBone->next;
+    }
+
+    free(ret);
+    // TODO: Error handling
+}
+
+void         set_shader_rig ( GXShader_t* shader, GXRig_t* rig ) 
+{
+    // TODO: Argument check
+    // Initialized data
+    const char  *bonesUniformName = (void*)0;
+
+    GXUniform_t *i                = shader->requested_data;
+
+    // Iterate through each uniform until we find the bones
+    for ( size_t j = 0; j < shader->requested_data_count && i; j++ )
+    {
+
+        // Check if the uniform is light position
+        if ( strcmp( i->key, "bones" ) == 0 )
+            bonesUniformName = i->value;
+
+        i = i->next;
+    }
+
+    if ( bonesUniformName == 0 )
+        goto noShaderRigSupport;
+
+    set_shader_bone( shader, bonesUniformName, rig->bones );
+
+    return 1;
+
+    // Error handling
+    {
+    noShaderRigSupport:
+        #ifndef NDEBUG
+            g_print_error( "[G10] [Shader] Shader \"%s\" does not support bones\n", shader->name );
+        #endif
+        return 0;
+    }
+
+}
+
+int          unload_shader       ( GXShader_t  *shader )
+{
+    // TODO: Argument check
     // Deallocate associated data
-    glDeleteProgram(shader->shaderProgramID);
-    shader->shaderProgramID = 0;
+    glDeleteProgram(shader->shader_program_id);
+    shader->shader_program_id = 0;
     free(shader);
 
     return 0;
+    // TODO: Error handling
 }
 

@@ -6,7 +6,7 @@
 #include <SDL2/SDL_gamecontroller.h>
 
 #include <G10/G10.h>
-#include <G10/GXJSON.h>
+#include <JSON/JSON.h>
 
 #include <G10/GXLinear.h>
 #include <G10/arch/x86_64/GXAVXmath.h>
@@ -27,9 +27,9 @@ struct GXCamera_s {
 
     // Projection
     float              fov,
-                       nearClip,
-                       farClip,
-                       aspectRatio;
+                       near_clip,
+                       far_clip,
+                       aspect_ratio;
 
     // Matricies
     mat4               view,
@@ -39,16 +39,16 @@ struct GXCamera_s {
     struct GXCamera_s *next;
 };
 
-GXCamera_t*     createCamera                    ( void );                                                                                       // ✅ Creates a camera object to render a scene
+GXCamera_t*     create_camera                     ( void );                                                                                       // ✅ Creates a camera object to render a scene
 
-GXCamera_t*     loadCamera                      ( const char *path );                                                                           // ✅ Loads a camera from a JSON file
-GXCamera_t*     loadCameraAsJSON                ( char       *token );                                                                          // ✅ Loads a camera from a JSON object
+GXCamera_t*     load_camera                       ( const char *path );                                                                           // ✅ Loads a camera from a JSON file
+GXCamera_t*     load_camera_as_json               ( char       *token );                                                                          // ✅ Loads a camera from a JSON object
  
-mat4            perspective                     ( float       fov,    float     aspect,        float nearClip, float farClip);                  // ✅ Computes perspective projection matrix from FOV, aspect ratio, near and far clipping planes.
-extern void     AVXPerspective                  ( mat4       *ret,    float     fov,           float aspect  , float nearClip, float farClip ); // ✅ Creates a camera object to render a scene
-void            computeProjectionMatrix         ( GXCamera_t *camera );                                                                         // ✅ Computes an updated projection matrix
+mat4            perspective                       ( float       fov,    float     aspect       , float nearClip , float farClip);                  // ✅ Computes perspective projection matrix from FOV, aspect ratio, near and far clipping planes.
+extern void     AVXPerspective                    ( mat4       *ret,    float     fov          , float aspect   , float nearClip, float farClip ); // ✅ Creates a camera object to render a scene
+void            computeProjectionMatrix           ( GXCamera_t *camera );                                                                         // ✅ Computes an updated projection matrix
 
-inline mat4     lookAt                          ( vec3        eye,    vec3      target       , vec3  up )                                        // ✅ Computes a view matrix from eye, target, and up vectors
+inline mat4     look_at                           ( vec3        eye,    vec3      target       , vec3  up )                                        // ✅ Computes a view matrix from eye, target, and up vectors
 { 
     // Compute forward direction
     vec3 f = normalize((vec3) {
@@ -58,27 +58,27 @@ inline mat4     lookAt                          ( vec3        eye,    vec3      
     });
 
     // Compute left direction as cross product of up and forward
-    vec3 l = normalize(crossProductVec3(up, f));
+    vec3 l = normalize(cross_product_vec3(up, f));
 
     // Recompute up
-    vec3 u = crossProductVec3(f, l);
+    vec3 u = cross_product_vec3(f, l);
     
     // Return the view matrix
     return (mat4) {
         l.x, u.x, f.x, 0,
         l.y, u.y, f.y, 0,
         l.z, u.z, f.z, 0,
-        -dotProductVec3(l,eye), -dotProductVec3(u, eye), -dotProductVec3(f, eye), 1
+        -dot_product_vec3(l,eye), -dot_product_vec3(u, eye), -dot_product_vec3(f, eye), 1
     };
 };
-inline mat4     qLookAt                         ( vec3        eye,    vec3      target );
-extern void     AVXLookAt                       ( vec3       *eye,    vec3     *target       , vec3 *up,       mat4 *result );                  // ❌ Computes an updated view matrix using AVX2 
-inline void     computeViewMatrix               ( GXCamera_t *camera )                                                                   // ✅ Computes an updated view matrix
+inline mat4     q_look_at                         ( vec3        eye,    vec3      target );
+extern void     avx_look_at                       ( vec3       *eye,    vec3     *target       , vec3 *up,        mat4 *result );                  // ❌ Computes an updated view matrix using AVX2 
+inline void     compute_view_matrix               ( GXCamera_t *camera )                                                                   // ✅ Computes an updated view matrix
 {
     // Compute a new view matrix
-    camera->view = lookAt(camera->where, camera->target, camera->up);
+    camera->view = look_at(camera->where, camera->target, camera->up);
 };
 
-int             updateCameraFromKeyboardInput   ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime );
+int             update_camera_from_keyboard_input ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime );
 
-int             destroyCamera                   ( GXCamera_t *camera );                                                                         // ✅ Destroys a camera
+int             destroy_camera                    ( GXCamera_t *camera );                                                                         // ✅ Destroys a camera

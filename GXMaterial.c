@@ -2,7 +2,7 @@
 
 GXTexture_t *missingTexture;
 
-GXMaterial_t *createMaterial     ( )
+GXMaterial_t *create_material     ( )
 {
     // Initialized data
     GXMaterial_t* ret = calloc(1,sizeof(GXMaterial_t));
@@ -19,13 +19,13 @@ GXMaterial_t *createMaterial     ( )
     {
         noMem:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] Out of memory.\n");
+            g_print_error("[G10] [Material] Out of memory.\n");
         #endif
         return 0;
     }
 }
 
-GXMaterial_t *loadMaterial       ( const char     path[] )
+GXMaterial_t *load_material       ( const char     path[] )
 {
     // Argument check
     {
@@ -50,11 +50,11 @@ GXMaterial_t *loadMaterial       ( const char     path[] )
     #endif
 
     // Load up the file
-    i = gLoadFile(path, 0, false);
+    i = g_load_file(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, false);
+    g_load_file(path, data, false);
 
-    ret = loadMaterialAsJSON(data);
+    ret = load_material_as_json(data);
 
     free(data);
 
@@ -65,29 +65,29 @@ GXMaterial_t *loadMaterial       ( const char     path[] )
     {
         noPath:
         #ifndef NDEBUG
-            gPrintLog("[G10] [Material] No path provided to function \"%s\"\n", __FUNCSIG__);
+            g_print_log("[G10] [Material] No path provided to function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXMaterial_t *loadMaterialAsJSON ( char         *token)
+GXMaterial_t *load_material_as_json ( char         *token)
 {
     // Uninitialized data
     size_t        len,
                   rootTokenCount;
-    JSONValue_t  *tokens;
+    JSONToken_t  *tokens;
 
     // Initialized data
-    GXMaterial_t* ret = createMaterial();
+    GXMaterial_t* ret = create_material();
 
     // Parse JSON Values
     {
-        len = strlen(token), rootTokenCount = GXParseJSON(token, len, 0, 0);
-        tokens = calloc(rootTokenCount, sizeof(JSONValue_t));
+        len = strlen(token), rootTokenCount = parse_json(token, len, 0, 0);
+        tokens = calloc(rootTokenCount, sizeof(JSONToken_t));
         if (tokens == (void*)0)
             return 0;
-        GXParseJSON(token, len, rootTokenCount, tokens);
+        parse_json(token, len, rootTokenCount, tokens);
     }
 
     // TODO: Write code to load many albedos     
@@ -95,43 +95,43 @@ GXMaterial_t *loadMaterialAsJSON ( char         *token)
     // Find and load the textures
     for (size_t k = 0; k < rootTokenCount; k++)
     {
-        if (strncmp("name", tokens[k].name, 4) == 0)
+        if (strncmp("name", tokens[k].key, 4) == 0)
         {
-            size_t nameLen = strlen(tokens[k].content.nWhere);
+            size_t nameLen = strlen(tokens[k].value.n_where);
             ret->name = calloc(nameLen + 1, sizeof(u8));
             if (ret->name == (void*)0)
                 return 0;
-            strncpy(ret->name, tokens[k].content.nWhere, nameLen);
+            strncpy(ret->name, tokens[k].value.n_where, nameLen);
             continue;
         }
-        if (strncmp("albedo", tokens[k].name, 6) == 0)
+        if (strncmp("albedo", tokens[k].key, 6) == 0)
         {
-            ret->albedo = loadTexture(tokens[k].content.nWhere);
+            ret->albedo = load_texture(tokens[k].value.n_where);
             continue;
         }
-        else if (strncmp("normal", tokens[k].name, 6) == 0)
+        else if (strncmp("normal", tokens[k].key, 6) == 0)
         {
-            ret->normal = loadTexture(tokens[k].content.nWhere);
+            ret->normal = load_texture(tokens[k].value.n_where);
             continue;
         }
-        else if (strncmp("metal", tokens[k].name, 5) == 0)
+        else if (strncmp("metal", tokens[k].key, 5) == 0)
         {
-            ret->metal = loadTexture(tokens[k].content.nWhere);
+            ret->metal = load_texture(tokens[k].value.n_where);
             continue;
         }
-        else if (strcmp("rough", tokens[k].name) == 0)
+        else if (strcmp("rough", tokens[k].key) == 0)
         {
-            ret->rough = loadTexture(tokens[k].content.nWhere);
+            ret->rough = load_texture(tokens[k].value.n_where);
             continue;
         }
-        else if (strcmp("AO", tokens[k].name) == 0)
+        else if (strcmp("AO", tokens[k].key) == 0)
         {
-            ret->AO = loadTexture(tokens[k].content.nWhere);
+            ret->ao = load_texture(tokens[k].value.n_where);
             continue;
         }
-        else if (strncmp("height", tokens[k].name, 6) == 0)
+        else if (strncmp("height", tokens[k].key, 6) == 0)
         {
-            ret->height = loadTexture(tokens[k].content.nWhere);
+            ret->height = load_texture(tokens[k].value.n_where);
             continue;
         }
     }
@@ -142,7 +142,7 @@ GXMaterial_t *loadMaterialAsJSON ( char         *token)
     return ret;
 }
 
-GXMaterial_t *getMaterial        ( GXMaterial_t *materials, const char name[] )
+GXMaterial_t * get_material( GXMaterial_t *materials, const char name[] )
 {
     // Argument checking
     {
@@ -177,34 +177,34 @@ GXMaterial_t *getMaterial        ( GXMaterial_t *materials, const char name[] )
         // There are no entities
         noMaterial:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] There are no materials.\n");
+            g_print_error("[G10] [Material] There are no materials.\n");
         #endif
         return 0;	
 
         // There is no match
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] There is no materials named \"%s\".", name);
+            g_print_error("[G10] [Material] There is no materials named \"%s\".", name);
         #endif
         return 0;
     
         // The scene parameter was null
         nullMaterials:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Material] Null pointer provided for material in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Material] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int           appendMaterial     ( GXMaterial_t *head     , GXMaterial_t *material )
+int           append_material     ( GXMaterial_t *head     , GXMaterial_t *material )
 {
     // Argument checking
     {
@@ -243,34 +243,34 @@ int           appendMaterial     ( GXMaterial_t *head     , GXMaterial_t *materi
         // Two materials with the same name cannot exist in the same list
         duplicateName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] Material \"%s\" can not be appended because a material with that name already exists\n", material->name);
+            g_print_error("[G10] [Material] Material \"%s\" can not be appended because a material with that name already exists\n", material->name);
         #endif
         return 0;
 
         // The head argument was null
         nullHead:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] Null pointer provided for \"head\" in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Material] Null pointer provided for \"head\" in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The material argument was null
         nullMaterial:
         #ifndef NDEBUG
-            gPrintError("[G10] [Material] Null pointer provided for \"part\" in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Material] Null pointer provided for \"part\" in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int           unloadMaterial     ( GXMaterial_t *material )
+int           unload_material     ( GXMaterial_t *material )
 {
     // Unload all of the textures
-    unloadTexture(material->albedo);
-    unloadTexture(material->normal);
-    unloadTexture(material->metal);
-    unloadTexture(material->rough);
-    unloadTexture(material->AO);
+    unload_texture(material->albedo);
+    unload_texture(material->normal);
+    unload_texture(material->metal);
+    unload_texture(material->rough);
+    unload_texture(material->ao);
 
     // Free the material
     free(material);

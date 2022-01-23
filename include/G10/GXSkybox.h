@@ -14,25 +14,32 @@
 
 struct GXSkybox_s
 {
-    GXPart_t    *cube;
-    GXShader_t  *equirectangularToCubic,
+    char        *name;
+
+    GXPart_t    *cube,
+                *quad;
+   
+    GXShader_t  *environment,
                 *irradiance,
-                *background;
-    GXTexture_t *HDR, 
-                *environmentCubemap,
-                *irradianceConvolution,
-                *irradianceCubemap;
-    mat4         perspective;
+                *prefilter,
+                *background,
+                *brdf;
+
+    GXTexture_t *environment_cubemap,
+                *irradiance_cubemap,
+                *prefilter_cubemap,
+                *lut;
+
+    mat4         projection;
     mat4         views[6];
-    u32          framebuffer,
-                 renderbuffer;
+    vec3         color;
 };
 
-GXSkybox_t *createSkybox     ( void );                                    // ❌ Creates an empty skybox
+GXSkybox_t *create_skybox       ( void );                                    // ❌ Creates an empty skybox
 
-GXSkybox_t *loadSkybox       ( const char  path[] );                      // ❌ Loads a skybox from a file
-GXSkybox_t *loadSkyboxAsJSON ( char       *token );                       // ✅ Loads a skybox from a JSON token
+GXSkybox_t *load_skybox         ( const char  path[] );                      // ❌ Loads a skybox from a file
+GXSkybox_t *load_skybox_as_json ( char       *token );                       // ✅ Loads a skybox from a JSON token
 
-int         drawSkybox       ( GXSkybox_t *skybox, GXCamera_t *camera );  // ✅ Draws the skybox 
+int         draw_skybox         ( GXSkybox_t *skybox, GXCamera_t *camera );  // ✅ Draws the skybox 
 
-int         destroySkybox    ( GXSkybox_t* skybox );                      // ✅ Destroys the skybox
+int         destroy_skybox      ( GXSkybox_t* skybox );                      // ✅ Destroys the skybox

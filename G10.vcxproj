@@ -108,6 +108,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static library|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -167,7 +168,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;JSON.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -224,10 +225,10 @@
     <ClCompile Include="GXCamera.c" />
     <ClCompile Include="GXCollider.c" />
     <ClCompile Include="GXEntity.c" />
+    <ClCompile Include="GXFlycam.c" />
     <ClCompile Include="GXHDR.c" />
+    <ClCompile Include="GXInput.c" />
     <ClCompile Include="GXJPG.c" />
-    <ClCompile Include="GXJSON.c" />
-    <ClCompile Include="GXKeyValue.c" />
     <ClCompile Include="GXLight.c" />
     <ClCompile Include="GXMaterial.c" />
     <ClCompile Include="GXMesh.c" />
@@ -235,6 +236,7 @@
     <ClCompile Include="GXPhysics.c" />
     <ClCompile Include="GXPLY.c" />
     <ClCompile Include="GXPNG.c" />
+    <ClCompile Include="GXQuaternion.c" />
     <ClCompile Include="GXRig.c" />
     <ClCompile Include="GXRigidbody.c" />
     <ClCompile Include="GXScene.c" />
@@ -254,11 +256,11 @@
     <ClInclude Include="include\G10\GXCamera.h" />
     <ClInclude Include="include\G10\GXCollider.h" />
     <ClInclude Include="include\G10\GXEntity.h" />
+    <ClInclude Include="include\G10\GXFlycam.h" />
     <ClInclude Include="include\G10\GXHDR.h" />
     <ClInclude Include="include\G10\GXilmath.h" />
+    <ClInclude Include="include\G10\GXInput.h" />
     <ClInclude Include="include\G10\GXJPG.h" />
-    <ClInclude Include="include\G10\GXJSON.h" />
-    <ClInclude Include="include\G10\GXKeyValue.h" />
     <ClInclude Include="include\G10\GXLight.h" />
     <ClInclude Include="include\G10\GXLinear.h" />
     <ClInclude Include="include\G10\GXMaterial.h" />

@@ -59,17 +59,17 @@ AVXPerspective ENDP
 ;	});
 ;
 ;	// Compute left direction as cross product of up and forward
-;	vec3 l = normalize(crossProductVec3(up, f));
+;	vec3 l = normalize(cross_product_vec3(up, f));
 ;
 ;	// Recompute up
-;	vec3 u = crossProductVec3(f, l);
+;	vec3 u = cross_product_vec3(f, l);
 ;	
 ;	// Return the view matrix
 ;	return (mat4) {
 ;		l.x, u.x, f.x, 0,
 ;		l.y, u.y, f.y, 0,
 ;		l.z, u.z, f.z, 0,
-;		-dotProductVec3(l,eye), -dotProductVec3(u, eye), -dotProductVec3(f, eye), 1
+;		-dot_product_vec3(l,eye), -dot_product_vec3(u, eye), -dot_product_vec3(f, eye), 1
 ;	};
 ;};
 

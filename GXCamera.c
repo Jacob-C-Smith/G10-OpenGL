@@ -18,9 +18,11 @@ mat4        perspective                   ( float        fov, float       aspect
         0,                              0,                 (-(farClip + nearClip) / (farClip - nearClip)), -1,
         0,                              0,                 (2 * farClip * nearClip / (nearClip - farClip)), 0
     };
+    // TODO: Error handling
+
 }
 
-GXCamera_t *createCamera                  ( )
+GXCamera_t *create_camera                  ( )
 {
     // Allocate space for a camera struct
     GXCamera_t* ret = calloc(1,sizeof(GXCamera_t));
@@ -37,13 +39,13 @@ GXCamera_t *createCamera                  ( )
     {
         noMem:
         #ifndef NDEBUG
-            gPrintError("[G10] [Camera] Out of memory.\n");
+            g_print_error("[G10] [Camera] Out of memory.\n");
         #endif
         return 0;
     }
 }
 
-GXCamera_t *loadCamera                    ( const char  *path )
+GXCamera_t *load_camera                    ( const char  *path )
 {
     // Initialized data
     GXCamera_t *ret      = 0;
@@ -52,12 +54,12 @@ GXCamera_t *loadCamera                    ( const char  *path )
     char       *data     = 0;
 
     // Load up the file
-    i    = gLoadFile(path, 0, false);
+    i    = g_load_file(path, 0, false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, false);
+    g_load_file(path, data, false);
 
     // Load the camera from data
-    ret = loadCameraAsJSON(data);
+    ret = load_camera_as_json(data);
 
     // Free the camera
     free(data);
@@ -65,24 +67,24 @@ GXCamera_t *loadCamera                    ( const char  *path )
     return ret;    
 }
 
-GXCamera_t *loadCameraAsJSON              ( char        *token )
+GXCamera_t *load_camera_as_json              ( char        *token )
 {
     // Initialized data
-    GXCamera_t*  ret        = createCamera();
+    GXCamera_t*  ret        = create_camera();
     size_t       len        = strlen(token);
-    size_t       tokenCount = GXParseJSON(token, len, 0, (void*)0);
-    JSONValue_t* tokens     = calloc(tokenCount, sizeof(JSONValue_t));
+    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
+    JSONToken_t* tokens     = calloc(tokenCount, sizeof(JSONToken_t));
 
     // Parse the camera object
-    GXParseJSON(token, len, tokenCount, tokens);
+    parse_json(token, len, tokenCount, tokens);
 
     // Copy relevent data for a camera object
     for (size_t l = 0; l < tokenCount; l++)
     {
         // Parse out the camera name
-        if (strcmp("name", tokens[l].name) == 0)
+        if (strcmp("name", tokens[l].key) == 0)
         {
-            size_t len = strlen(tokens[l].content.nWhere);
+            size_t len = strlen(tokens[l].value.n_where);
             ret->name  = calloc(len+1, sizeof(u8));
 
             // Check allocated memory
@@ -93,64 +95,64 @@ GXCamera_t *loadCameraAsJSON              ( char        *token )
                 #endif
             }
 
-            strncpy(ret->name, (const char*)tokens[l].content.nWhere, len);
+            strncpy(ret->name, (const char*)tokens[l].value.n_where, len);
             ret->name[len] = '\0';
             continue;
         }
 
         // Parse out where the camera is
-        if (strcmp("where", tokens[l].name) == 0)
+        if (strcmp("where", tokens[l].key) == 0)
         {
-            ret->where = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->where = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
             continue;
         }
 
         // Parse out target
-        else if (strcmp("target", tokens[l].name) == 0)
+        else if (strcmp("target", tokens[l].key) == 0)
         {
-            ret->target = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->target = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
             continue;
         }
 
         // Parse out up
-        else if (strcmp("up", tokens[l].name) == 0)
+        else if (strcmp("up", tokens[l].key) == 0)
         {
-            ret->up = (vec3){ (float)atof(tokens[l].content.aWhere[0]), (float)atof(tokens[l].content.aWhere[1]), (float)atof(tokens[l].content.aWhere[2]) };
+            ret->up = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
             continue;
         }
 
         // Parse out FOV
-        else if (strcmp("fov", tokens[l].name) == 0)
+        else if (strcmp("fov", tokens[l].key) == 0)
         {
-            ret->fov = (float)atof(tokens[l].content.nWhere);
+            ret->fov = (float)atof(tokens[l].value.n_where);
             continue;
         }
 
         // Parse out near clipping plane
-        else if (strcmp("near", tokens[l].name) == 0)
+        else if (strcmp("near", tokens[l].key) == 0)
         {
-            ret->nearClip = (float)atof(tokens[l].content.nWhere);
+            ret->near_clip = (float)atof(tokens[l].value.n_where);
             continue;
         }
 
         // Parse out far clipping plane
-        else if (strcmp("far", tokens[l].name) == 0)
+        else if (strcmp("far", tokens[l].key) == 0)
         {
-            ret->farClip = (float)atof(tokens[l].content.nWhere);
+            ret->far_clip = (float)atof(tokens[l].value.n_where);
             continue;
         }
 
         // Parse out aspect ratio
-        else if (strcmp("aspect ratio", tokens[l].name) == 0)
+        else if (strcmp("aspect ratio", tokens[l].key) == 0)
         {
-            ret->aspectRatio = (float)atof(tokens[l].content.nWhere);
+            ret->aspect_ratio = (float)atof(tokens[l].value.n_where);
             continue;
         }
     }
 
     // If no aspect ratio is supplied, default to 16:9
-    if (ret->aspectRatio == 0.f)
-        ret->aspectRatio = 1.77777777f; // 16 / 9 = 1.777 
+    if (ret->aspect_ratio == 0.f)
+        ret->aspect_ratio = 1.77777777f; // 16 / 9 = 1.777 
 
     // Make sure that fov is inside of the maximium or minimum range.
     if (ret->fov >= 89.99f)
@@ -159,8 +161,8 @@ GXCamera_t *loadCameraAsJSON              ( char        *token )
         ret->fov = 1.f;
 
     // Calculate the first view and projection matrices
-    ret->view       = lookAt(ret->where, ret->target, ret->up);
-    ret->projection = perspective(toRadians(ret->fov), ret->aspectRatio, ret->nearClip, ret->farClip);
+    ret->view       = look_at(ret->where, ret->target, ret->up);
+    ret->projection = perspective(to_radians(ret->fov), ret->aspect_ratio, ret->near_clip, ret->far_clip);
 
     computeProjectionMatrix(ret);
 
@@ -172,7 +174,7 @@ GXCamera_t *loadCameraAsJSON              ( char        *token )
     {
         #ifndef NDEBUG
             noMem:
-            gPrintError("[G10] [Camera] Out of memory in call to function \"%s\"\n",__FUNCSIG__);
+            g_print_error("[G10] [Camera] Out of memory in call to function \"%s\"\n",__FUNCSIG__);
             return 0;
         #endif
     }
@@ -181,10 +183,10 @@ GXCamera_t *loadCameraAsJSON              ( char        *token )
 void        computeProjectionMatrix       ( GXCamera_t* camera )
 {
     // Compute and set the projection matrix for the camera
-    camera->projection = perspective(toRadians(camera->fov), camera->aspectRatio, camera->nearClip, camera->farClip);
+    camera->projection = perspective(to_radians(camera->fov), camera->aspect_ratio, camera->near_clip, camera->far_clip);
 }
 
-int         updateCameraFromKeyboardInput ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime )
+int         update_camera_from_keyboard_input ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime )
 {
     // Argument check
     {
@@ -258,26 +260,26 @@ int         updateCameraFromKeyboardInput ( GXCamera_t *camera, const u8 *keyboa
     
     float cosTheta = n / (c * d);
 
-    float lenvPa   = length(vec3xf(camera->acceleration, n / d));
-    float lenAdT   = length(vec3xf(camera->acceleration, deltaTime));
-    float speedLim = 60;
+    float lenvPa   = length(mul_vec3_f(camera->acceleration, n / d));
+    float lenAdT   = length(mul_vec3_f(camera->acceleration, deltaTime));
+    float speedLim = 60000;
 
     if (lenvPa < speedLim - lenAdT)
     {
-        camera->velocity = vec3xf(camera->acceleration, deltaTime);
+        camera->velocity = mul_vec3_f(camera->acceleration, deltaTime);
     }
     else if (speedLim - lenAdT <= lenvPa < speedLim)
     {
-        camera->velocity = vec3xf(vec3xf(camera->acceleration, (speedLim - c * cosTheta) / d), deltaTime);
+        camera->velocity = mul_vec3_f(mul_vec3_f(camera->acceleration, (speedLim - c * cosTheta) / d), deltaTime);
     }
 
     camera->where.x += camera->velocity.x * deltaTime,
     camera->where.y += camera->velocity.y * deltaTime;
 
     vec3 tw;
-    addVec3(&tw, camera->target, camera->where);
+    add_vec3(&tw, camera->target, camera->where);
 
-    camera->view = lookAt(camera->where, tw, camera->up);
+    camera->view = look_at(camera->where, tw, camera->up);
 
     return 0;
 
@@ -285,19 +287,19 @@ int         updateCameraFromKeyboardInput ( GXCamera_t *camera, const u8 *keyboa
     {
         noCamera:
         #ifndef NDEBUG
-            gPrintError("[G10] [Camera] Parameter \"camera\" is null in call to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Camera] Parameter \"camera\" is null in call to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
         
         noKeyboardState:
         #ifndef NDEBUG
-            gPrintError("[G10] [Camera] Parameter \"keyboardState\" is null in call to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Camera] Parameter \"keyboardState\" is null in call to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int         destroyCamera                 ( GXCamera_t* camera )
+int         destroy_camera                 ( GXCamera_t* camera )
 {
     // Name
     free(camera->name);
@@ -314,9 +316,9 @@ int         destroyCamera                 ( GXCamera_t* camera )
 
     // Projection
     camera->fov         = 0.f;
-    camera->nearClip    = 0.f;
-    camera->farClip     = 0.f;
-    camera->aspectRatio = 0.f;
+    camera->near_clip    = 0.f;
+    camera->far_clip     = 0.f;
+    camera->aspect_ratio = 0.f;
 
     // Matricies
     camera->view        = (mat4) { 0.f,0.f,0.f,0.f,

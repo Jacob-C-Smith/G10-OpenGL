@@ -12,4 +12,4 @@
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
 
-GXTexture_t *loadJPGImage ( const char path[] ); // ✅ Loads a JPG file from path and returns a pointer to GXTexture_t
+GXTexture_t *load_jpg_image ( const char path[] ); // ✅ Loads a JPG file from path and returns a pointer to GXTexture_t

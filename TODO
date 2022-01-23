@@ -21,7 +21,7 @@
  - ✅ Parse rigidbody files as paths
  - ✅ Parse camera files as paths
  - ✅ Parse light files as paths
- - ❌ Normalize return values across all functions. 0 is bad and 1 is good.
+ - ❌ Normalize return values across all functions. 1 is bad and 0 is good.
  - ✅ Improve granularity and specificity of the mesh system
 
 === JSON Parser goals === 
@@ -58,6 +58,7 @@
  - ✅ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
  - ❌ Implement multithreading.
  - ❌ Export this whole project into a DLL file so that other developers can use it.
- - ❌ Figure out a better way of handling input.
-
+ - ✅ Figure out a better way of handling input.
+      UPDATE: Binds, keys, etc
+      TODO: Callbacks
  Other TODOs can be found littered throughout the source code

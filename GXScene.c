@@ -1,6 +1,6 @@
 #include <G10/GXScene.h>
 
-GXScene_t  *createScene     ( )
+GXScene_t  *create_scene     ( )
 {
     GXScene_t* ret = calloc(1,sizeof(GXScene_t));
 
@@ -16,13 +16,13 @@ GXScene_t  *createScene     ( )
     {
         noMem:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Out of memory.\n");
+            g_print_error("[G10] [Scene] Out of memory.\n");
         #endif
         return 0;
     }
 }
 
-GXScene_t  *loadScene       ( const char path[] )
+GXScene_t  *load_scene       ( const char path[] )
 {
     // Argument checking
     {
@@ -41,12 +41,12 @@ GXScene_t  *loadScene       ( const char path[] )
     char        *data = 0;
 
     // Load up the file
-    i    = gLoadFile(path, 0,false);
+    i    = g_load_file(path, 0,false);
     data = calloc(i, sizeof(u8));
-    gLoadFile(path, data, false);
+    g_load_file(path, data, false);
     
     // Parse the file as JSON
-    ret = loadSceneAsJSON(data);
+    ret = load_scene_as_json(data);
 
     free(data);
 
@@ -56,20 +56,21 @@ GXScene_t  *loadScene       ( const char path[] )
     {
         nullPath:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for \"path\" in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for \"path\" in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXScene_t  *loadSceneAsJSON ( char*      token )
+GXScene_t  *load_scene_as_json ( char*      token )
 {
+    // TODO: Argument check
     // Uninitialized data
     int          tokenCount;
-    JSONValue_t *tokens;
+    JSONToken_t *tokens;
 
     // Initialized data
-    GXScene_t   *ret = createScene();
+    GXScene_t   *ret = create_scene();
     size_t       l   = strlen(token);
 
     // Time the function if in debug mode
@@ -78,61 +79,61 @@ GXScene_t  *loadSceneAsJSON ( char*      token )
     #endif
 
     // Preparse the scene
-    tokenCount       = GXParseJSON(token, l, 0, (void*)0);
-    tokens           = calloc(tokenCount, sizeof(JSONValue_t));
+    tokenCount       = parse_json(token, l, 0, (void*)0);
+    tokens           = calloc(tokenCount, sizeof(JSONToken_t));
 
     // Parse the scene
-    GXParseJSON(token, l, tokenCount, tokens);
+    parse_json(token, l, tokenCount, tokens);
 
     // Find and exfiltrate pertinent information.
     for (size_t j = 0; j < tokenCount; j++)
     {
         // Copy out the name of the scene
-        if (strcmp("name", tokens[j].name) == 0)
+        if (strcmp("name", tokens[j].key) == 0)
         {
             // Initialized data.
-            size_t len = strlen(tokens[j].content.nWhere);
+            size_t len = strlen(tokens[j].value.n_where);
             ret->name  = calloc(len+1,sizeof(char));
 
             // Copy the string
-            strncpy(ret->name, tokens[j].content.nWhere, len);
+            strncpy(ret->name, tokens[j].value.n_where, len);
 
             continue;
         }
 
         // Create entities
-        if (strcmp("entities", tokens[j].name) == 0)
+        if (strcmp("entities", tokens[j].key) == 0)
         {
-            for (size_t k = 0; tokens[j].content.aWhere[k]; k++)
-                appendEntity(ret, (*(char*)tokens[j].content.aWhere[k] == '{') ? loadEntityAsJSON(tokens[j].content.aWhere[k]) : loadEntity(tokens[j].content.aWhere[k]));
+            for (size_t k = 0; tokens[j].value.a_where[k]; k++)
+                append_entity(ret, (*(char*)tokens[j].value.a_where[k] == '{') ? load_entity_as_json(tokens[j].value.a_where[k]) : load_entity(tokens[j].value.a_where[k]));
             continue;
         }
 
         // Create cameras
-        else if (strcmp("cameras", tokens[j].name) == 0)
+        else if (strcmp("cameras", tokens[j].key) == 0)
         {
-            for (size_t k = 0; tokens[j].content.aWhere[k]; k++)
-                appendCamera(ret, (*(char*)tokens[j].content.aWhere[k] == '{') ? loadCameraAsJSON(tokens[j].content.aWhere[k]) : loadCamera(tokens[j].content.aWhere[k]));
+            for (size_t k = 0; tokens[j].value.a_where[k]; k++)
+                append_camera(ret, (*(char*)tokens[j].value.a_where[k] == '{') ? load_camera_as_json(tokens[j].value.a_where[k]) : load_camera(tokens[j].value.a_where[k]));
             continue;
         }
 
         // Set up lights
-        else if (strcmp("lights", tokens[j].name) == 0)
+        else if (strcmp("lights", tokens[j].key) == 0)
         {
-            for (size_t k = 0; tokens[j].content.aWhere[k]; k++)
-                appendLight(ret, (*(char*)tokens[j].content.aWhere[k] == '{') ? loadLightAsJSON(tokens[j].content.aWhere[k]) : loadLight(tokens[j].content.aWhere[k]));
+            for (size_t k = 0; tokens[j].value.a_where[k]; k++)
+                append_light(ret, (*(char*)tokens[j].value.a_where[k] == '{') ? load_light_as_json(tokens[j].value.a_where[k]) : load_light(tokens[j].value.a_where[k]));
             continue;
         }
 
-        else if (strcmp("skybox", tokens[j].name) == 0)
+        else if (strcmp("skybox", tokens[j].key) == 0)
         {
-            ret->skybox = (*(char*)tokens[j].content.nWhere == '{') ? loadSkyboxAsJSON(tokens[j].content.nWhere) : loadSkybox(tokens[j].content.nWhere);
+            ret->skybox = (*(char*)tokens[j].value.n_where == '{') ? load_skybox_as_json(tokens[j].value.n_where) : load_skybox(tokens[j].value.n_where);
             continue;
         }
     }
 
     // Construct a BVH tree from the scene
-    ret->BVH = createBVHFromScene(ret);
+    ret->bvh = create_bvh_from_scene(ret);
 
     // Finish up
     free(tokens);
@@ -141,14 +142,14 @@ GXScene_t  *loadSceneAsJSON ( char*      token )
     #ifndef NDEBUG
     {
         c = clock() - c;
-        gPrintLog("[G10] Loaded scene \"%s\" in %.0f ms\n", ret->name, 1000 * (float)c / CLOCKS_PER_SEC);
+        g_print_log("[G10] Loaded scene \"%s\" in %.0f ms\n", ret->name, 1000 * (float)c / CLOCKS_PER_SEC);
     }
     #endif
 
     return ret;
 }
 
-int         appendEntity    ( GXScene_t* scene, GXEntity_t* entity )
+int         append_entity    ( GXScene_t* scene, GXEntity_t* entity )
 {
     // Argument checking
     {
@@ -189,27 +190,27 @@ int         appendEntity    ( GXScene_t* scene, GXEntity_t* entity )
         // Two entities with the same name cannot exist in the same scene
         duplicateName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Entity \"%s\" can not be appended to \"%s\" because an entity with that name already exists\n", entity->name, scene->name);
+            g_print_error("[G10] [Scene] Entity \"%s\" can not be appended to \"%s\" because an entity with that name already exists\n", entity->name, scene->name);
         #endif
         return 0;
 
         // The scene argument was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The entity argument was null
         nullEntity:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for entity in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for entity in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int         appendCamera    ( GXScene_t* scene, GXCamera_t* camera ) 
+int         append_camera    ( GXScene_t* scene, GXCamera_t* camera ) 
 {
     // Argument checking
     {
@@ -250,27 +251,27 @@ int         appendCamera    ( GXScene_t* scene, GXCamera_t* camera )
         // Two cameras with the same name cannot exist in the same scene
         duplicateName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Camera \"%s\" can not be appended to \"%s\" because a camera with that name already exists\n", camera->name, scene->name);
+            g_print_error("[G10] [Scene] Camera \"%s\" can not be appended to \"%s\" because a camera with that name already exists\n", camera->name, scene->name);
         #endif
         return 0;
     
         // The scene argument was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
         // The camera argument was null
         nullCamera:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for camera in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for camera in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int         appendLight     ( GXScene_t* scene, GXLight_t*  light )
+int         append_light     ( GXScene_t* scene, GXLight_t*  light )
 {
     // Argument checking
     {
@@ -311,26 +312,26 @@ int         appendLight     ( GXScene_t* scene, GXLight_t*  light )
         // Two lights with the same name cannot exist in the same scene
         duplicateName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Light \"%s\" can not be appended to \"%s\" because a light with that name already exists\n", light->name, scene->name);
+            g_print_error("[G10] [Scene] Light \"%s\" can not be appended to \"%s\" because a light with that name already exists\n", light->name, scene->name);
         #endif
         return 0;
 
         // The entity argument was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
             return 0;
         // The entity argument was null
         nullLight:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for light in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for light in function \"%s\"\n", __FUNCSIG__);
         #endif
             return 0;
     }
 }
 
-int         drawScene       ( GXScene_t* scene ) 
+int         draw_scene       ( GXScene_t* scene ) 
 {
     // Argument checking 
     {
@@ -339,40 +340,51 @@ int         drawScene       ( GXScene_t* scene )
                 goto nullScene;
         #endif
     }
-    
-    // Initialized data
-    GXEntity_t *i = scene->entities;
 
+    // Initialized data
+    GXEntity_t *i           = scene->entities;
+    GXShader_t* last_shader = 0;
+    
     // Iterate through list until we hit nullptr
     while (i)
     {
         // Set up the shader
         {
             // Use it
-            useShader(i->shader);
+            if (i->shader != last_shader)
+            {
+                last_shader = i->shader;
+                use_shader(i->shader);
+            }
 
-            setShaderCamera(i->shader, scene->cameras);
+            // Set projection and view matrices, camera position
+            set_shader_camera(i->shader, scene->cameras);
+            
+            // Set up image based lighting 
+            // if(scene->skybox)
+            //     set_shader_ibl(i->shader, scene->skybox);
         }
         
         // Set up lights
         {
-            //setShaderLights(i->shader, scene->lights, GX_MAX_LIGHTS);
+            if(scene->lights)
+                set_shader_lights(i->shader, scene->lights, 4);
         }
 
 
         // Actually draw the entity
-        drawEntity(i);
+        draw_entity(i);
        
         // Rinse and repeat
         i = i->next;
         
     }
     
-    drawSkybox:
+    draw_skybox:
 
     // Lastly, draw the skybox if there is a skybox
-    if (scene->skybox)
-        drawSkybox(scene->skybox, scene->cameras);
+    //if (scene->skybox)
+        //draw_skybox(scene->skybox, scene->cameras);
 
     return 0;
 
@@ -380,57 +392,87 @@ int         drawScene       ( GXScene_t* scene )
     {
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for scene in function \"%s\".\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for scene in function \"%s\".\n", __FUNCSIG__);
         #endif
             return 0;
         noEntities:
         #ifndef NDEBUG
-            gPrintWarning("[G10] [Scene] No entities in scene \"%s\"\n", scene->name);
+            g_print_warning("[G10] [Scene] No entities in scene \"%s\"\n", scene->name);
         #endif
-        goto drawSkybox;
+        goto draw_skybox;
     }
     
 }
 
-int         computePhysics  ( GXScene_t* scene, float       deltaTime )
+int         compute_physics  ( GXScene_t* scene, float       deltaTime )
 {
     GXEntity_t* i = scene->entities;
 
     while (i)
     {
-        if (i->rigidbody == 0)
-            goto noRigidbody;
+        // Check the entity 
+        {
+            if (i->transform == 0)
+                goto noTransform;
+            if (i->rigidbody == 0)
+                goto noRigidbody;
+            if (i->collider == 0)
+                ;
+        }
 
         // Summate forces
-        summateForces(i->rigidbody->forces, i->rigidbody->forcesCount);
+        summate_forces(i->rigidbody->forces, i->rigidbody->forces_count);
+        //summate_forces(i->rigidbody->torque, i->rigidbody->torqueCount);
 
         // Apply forces
-        if (i->rigidbody->type == active)
+        if (i->rigidbody->active == true)
         {
             // Calculate derivatives of displacement
-            // integrateDisplacement(i, deltaTime);
+            integrate_displacement(i, deltaTime);
 
             // Caclulate derivatives of rotation
-            // integrateRotation(i, deltaTime);
+            integrateRotation(i, deltaTime);
+            
+            // Recompute BV size and BVH tree
+            vec3 l = normalize( (vec3) { i->transform->scale.x, 0.f, 0.f } ),
+                 f = normalize( (vec3) { 0.f, i->transform->scale.y, 0.f } ),
+                 u = normalize( (vec3) { 0.f, 0.f, i->transform->scale.z } );
+
+            rotate_vec3_by_quaternion(&l, l, i->transform->rotation);
+            rotate_vec3_by_quaternion(&f, f, i->transform->rotation);
+            rotate_vec3_by_quaternion(&u, u, i->transform->rotation);
+
+            i->collider->bv->scale->x = fabs(l.x) + fabs(f.x) + fabs(u.x);
+            i->collider->bv->scale->y = fabs(l.y) + fabs(f.y) + fabs(u.y);
+            i->collider->bv->scale->z = fabs(l.z) + fabs(f.z) + fabs(u.z);
+            
         }
+
+        noRigidbody:
 
         // Detect collisions
         {
+            GXBV_t *neighbors;
 
-            // Broad phase collision detection using the scenes BVH
-            {
-                GXBV_t *bvh = scene->BVH;
+            // Broad phase collision detection with bounding volumes
+            if(i->collider)
+                if(i->collider->bv)
+                {
+                    //neighbors = find_parent_bv(scene->BVH, i->collider->bv);
 
+                }
 
-            }
-
-            // Narrow phase collision detection between two colliders
+            // Narrow phase collision detection between two colliders using GJK or collision primatives
             {
 
             }
             
+            
             // If there is indeed a collission, we add the two entities to a list to be resolved
+            {
 
+            }
+            
         }
 
         // Resolve constraints
@@ -438,14 +480,14 @@ int         computePhysics  ( GXScene_t* scene, float       deltaTime )
             // 
         }
 
-        noRigidbody:
+        noTransform:
         i = i->next;
     }
 
     return 0;
 }
 
-GXEntity_t *getEntity       ( GXScene_t* scene, const char  name[] )
+GXEntity_t *get_entity       ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -480,34 +522,34 @@ GXEntity_t *getEntity       ( GXScene_t* scene, const char  name[] )
         // There are no entities
         noEntities:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There are no entities.\n");
+            g_print_error("[G10] [Scene] There are no entities.\n");
         #endif
         return 0;	
 
         // There is no match
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There is no entity named \"%s\".", name);
+            g_print_error("[G10] [Scene] There is no entity named \"%s\".", name);
         #endif
         return 0;
     
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for scene in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXCamera_t *getCamera       ( GXScene_t* scene, const char  name[] )
+GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -542,34 +584,34 @@ GXCamera_t *getCamera       ( GXScene_t* scene, const char  name[] )
         // There are no cameras
         noCameras:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There are no cameras in \"%s\".\n", scene->name);
+            g_print_error("[G10] [Scene] There are no cameras in \"%s\".\n", scene->name);
         #endif
         return 0;
 
         // There is no matching camera
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There is no camera in \"%s\" named \"%s\".", scene->name, name);
+            g_print_error("[G10] [Scene] There is no camera in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
     
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXLight_t  *getLight        ( GXScene_t* scene, const char  name[] )
+GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
 {
     // Create a pointer to the head of the list
     GXLight_t* i = scene->lights;
@@ -592,19 +634,19 @@ GXLight_t  *getLight        ( GXScene_t* scene, const char  name[] )
     {
         noLights:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There are no lights in \"%s\".\n", scene->name);
+            g_print_error("[G10] [Scene] There are no lights in \"%s\".\n", scene->name);
         #endif
         return 0;
 
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There is no light in \"%s\" named \"%s\".", scene->name, name);
+            g_print_error("[G10] [Scene] There is no light in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
     }
 }
 
-int         setActiveCamera ( GXScene_t* scene, const char  name[] )
+int         set_active_camera ( GXScene_t* scene, const char  name[] )
 {
     // Arguments checking
     {
@@ -649,40 +691,40 @@ int         setActiveCamera ( GXScene_t* scene, const char  name[] )
     {
         noCameras:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There are no cameras, therefore no active camera.\n");
+            g_print_error("[G10] [Scene] There are no cameras, therefore no active camera.\n");
         #endif
         return 0;
 
         noNeed:
         #ifndef NDEBUG
-            gPrintLog("[G10] [Scene] \"%s\" is already the active camera.\n", name);
+            g_print_log("[G10] [Scene] \"%s\" is already the active camera.\n", name);
         #endif
         return 0;
 
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There is no camera in \"%s\" named \"%s\".\n", scene->name, name);
+            g_print_error("[G10] [Scene] There is no camera in \"%s\" named \"%s\".\n", scene->name, name);
         #endif
         return 0;
 
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
 
     }
 }
 
-GXEntity_t *removeEntity    ( GXScene_t* scene, const char  name[] )
+GXEntity_t *remove_entity    ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -721,7 +763,7 @@ GXEntity_t *removeEntity    ( GXScene_t* scene, const char  name[] )
             
             // Verbose logging
             #ifndef NDEBUG
-                gPrintLog("[G10] [Scene] Removed entity \"%s\" from \"%s\"\n", name, scene->name);
+                g_print_log("[G10] [Scene] Removed entity \"%s\" from \"%s\"\n", name, scene->name);
             #endif
             
             // Stitch up the linked list 
@@ -737,33 +779,33 @@ GXEntity_t *removeEntity    ( GXScene_t* scene, const char  name[] )
     {
         noEntities:
             #ifndef NDEBUG
-                gPrintError("[G10] [Scene] There are no entities in \"%s\".\n", scene->name);
+                g_print_error("[G10] [Scene] There are no entities in \"%s\".\n", scene->name);
             #endif
             return 0;
 
         noMatch:
             #ifndef NDEBUG
-                gPrintError("[G10] [Scene] There is no entity in \"%s\" named \"%s\".\n", scene->name, name);
+                g_print_error("[G10] [Scene] There is no entity in \"%s\" named \"%s\".\n", scene->name, name);
             #endif
             return 0;
         
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-GXCamera_t *removeCamera    ( GXScene_t* scene, const char  name[] )
+GXCamera_t *remove_camera    ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking
     {
@@ -800,7 +842,7 @@ GXCamera_t *removeCamera    ( GXScene_t* scene, const char  name[] )
 
             // Verbose logging
             #ifndef NDEBUG
-                gPrintLog("[G10] [Scene] Destroyed Camera \"%s\"\n", name);
+                g_print_log("[G10] [Scene] Destroyed Camera \"%s\"\n", name);
             #endif		
 
             // Stitch up the linked list 
@@ -817,32 +859,32 @@ GXCamera_t *removeCamera    ( GXScene_t* scene, const char  name[] )
     {
         noCameras:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There are no cameras in \"%s\"", scene->name);
+            g_print_error("[G10] [Scene] There are no cameras in \"%s\"", scene->name);
         #endif
         return 0;
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There is no camera in \"%s\" named \"%s\".", scene->name, name);
+            g_print_error("[G10] [Scene] There is no camera in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
         
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
 }
     
-GXLight_t  *removeLight     ( GXScene_t* scene, const char  name[] )
+GXLight_t  *remove_light     ( GXScene_t* scene, const char  name[] )
 {
     // Argument checking 
     {
@@ -879,11 +921,11 @@ GXLight_t  *removeLight     ( GXScene_t* scene, const char  name[] )
             GXLight_t* j = i->next->next;
 
             // Delete the light
-            destroyLight(i->next);
+            destroy_light(i->next);
 
             // Verbose logging
             #ifndef NDEBUG
-                gPrintLog("[G10] [Scene] Destroyed light \"%s\"\n", name);
+                g_print_log("[G10] [Scene] Destroyed light \"%s\"\n", name);
             #endif		
 
             // Stitch up the linked list 
@@ -899,32 +941,32 @@ GXLight_t  *removeLight     ( GXScene_t* scene, const char  name[] )
     {
         noLights:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There are no lights in \"%s\"", scene->name);
+            g_print_error("[G10] [Scene] There are no lights in \"%s\"", scene->name);
         #endif
         return 0;
         noMatch:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] There is no light in \"%s\" named \"%s\".", scene->name, name);
+            g_print_error("[G10] [Scene] There is no light in \"%s\" named \"%s\".", scene->name, name);
         #endif
         return 0;
 
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     
         // The name parameter was null
         nullName:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
         }
 }
 
-int         destroyScene    ( GXScene_t* scene )
+int         destroy_scene    ( GXScene_t* scene )
 {
     // Argument checking 
     {
@@ -946,7 +988,7 @@ int         destroyScene    ( GXScene_t* scene )
     {
         GXEntity_t* j = i;
         i = i->next;
-        destroyEntity(j);
+        destroy_entity(j);
     }
 
     // Zero set the entites pointer
@@ -957,7 +999,7 @@ int         destroyScene    ( GXScene_t* scene )
     {
         GXCamera_t* j = k;
         k = k->next;
-        destroyCamera(j);
+        destroy_camera(j);
     }
 
     // Zero set the cameras pointer
@@ -968,7 +1010,7 @@ int         destroyScene    ( GXScene_t* scene )
     {
         GXLight_t* j = l;
         l = l->next;
-        destroyLight(j);
+        destroy_light(j);
     }
 
     // Zero set the lights pointer
@@ -984,7 +1026,7 @@ int         destroyScene    ( GXScene_t* scene )
         // The scene parameter was null
         nullScene:
         #ifndef NDEBUG
-            gPrintError("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
