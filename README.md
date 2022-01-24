@@ -1,6 +1,6 @@
 # G10 Game Engine Documentation
 ###### NOTE: This is a hobby project to explore game engine development. As such, this repository may be updated at random intervals. This code may not be the most efficient or safe, and may not meet commercial standards for software testing 
-![G10 Picture](G10-Picture.png)
+![G10 Picture](G10-picture.png)
 ## Overview
 1. Definitions
     - G10 structures
