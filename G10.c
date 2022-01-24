@@ -11,7 +11,81 @@ GXInstance_t *g_init         ( const char *path )
     }
 
     // Initialized data
-    GXInstance_t *ret = calloc(1, sizeof(GXInstance_t));
+    GXInstance_t *ret            = calloc(1, sizeof(GXInstance_t));
+    size_t        i              = g_load_file(path, 0, false),
+                  token_count    = 0;
+    JSONToken_t  *tokens         = 0;
+    char         *token_text     = calloc(i, sizeof(u8)),
+                 *window_title   = "G10";
+    i32           window_width   = 640,
+                  window_height  = 480;
+    bool          fullscreen     = false;
+    size_t        token_text_len = 0;
+    
+    // Load the file
+    g_load_file(path, token_text, false);
+
+    token_text_len = strlen(token_text);
+
+    // Parse the JSON
+    token_count = parse_json(token_text, token_text_len, 0, 0);
+    tokens      = calloc(token_count, sizeof(JSONToken_t));
+    parse_json(token_text, token_text_len, token_count, tokens);
+
+    for (i = 0; i < token_count; i++)
+    {
+        if (strcmp(tokens[i].key, "name")          == 0)
+        { 
+            if (tokens[i].type == JSONstring)
+            {
+                char* n = tokens[i].value.n_where;
+                size_t l = strlen(n);
+                ret->name = calloc(l + 1, sizeof(char));
+
+                strncpy(ret->name, n, l);
+            }
+            continue;
+        }
+        if (strcmp(tokens[i].key, "window width")  == 0)
+        { 
+            if (tokens[i].type == JSONprimative)
+                window_width = atoi(tokens[i].value.n_where);
+            continue;
+        }
+        if (strcmp(tokens[i].key, "window height") == 0)
+        { 
+            if (tokens[i].type == JSONprimative)
+                window_height = atoi(tokens[i].value.n_where);
+            continue;
+        }
+        if (strcmp(tokens[i].key, "window title")  == 0)
+        { 
+            if (tokens[i].type == JSONstring)
+            {
+                char* n = tokens[i].value.n_where;
+                size_t l = strlen(n);
+                window_title = calloc(l + 1, sizeof(char));
+
+                strncpy(ret->name, n, l);
+            }
+            continue;
+        }
+        if (strcmp(tokens[i].key, "fullscreen")    == 0)
+        {
+            if (tokens[i].type == JSONprimative)
+                fullscreen = (bool)tokens[i].value.n_where;
+            continue;
+       }
+        if (strcmp(tokens[i].key, "input")         == 0)
+        {
+            if (tokens[i].type == JSONstring)
+                ret->input = load_input(tokens[i].value.n_where);
+            else
+                ret->input = load_input_as_json(tokens[i].value.n_where);
+
+            continue;
+        }
+    }
 
     // SDL + GLAD Initialization
     {
@@ -29,15 +103,18 @@ GXInstance_t *g_init         ( const char *path )
             goto noSDLNetwork;
 
         // Create the window
-        ret->window = SDL_CreateWindow("G10",
+        ret->window = SDL_CreateWindow(window_title,
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
-            1600, 900,
-            SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE ); 
+            1920, 1080,
+            SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN ); 
         
         // Context attributes
+        // OpenGL 4.6
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+
+        // 4x Multisampling
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 

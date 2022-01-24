@@ -122,7 +122,7 @@ void make_model_matrix(mat4 *r, GXTransform_t* transform)
     mat4 sca = scale_mat4(transform->scale),
          rot = rotation_mat4_from_quaternion(transform->rotation),
          tra = translation_mat4(transform->location),
-         ts  = mul_mat4_mat4(sca, tra);
+         ts  = mul_mat4_mat4(tra, sca);
     *r = mul_mat4_mat4(rot, ts);
     // TODO: Error handling
 

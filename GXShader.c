@@ -502,7 +502,7 @@ void         set_shader_transform ( GXShader_t  *shader,       GXTransform_t *tr
     // Update the model matrix
     
     
-    transform->model_matrix = mul_mat4_mat4(mul_mat4_mat4(scale_mat4(transform->scale), rotation_mat4_from_quaternion(transform->rotation)), translation_mat4(transform->location));
+    transform->model_matrix = mul_mat4_mat4(mul_mat4_mat4(scale_mat4(transform->scale), translation_mat4(transform->location)), rotation_mat4_from_quaternion(transform->rotation));
 
     for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {

@@ -64,10 +64,10 @@ quaternion    multiply_quaternion_quaternion(quaternion q1, quaternion q2)
 mat4          rotation_mat4_from_quaternion(quaternion q)
 {
     return (mat4) {
-        (q.u * q.u + q.i * q.i - q.j * q.j - q.k * q.k), (2 * q.i * q.j - 2 * q.k * q.u), (2 * q.i * q.k + 2 * q.j * q.u), 0,
-            (2 * q.i * q.j + 2 * q.k * q.u), (q.u * q.u - q.i * q.i + q.j * q.j - q.k * q.k), (2 * q.j * q.k - 2 * q.i * q.u), 0,
-            (2 * q.i * q.k - 2 * q.j * q.u), (2 * q.j * q.k + 2 * q.i * q.u), (q.u * q.u - q.i * q.i - q.j * q.j + q.k * q.k), 0,
-            0, 0, 0, 1
+        (q.u * q.u + q.i * q.i - q.j * q.j - q.k * q.k), (2 * q.i * q.j - 2 * q.k * q.u)                , (2 * q.i * q.k + 2 * q.j * q.u)                , 0,
+        (2 * q.i * q.j + 2 * q.k * q.u)                , (q.u * q.u - q.i * q.i + q.j * q.j - q.k * q.k), (2 * q.j * q.k - 2 * q.i * q.u)                , 0,
+        (2 * q.i * q.k - 2 * q.j * q.u)                , (2 * q.j * q.k + 2 * q.i * q.u)                , (q.u * q.u - q.i * q.i - q.j * q.j + q.k * q.k), 0,
+        0                                              , 0                                              , 0                                              , 1
     };
 }
 

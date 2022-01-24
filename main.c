@@ -47,7 +47,6 @@ int main ( int argc, const char *argv[] )
     GXInstance_t *instance     = 0;
     GXScene_t    *scene        = 0;
     GXServer_t   *server       = 0;
-    GXInput_t    *input        = load_input("G10/input.json");
 
     bool          drawBVH      = false;
 
@@ -96,9 +95,9 @@ int main ( int argc, const char *argv[] )
     // Initialize G10
     {
         #ifndef NDEBUG
-            instance = g_init("G10/debug instance.json");
+            instance = g_init("G10/G10 debug instance.json");
         #else 
-            instance = g_init("G10/release inscance.json");
+            instance = g_init("G10/G10 release inscance.json");
         #endif
     }
 
@@ -110,7 +109,7 @@ int main ( int argc, const char *argv[] )
     }
 
     // Load the scene
-    scene = load_scene("Nitric Acid Plant/Nitric Acid Plant.json");
+    scene = load_scene("Room 1/Room 1.json");
 
     // Splash screen animation
     {
@@ -327,6 +326,7 @@ int main ( int argc, const char *argv[] )
 
         // G10
         {
+
             // Compute physics
             if(scene)
                 //compute_physics(scene, deltaTime);
@@ -334,8 +334,6 @@ int main ( int argc, const char *argv[] )
             // Draw the scene
             if(scene)
                 draw_scene(scene);
-
-            // Post drawing
 
         }
 

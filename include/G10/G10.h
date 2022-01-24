@@ -12,6 +12,8 @@
 
 #include <glad/glad.h>
 
+#include <JSON/JSON.h>
+
 #include <G10/GXtypedef.h>
 #include <G10/GXInput.h>
 #include <G10/GXTexture.h>
@@ -20,6 +22,9 @@
 
 struct GXInstance_s
 {
+	// Name 
+	char          *name; 
+
 	// SDL data
 	SDL_Window    *window;
 	SDL_GLContext  glContext;

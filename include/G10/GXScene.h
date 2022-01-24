@@ -8,6 +8,8 @@
 
 #include <G10/GXtypedef.h>
 
+#include <JSON/JSON.h>
+
 #include <G10/GXEntity.h>
 #include <G10/GXCamera.h>
 #include <G10/GXLight.h>
@@ -25,6 +27,7 @@ struct GXScene_s {
     GXLight_t   *lights;
     GXBV_t      *bvh;
     GXSkybox_t  *skybox;
+    GXScene_t   *next;
 };
 
 // Constructors

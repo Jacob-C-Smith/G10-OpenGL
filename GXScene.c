@@ -151,6 +151,7 @@ GXScene_t  *load_scene_as_json ( char*      token )
 
 int         append_entity    ( GXScene_t* scene, GXEntity_t* entity )
 {
+
     // Argument checking
     {
         #ifndef NDEBUG
@@ -212,6 +213,7 @@ int         append_entity    ( GXScene_t* scene, GXEntity_t* entity )
 
 int         append_camera    ( GXScene_t* scene, GXCamera_t* camera ) 
 {
+
     // Argument checking
     {
         #ifndef NDEBUG
@@ -273,6 +275,7 @@ int         append_camera    ( GXScene_t* scene, GXCamera_t* camera )
 
 int         append_light     ( GXScene_t* scene, GXLight_t*  light )
 {
+
     // Argument checking
     {
         #ifndef NDEBUG
@@ -333,6 +336,7 @@ int         append_light     ( GXScene_t* scene, GXLight_t*  light )
 
 int         draw_scene       ( GXScene_t* scene ) 
 {
+
     // Argument checking 
     {
         #ifndef NDEBUG
@@ -406,6 +410,7 @@ int         draw_scene       ( GXScene_t* scene )
 
 int         compute_physics  ( GXScene_t* scene, float       deltaTime )
 {
+
     GXEntity_t* i = scene->entities;
 
     while (i)
@@ -489,6 +494,7 @@ int         compute_physics  ( GXScene_t* scene, float       deltaTime )
 
 GXEntity_t *get_entity       ( GXScene_t* scene, const char  name[] )
 {
+
     // Argument checking
     {
         #ifndef NDEBUG
@@ -551,6 +557,7 @@ GXEntity_t *get_entity       ( GXScene_t* scene, const char  name[] )
 
 GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
 {
+    
     // Argument checking
     {
         #ifndef NDEBUG
@@ -613,6 +620,7 @@ GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
 
 GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
 {
+
     // Create a pointer to the head of the list
     GXLight_t* i = scene->lights;
 
@@ -648,6 +656,7 @@ GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
 
 int         set_active_camera ( GXScene_t* scene, const char  name[] )
 {
+
     // Arguments checking
     {
         #ifndef NDEBUG
