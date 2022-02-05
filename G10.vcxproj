@@ -223,6 +223,7 @@
     <ClCompile Include="GXBitmap.c" />
     <ClCompile Include="GXBVH.c" />
     <ClCompile Include="GXCamera.c" />
+    <ClCompile Include="GXCameraController.c" />
     <ClCompile Include="GXCollider.c" />
     <ClCompile Include="GXEntity.c" />
     <ClCompile Include="GXFlycam.c" />
@@ -254,6 +255,7 @@
     <ClInclude Include="include\G10\GXBitmap.h" />
     <ClInclude Include="include\G10\GXBVH.h" />
     <ClInclude Include="include\G10\GXCamera.h" />
+    <ClInclude Include="include\G10\GXCameraController.h" />
     <ClInclude Include="include\G10\GXCollider.h" />
     <ClInclude Include="include\G10\GXEntity.h" />
     <ClInclude Include="include\G10\GXFlycam.h" />

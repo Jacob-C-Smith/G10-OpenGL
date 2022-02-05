@@ -27,9 +27,9 @@ quaternion    make_quaternion_from_euler_angle(vec3       v)
 vec3          euler_angle_from_quaternion(quaternion q)
 {
     float wD = acosf(q.u / 2),
-        iD = sin(q.i / wD),
-        jD = sin(q.j / wD),
-        kD = sin(q.k / wD);
+          iD = sin(q.i / wD),
+          jD = sin(q.j / wD),
+          kD = sin(q.k / wD);
     return (vec3) { iD, jD, kD };
 }
 

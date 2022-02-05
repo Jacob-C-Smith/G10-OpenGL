@@ -33,6 +33,8 @@ GXTransform_t *create_transform       ( vec3           location, quaternion rota
 
 GXTransform_t *load_transform         ( const char     path[] )
 {
+    // TODO: Argument check
+
     // Argument check
     {
         #ifndef NDEBUG

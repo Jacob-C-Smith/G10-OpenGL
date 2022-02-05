@@ -15,6 +15,7 @@
 #include <JSON/JSON.h>
 
 #include <G10/GXtypedef.h>
+#include <G10/GXScene.h>
 #include <G10/GXInput.h>
 #include <G10/GXTexture.h>
 
@@ -24,6 +25,9 @@ struct GXInstance_s
 {
 	// Name 
 	char          *name; 
+	
+	// Ticks
+	size_t         ticks;
 
 	// SDL data
 	SDL_Window    *window;
@@ -32,35 +36,46 @@ struct GXInstance_s
 
 	// G10 data
 	GXInput_t     *input;
+
+	// Loaded scenes
+	GXScene_t     *scenes;
+
+	// Server 
+	GXServer_t   *server;
+
+	// Loaded assets
 	GXTexture_t  **loaded_textures;
 	GXPart_t     **loaded_parts;
 	GXMaterial_t **loaded_materials;
 	GXEntity_t   **loaded_entities;
 
+	// Names of loaded assets
 	char         **loaded_texture_names,
 		         **loaded_part_names,
 		         **loaded_material_names,
 		         **loaded_entitie_names;
 	// Delta time
-	u32            d,
-                   currentTime;
+	u32            d, 
+		           lastTime;
 	float          deltaTime;
     bool           running;
-    u32	           lastTime;
 
 };
 
-GXInstance_t *g_init          ( const char       *path );                                      // ✅ g_init initializes SDL and OpenGL
+GXInstance_t *g_init           ( const char           *path );                                      // ✅ g_init initializes SDL and OpenGL
 
-size_t        g_load_file     ( const char       *path    , void   *buffer, bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
+size_t        g_load_file      ( const char           *path    , void   *buffer, bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
 
-int           g_print_error   ( const char *const format  , ... );                             // ✅ printf, but in red
-int           g_print_warning ( const char *const format  , ... );                             // ✅ printf, but in yellow
-int           g_print_log     ( const char *const format  , ... );                             // ✅ printf, but in blue
+int           g_print_error    ( const char *const     format  , ... );                             // ✅ printf, but in red
+int           g_print_warning  ( const char *const     format  , ... );                             // ✅ printf, but in yellow
+int           g_print_log      ( const char *const     format  , ... );                             // ✅ printf, but in blue
 
-int           g_clear         ( void );                                                        // ✅ g_clear clears the color and depth buffers
-int           g_swap          ( GXInstance_t     *instance );
-int           g_delta         ( GXInstance_t     *instance );
-u8            g_checksum      ( u8               *data    , size_t len );                      // TODO: Document
+int           g_clear          ( void );                                                        // ✅ g_clear clears the color and depth buffers
+int           g_swap           ( GXInstance_t         *instance );
+int           g_window_resize  ( GXInstance_t         *instance );
+int           g_exit_game_loop ( callback_parameter_t  c       , GXInstance_t* i );
 
-int           g_exit          ( GXInstance_t     *instance );                                  // ✅ g_exit deinitializes SDL and OpenGL
+int           g_delta          ( GXInstance_t         *instance );
+u8            g_checksum       ( u8                   *data    , size_t len );                      // TODO: Document
+
+int           g_exit           ( GXInstance_t         *instance );                                  // ✅ g_exit deinitializes SDL and OpenGL

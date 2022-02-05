@@ -1,473 +1,397 @@
-#include <G10/GXInput.h>
+﻿#include <G10/GXInput.h>
 
 typedef struct { SDL_KeyCode code; const char* name; } kn_t;
-const kn_t keys[117] = {
+const kn_t keys[] = {
     {
-        SDLK_RETURN,
+        SDL_SCANCODE_RETURN,
         "RETURN"
     },
     {
-        SDLK_ESCAPE,
+        SDL_SCANCODE_ESCAPE,
         "ESCAPE"
     },
     {
-        SDLK_BACKSPACE,
+        SDL_SCANCODE_BACKSPACE,
         "BACKSPACE"
     },
     {
-        SDLK_TAB,
+        SDL_SCANCODE_TAB,
         "TAB"
     },
     {
-        SDLK_SPACE,
+        SDL_SCANCODE_SPACE,
         "SPACE"
     },
     {
-        SDLK_EXCLAIM,
-        "EXCLAIMATION MARK"
-    },
-    {
-        SDLK_QUOTEDBL,
-        "DOUBLE QUOTE"
-    },
-    {
-        SDLK_HASH,
-        "HASH"
-    },
-    {
-        SDLK_PERCENT,
-        "PERCENT"
-    },
-    {
-        SDLK_DOLLAR,
-        "DOLLAR"
-    },
-    {
-        SDLK_AMPERSAND,
-        "AMPERSAND"
-    },
-    {
-        SDLK_QUOTE,
-        "SINGLE QUOTE"
-    },
-    {
-        SDLK_LEFTPAREN,
-        "LEFT PARENTHESIS"
-    },
-    {
-        SDLK_RIGHTPAREN,
-        "RIGHT PARENTHESIS"
-    },
-    {
-        SDLK_ASTERISK,
-        "ASTERISK"
-    },
-    {
-        SDLK_PLUS,
-        "PLUS"
-    },
-    {
-        SDLK_COMMA,
+        SDL_SCANCODE_COMMA,
         "COMMA"
     },
     {
-        SDLK_MINUS,
+        SDL_SCANCODE_MINUS,
         "MINUS"
     },
     {
-        SDLK_PERIOD,
+        SDL_SCANCODE_PERIOD,
         "PERIOD"
     },
     {
-        SDLK_SLASH,
+        SDL_SCANCODE_SLASH,
         "SLASH"
     },
     {
-        SDLK_0,
+        SDL_SCANCODE_0,
         "0"
     },
     {
-        SDLK_1,
-        "1"
+SDL_SCANCODE_1,
+"1"
     },
     {
-        SDLK_2,
+        SDL_SCANCODE_2,
         "2"
     },
     {
-        SDLK_3,
+        SDL_SCANCODE_3,
         "3"
     },
     {
-        SDLK_4,
+        SDL_SCANCODE_4,
         "4"
     },
     {
-        SDLK_5,
+        SDL_SCANCODE_5,
         "5"
     },
     {
-        SDLK_6,
+        SDL_SCANCODE_6,
         "6"
     },
     {
-        SDLK_7,
+        SDL_SCANCODE_7,
         "7"
     },
     {
-        SDLK_8,
+        SDL_SCANCODE_8,
         "8"
     },
     {
-        SDLK_9,
+        SDL_SCANCODE_9,
         "9"
     },
     {
-        SDLK_COLON,
-        "COLON"
-    },
-    {
-        SDLK_SEMICOLON,
+        SDL_SCANCODE_SEMICOLON,
         "SEMICOLON"
     },
     {
-        SDLK_LESS,
-        "LESS"
-    },
-    {
-        SDLK_EQUALS,
+        SDL_SCANCODE_EQUALS,
         "EQUALS"
     },
     {
-        SDLK_GREATER,
-        "GREATER"
-    },
-    {
-        SDLK_QUESTION,
-        "QUESTION MARK"
-    },
-    {
-        SDLK_AT,
-        "AT"
-    },
-    {
-        SDLK_LEFTBRACKET,
+        SDL_SCANCODE_LEFTBRACKET,
         "LEFT"
     },
     {
-        SDLK_BACKSLASH,
+        SDL_SCANCODE_BACKSLASH,
         "BACKSLASH"
     },
     {
-        SDLK_RIGHTBRACKET,
+        SDL_SCANCODE_RIGHTBRACKET,
         "RIGHT BRACKET"
     },
     {
-        SDLK_CARET,
-        "CARET"
-    },
-    {
-        SDLK_UNDERSCORE,
-        "UNDERSCORE"
-    },
-    {
-        SDLK_BACKQUOTE,
-        "BACK QUOTE"
-    },
-    {
-        SDLK_a,
+        SDL_SCANCODE_A,
         "A"
     },
     {
-        SDLK_b,
+        SDL_SCANCODE_B,
         "B"
     },
     {
-        SDLK_c,
+        SDL_SCANCODE_C,
         "C"
     },
     {
-        SDLK_d,
+        SDL_SCANCODE_D,
         "D"
     },
     {
-        SDLK_e,
+        SDL_SCANCODE_E,
         "E"
     },
     {
-        SDLK_f,
+        SDL_SCANCODE_F,
         "F"
     },
     {
-        SDLK_g,
+        SDL_SCANCODE_G,
         "G"
     },
     {
-        SDLK_h,
+        SDL_SCANCODE_H,
         "H"
     },
     {
-        SDLK_i,
+        SDL_SCANCODE_I,
         "I"
     },
     {
-        SDLK_j,
+        SDL_SCANCODE_J,
         "J"
     },
     {
-        SDLK_k,
+        SDL_SCANCODE_K,
         "K"
     },
     {
-        SDLK_l,
+        SDL_SCANCODE_L,
         "L"
     },
     {
-        SDLK_m,
+        SDL_SCANCODE_M,
         "M"
     },
     {
-        SDLK_n,
+        SDL_SCANCODE_N,
         "N"
     },
     {
-        SDLK_o,
+        SDL_SCANCODE_O,
         "O"
     },
     {
-        SDLK_p,
+        SDL_SCANCODE_P,
         "P"
     },
     {
-        SDLK_q,
+        SDL_SCANCODE_Q,
         "Q"
     },
     {
-        SDLK_r,
+        SDL_SCANCODE_R,
         "R"
     },
     {
-        SDLK_s,
+        SDL_SCANCODE_S,
         "S"
     },
     {
-        SDLK_t,
+        SDL_SCANCODE_T,
         "T"
     },
     {
-        SDLK_u,
+        SDL_SCANCODE_U,
         "U"
     },
     {
-        SDLK_v,
+        SDL_SCANCODE_V,
         "V"
     },
     {
-        SDLK_w,
+        SDL_SCANCODE_W,
         "W"
     },
     {
-        SDLK_x,
+        SDL_SCANCODE_X,
         "X"
     },
     {
-        SDLK_y,
+        SDL_SCANCODE_Y,
         "Y"
     },
     {
-        SDLK_z,
+        SDL_SCANCODE_Z,
         "Z"
     },
     {
-        SDLK_DELETE,
+        SDL_SCANCODE_DELETE,
         "DELETE"
     },
     {
-        SDLK_CAPSLOCK,
+        SDL_SCANCODE_CAPSLOCK,
         "CAPS LOCK"
     },
     {
-        SDLK_F1,
+        SDL_SCANCODE_F1,
         "F1"
     },
     {
-        SDLK_F2,
+        SDL_SCANCODE_F2,
         "F2"
     },
     {
-        SDLK_F3,
+        SDL_SCANCODE_F3,
         "F3"
     },
     {
-        SDLK_F4,
+        SDL_SCANCODE_F4,
         "F4"
     },
     {
-        SDLK_F5,
+        SDL_SCANCODE_F5,
         "F5"
     },
     {
-        SDLK_F6,
+        SDL_SCANCODE_F6,
         "F6"
     },
     {
-        SDLK_F7,
+        SDL_SCANCODE_F7,
         "F7"
     },
     {
-        SDLK_F8,
+        SDL_SCANCODE_F8,
         "F8"
     },
     {
-        SDLK_F9,
+        SDL_SCANCODE_F9,
         "F9"
     },
     {
-        SDLK_F10,
+        SDL_SCANCODE_F10,
         "F10"
     },
     {
-        SDLK_F11,
+        SDL_SCANCODE_F11,
         "F11"
     },
     {
-        SDLK_F12,
+        SDL_SCANCODE_F12,
         "F12"
     },
     {
-        SDLK_PRINTSCREEN ,
+        SDL_SCANCODE_PRINTSCREEN ,
         "PRINT SCREEN"
     },
     {
-        SDLK_SCROLLLOCK  ,
+        SDL_SCANCODE_SCROLLLOCK  ,
         "SCROLL LOCK"
     },
     {
-        SDLK_PAUSE,
+        SDL_SCANCODE_PAUSE,
         "PAUSE"
     },
     {
-        SDLK_INSERT,
+        SDL_SCANCODE_INSERT,
         "INSERT"
     },
     {
-        SDLK_HOME,
+        SDL_SCANCODE_HOME,
         "HOME"
     },
     {
-        SDLK_PAGEUP,
+        SDL_SCANCODE_PAGEUP,
         "PAGE UP"
     },
     {
-        SDLK_END,
+        SDL_SCANCODE_END,
         "END"
     },
     {
-        SDLK_PAGEDOWN,
+        SDL_SCANCODE_PAGEDOWN,
         "PAGE DOWN"
     },
     {
-        SDLK_RIGHT,
+        SDL_SCANCODE_RIGHT,
         "RIGHT"
     },
     {
-        SDLK_LEFT,
+        SDL_SCANCODE_LEFT,
         "LEFT"
     },
     {
-        SDLK_DOWN,
+        SDL_SCANCODE_DOWN,
         "DOWN"
     },
     {
-        SDLK_UP,
+        SDL_SCANCODE_UP,
         "UP"
     },
     {
-        SDLK_KP_DIVIDE,
+        SDL_SCANCODE_KP_DIVIDE,
         "KEYPAD DIVIDE"
     },
     {
-        SDLK_KP_MULTIPLY,
+        SDL_SCANCODE_KP_MULTIPLY,
         "KEYPAD MULTIPLY"
     },
     {
-        SDLK_KP_MINUS,
+        SDL_SCANCODE_KP_MINUS,
         "KEYPAD MINUS"
     },
     {
-        SDLK_KP_PLUS,
+        SDL_SCANCODE_KP_PLUS,
         "KEYPAD PLUS"
     },
     {
-        SDLK_KP_ENTER,
+        SDL_SCANCODE_KP_ENTER,
         "KEYPAD ENTER"
     },
     {
-        SDLK_KP_1,
+        SDL_SCANCODE_KP_1,
         "KEYPAD 1"
     },
     {
-        SDLK_KP_2,
+        SDL_SCANCODE_KP_2,
         "KEYPAD 2"
     },
     {
-        SDLK_KP_3,
+        SDL_SCANCODE_KP_3,
         "KEYPAD 3"
     },
     {
-        SDLK_KP_4,
+        SDL_SCANCODE_KP_4,
         "KEYPAD 4"
     },
     {
-        SDLK_KP_5,
+        SDL_SCANCODE_KP_5,
         "KEYPAD 5"
     },
     {
-        SDLK_KP_6,
+        SDL_SCANCODE_KP_6,
         "KEYPAD 6"
     },
     {
-        SDLK_KP_7,
+        SDL_SCANCODE_KP_7,
         "KEYPAD 7"
     },
     {
-        SDLK_KP_8,
+        SDL_SCANCODE_KP_8,
         "KEYPAD 8"
     },
     {
-        SDLK_KP_9,
+        SDL_SCANCODE_KP_9,
         "KEYPAD 9"
     },
     {
-        SDLK_KP_0,
+        SDL_SCANCODE_KP_0,
         "KEYPAD 0"
     },
     {
-        SDLK_KP_PERIOD,
+        SDL_SCANCODE_KP_PERIOD,
         "KEYPAD PERIOD"
     },
     {
-        SDLK_LCTRL,
+        SDL_SCANCODE_LCTRL,
         "LEFT CONTROL"
     },
     {
-        SDLK_LSHIFT,
+        SDL_SCANCODE_LSHIFT,
         "LEFT SHIFT"
     },
     {
-        SDLK_LALT,
+        SDL_SCANCODE_LALT,
         "LEFT ALT"
     },
     {
-        SDLK_RCTRL,
+        SDL_SCANCODE_RCTRL,
         "RIGHT CONTROL"
     },
     {
-        SDLK_RSHIFT,
+        SDL_SCANCODE_RSHIFT,
         "RIGHT SHIFT"
     },
     {
-        SDLK_RALT,
+        SDL_SCANCODE_RALT,
         "RIGHT ALT"
     }
 };
@@ -612,36 +536,84 @@ GXBind_t* load_bind_as_json(char* token)
 int register_bind_callback(GXBind_t* bind, void* function_pointer)
 {
     // TODO: Argument check
+    {
+        if (bind == (void*)0)
+            goto noBind;
+        if (function_pointer == (void*)0)
+            goto noFunPtr;
+    }
+
+    if (bind->callback_max == 0)
+    {
+        bind->callback_max   = 2,
+        bind->callbacks      = calloc(bind->callback_max, sizeof(void*));
+    }
+
+    if (bind->callback_count + 1 > bind->callback_max)
+    {
+        bind->callback_max *= 2;
+        void **callbacks    = calloc(bind->callback_max, sizeof(void*)),
+              *t            = bind->callbacks;
+
+        memcpy(callbacks, bind->callbacks, bind->callback_count * sizeof(void*));
+        bind->callbacks = callbacks;
+
+        free(t);
+    }
+
+    bind->callbacks[bind->callback_count++] = function_pointer;
+
     return 0;
     // TODO: Error handling
+    {
+        noBind:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Input] Null pointer provided for \"bind\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+
+        noFunPtr:
+        #ifndef NDEBUG
+            g_print_warning("[G10] [Input] Null pointer provided for \"function_pointer\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 int unregister_bind_callback(GXBind_t* bind, void* function_pointer)
 {
     // TODO: Argument check
+    // TODO
     return 0;
     // TODO: Error handling
 }
 
-
-SDL_KeyCode find_key(const char* name)
+SDL_Scancode find_key(const char* name)
 {
     // TODO: Argument check
-    for (size_t i = 0; i < 117; i++)
+    {
+        if (name == 0)
+            goto noName;
+    }
+    for (size_t i = 0; i < 98; i++)
         if (strcmp(name, keys[i].name) == 0)
             return keys[i].code;
     
-    // TODO: Write an error
-
-    return 0;
+    //g_print_warning("[G10] [Input] Unidentified key name \"%s\" passed to funciton \"%s\"\n", name, __FUNCSIG__);
+    return (SDL_Scancode)0;
 
     // TODO: Error handling
+    {
+        noName:
+        g_print_error("[G10] [Input] No name provided to function \"%s\"\n", __FUNCSIG__);
+        return (SDL_Scancode)0;
+    }
 }
 
 int print_all_keys(void)
 {
     // TODO: Argument check
-    for (size_t i = 0; i < 117; i++)
+    for (size_t i = 0; i < 98; i++)
         printf("\"%s\"\n", keys[i].name);
 
     return 0;
@@ -672,19 +644,109 @@ int print_all_binds(GXInput_t* inputs)
 int process_input(GXInstance_t* instance)
 {
     // TODO: Argument check
+    const  u8* keyboard_state = SDL_GetKeyboardState(NULL);
 
+    // Poll for events 
+    while (SDL_PollEvent(&instance->event)) {
+        switch (instance->event.type)
+        {
+            // Mouse events
+            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP:
+            //case SDL_MOUSEWHEEL:
+            {
+                GXBind_t* iter   = instance->input->binds;
+                u8        button = 0;
+
+                callback_parameter_t input;
+                int                  x_rel = instance->event.motion.xrel,
+                                     y_rel = instance->event.motion.yrel;
+
+                input.input_state               = MOUSE;
+                input.inputs.mouse_state.xrel   = x_rel;
+                input.inputs.mouse_state.yrel   = y_rel;
+                input.inputs.mouse_state.button = button;
+
+                while (iter)
+                {
+                    for (size_t j = 0; j < iter->key_count; j++)
+                    {
+                        if (strcmp(iter->keys[j], "MOUSE UP")    == 0 && y_rel < 0)
+                            fire_bind(iter, input, instance);
+                        if (strcmp(iter->keys[j], "MOUSE DOWN")  == 0 && y_rel > 0)
+                            fire_bind(iter, input, instance);
+                        if (strcmp(iter->keys[j], "MOUSE LEFT") == 0 && x_rel < 0)
+                            fire_bind(iter, input, instance);
+                        if (strcmp(iter->keys[j], "MOUSE RIGHT") == 0 && x_rel > 0)
+                            fire_bind(iter, input, instance);
+
+                    }
+                    iter = iter->next;
+                }
+                break;
+            }
+            // Keyboard events
+
+            // Key up
+            // Key down
+            case SDL_KEYDOWN:
+            case SDL_KEYUP:
+            {
+                GXBind_t* iter = instance->input->binds;
+                callback_parameter_t input = { KEYBOARD, { instance->event.key.state } };
+                while (iter)
+                {
+                    for (size_t j = 0; j < iter->key_count; j++)
+                    {
+                        SDL_Scancode k = find_key(iter->keys[j]);
+                        if (k > 512)
+                            continue;
+                        if (keyboard_state[k])
+                            fire_bind(iter, input, instance);
+
+                    }
+                    iter = iter->next;
+                }
+                break;
+            }
+            
+            
+
+            // Window resize
+            case SDL_WINDOWEVENT:
+                switch (instance->event.window.event)
+                {
+                case SDL_WINDOWEVENT_SIZE_CHANGED:
+                {
+                    g_window_resize(instance);
+                    break;
+                }
+                default:
+                    break;
+                }
+                break;
+
+            // Quit
+            case SDL_QUIT:
+            {
+                instance->running = false;
+                break;
+            }
+        }
+    }
     return 0;
+
     // TODO: Error handling
 }
 
-int fire_bind(GXBind_t* bind)
+int fire_bind ( GXBind_t* bind, callback_parameter_t input, GXInstance_t* instance )
 {
     // TODO: Argument check
-
     for (size_t i = 0; i < bind->callback_count; i++)
     {
-        void (*function)() = bind->callbacks[i];
-        function();
+        void (*function)(input, instance) = bind->callbacks[i];
+        function(input, instance);
     }
 
     return 0;
@@ -711,22 +773,26 @@ int append_bind(GXInput_t* input, GXBind_t* bind)
     // TODO: Error handling
 }
 
-int find_bind(GXInput_t* input, char* name)
+GXBind_t *find_bind(GXInput_t* input, char* name)
 {
     // TODO: Argument check
     GXBind_t *i = input->binds;
 
-    while (i->next)
+    while (i)
+    {
         if (strcmp(i->name, name) == 0)
-            return input;
+            return i;
+        i = i->next;
+    }
 
-    return 0;
+    return i;
     // TODO: Error handling
 }
 
 int remove_bind(GXInput_t* input, GXBind_t* bind)
 {
     // TODO: Argument check
+
     return 0;
     // TODO: Error handling
 }
@@ -735,6 +801,7 @@ int destroy_bind(GXBind_t* bind)
 {
     // TODO: Argument check
     free(bind->name);
+
     // TODO: Free everything
     bind->key_count = 0;
     bind->callback_count = 0;

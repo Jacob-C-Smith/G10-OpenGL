@@ -1,6 +1,6 @@
 ﻿#include <G10/G10.h>
 
-GXInstance_t *g_init         ( const char *path )
+GXInstance_t *g_init          ( const char       *path )
 {
     // Argument Check
     {
@@ -106,8 +106,8 @@ GXInstance_t *g_init         ( const char *path )
         ret->window = SDL_CreateWindow(window_title,
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
-            1920, 1080,
-            SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN ); 
+            window_width, window_height,
+            SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | ((fullscreen==1) ? SDL_WINDOW_RESIZABLE : 0) ); 
         
         // Context attributes
         // OpenGL 4.6
@@ -385,7 +385,7 @@ int           g_clear         ( void )
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-int g_swap(GXInstance_t* instance)
+int           g_swap          ( GXInstance_t     *instance )
 {
     // TODO: Argument checking
     SDL_GL_SwapWindow(instance->window);
@@ -394,21 +394,43 @@ int g_swap(GXInstance_t* instance)
 
 }
 
-int g_delta(GXInstance_t* instance)
+int           g_window_resize ( GXInstance_t     *instance )
+{
+    // Uninitialized data
+    int w,
+        h;
+
+    // Pull window data
+    SDL_GetWindowSize(instance->window, &w, &h);
+
+    // Notify OpenGL of the change
+    glViewport(0, 0, w, h);
+}
+
+int g_exit_game_loop ( callback_parameter_t  c, GXInstance_t* i )
+{
+    if(c.input_state == KEYBOARD)
+        if(c.inputs.key.depressed == true)
+            i->running = false;
+
+    return 0;
+}
+
+int           g_delta         ( GXInstance_t     *instance )
 {
     // TODO: Argument checking
     // Calculate delta time
-    instance->currentTime = SDL_GetTicks();
-    instance->d = instance->currentTime - instance->lastTime;
-    instance->lastTime = instance->currentTime;
-    instance->deltaTime = (float)1 / instance->d;
+    instance->ticks       = SDL_GetTicks();
+    instance->d           = instance->ticks - instance->lastTime;
+    instance->lastTime    = instance->ticks;
+    instance->deltaTime   = (float)1 / instance->d;
 
     return 0;
     // TODO: Error handling
 
 }
 
-u8            g_checksum     ( u8               *data  , size_t         len)
+u8            g_checksum      ( u8               *data    , size_t         len)
 {
     u8 ret = 0;
     for (size_t i = 0; i < len; i++)
@@ -417,8 +439,25 @@ u8            g_checksum     ( u8               *data  , size_t         len)
     return ~ret;
 }
 
-int           g_exit         ( GXInstance_t *instance )
+int           g_exit          ( GXInstance_t     *instance )
 {
+    if(instance->server)
+
+    // G10 Deinitialization
+    {
+        GXScene_t* i = instance->scenes;
+
+        // Destroy all scenes in the instance
+        while (i)
+        {
+            GXScene_t* j = i;
+            i = i->next;
+            destroy_scene(j);
+        }
+
+
+    }
+
     // SDL Deinitialization
     {
         SDL_DestroyWindow(instance->window);

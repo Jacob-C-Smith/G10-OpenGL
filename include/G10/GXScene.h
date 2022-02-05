@@ -21,17 +21,20 @@
 
 // Contains information about a scene
 struct GXScene_s {
-    char        *name;
-    GXEntity_t  *entities;
-    GXCamera_t  *cameras;
-    GXLight_t   *lights;
-    GXBV_t      *bvh;
-    GXSkybox_t  *skybox;
-    GXScene_t   *next;
+    char             *name;
+    GXEntity_t       *entities;
+    GXCamera_t       *cameras;
+    GXLight_t        *lights;
+    GXBV_t           *bvh;
+    GXSkybox_t       *skybox;
+
+    struct GXScene_s *next;
 };
 
-// Constructors
+// Allocators
 GXScene_t  *create_scene       ( void );                                 // ✅ Create a scene with nothing in it
+
+// Constructors
 GXScene_t  *load_scene         ( const char path[] );                    // ✅ Loads a scene from JSON file at path
 GXScene_t  *load_scene_as_json ( char      *token  );
 

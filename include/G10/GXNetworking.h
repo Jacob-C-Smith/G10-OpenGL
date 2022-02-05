@@ -7,10 +7,15 @@
 #include <SDL2/SDL_net.h>
 
 #include <G10/GXtypedef.h>
+#include <G10/GXCameraController.h>
 #include <G10/GXEntity.h>
 #include <G10/GXTransform.h>
 
-#define MAX_RETRIES 32
+#define MAX_RETRIES         32    // How many retries should be attempted before disconnecting
+#define MAX_COMMANDS        64    // How many commands can be stored in a queue at one time
+#define MAX_DATA_PER_PACKET 4096  // 4096 bytes maximum
+#define PACKET_INTERVAL     10    //
+#define MAX_BANDWIDTH       65536 // 64 KB/s
 
 struct GXServer_s
 {
@@ -19,16 +24,15 @@ struct GXServer_s
     IPaddress ip;
     TCPsocket socket;
     
-    // Input command queue
-    size_t       input_queue_size;
-    GXCommand_t *input_front,
-                *input_rear;
-
-    // Output command queue
-    size_t       output_queue_size;
-    GXCommand_t *output_front,
-                *output_rear;
-
+    // Command queues
+    GXCommand_t **input,
+                **output;
+    char         *input_data,
+                 *output_data;
+    size_t        input_front, 
+                  input_rear,
+                  output_front,
+                  output_rear;
 };
 
 enum GXCommands_e {
@@ -48,16 +52,23 @@ enum GXCommands_e {
 };
 
 struct connect_s {
-    i32 i;
+    char *name;
 };
 
 struct chat_s {
-    i32 i;
+    enum GXChatChannels_e  channel;
+    char                  *chat_text;
 };
 
 struct displace_rotate_s
 {
-    i32 i;
+    float x,
+          y,
+          z;
+    u16   h_ang,
+          v_ang,
+          inputs_1,
+          inputs_2;
 };
 
 struct disconnect_s
@@ -89,23 +100,30 @@ enum GXChatChannels_e {
 
 // Allocators
 GXServer_t  *create_server             ( void );                                                   // ✅ Creates an empty server connection
+GXCommand_t *create_command            ( void );
 
 // Constructors
 GXServer_t  *load_server               ( const char  path[] );                                     // ✅ Loads a server from a file
 GXServer_t  *load_server_as_json       ( char       *token );                                      // ✅ Creates a server from text
 
+
 int          connect                   ( GXServer_t *server  , char       *host   , u16    port ); // ✅ Connects to an IP/Port
 
 // Command generation
+GXCommand_t *connect_command           ( char                 *name );
 GXCommand_t *no_op_command             ( void );                                                   // X Generates a noop command
 GXCommand_t *chat_command              ( enum GXChatChannels_e channel, const char *chat );        // X Generates a chat command
+GXCommand_t *displace_orient_command   ( GXCameraController_t *camera_controller );
+
+// Command processing
+char*          process_chat_command      ( char *command );
 
 // Command queue
 int          enqueue_command           ( GXServer_t *server, GXCommand_t *command );               // X Places command in the outbound queue
 GXCommand_t* dequeue_command           ( GXServer_t *server );                                     // X Removes a command from the in queue
 
 // Command queue processing
-int          flush_command             ( GXServer_t *server );                                     // X Send all commands
+int          flush_commands            ( GXServer_t *server );                                     // X Send all commands
 int          recv_commands             ( GXServer_t *server );                                     // X Get commands
 
 // Command processing

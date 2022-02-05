@@ -71,8 +71,9 @@ GXMaterial_t *load_material       ( const char     path[] )
     }
 }
 
-GXMaterial_t *load_material_as_json ( char         *token)
+GXMaterial_t *load_material_as_json ( char         *token )
 {
+    // TODO: Argument check
     // Uninitialized data
     size_t        len,
                   rootTokenCount;

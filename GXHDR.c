@@ -210,6 +210,7 @@ GXTexture_t *load_hdr           ( const char path[] )
 
     // Free the file 
     free(data);
+    free(scanline);
     free(c);
 
     // Debugger logging

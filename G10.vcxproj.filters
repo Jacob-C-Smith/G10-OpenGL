@@ -164,6 +164,9 @@
     <ClCompile Include="GXInput.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GXCameraController.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\G10\GXtypedef.h">
@@ -261,6 +264,9 @@
     </ClInclude>
     <ClInclude Include="include\G10\GXScene.h">
       <Filter>Header Files\G10</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCameraController.h">
+      <Filter>Header Files\G10\camera</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

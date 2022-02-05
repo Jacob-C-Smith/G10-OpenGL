@@ -146,3 +146,27 @@ typedef struct GXServer_s GXServer_t;
 // Command
 struct GXCommand_s;
 typedef struct GXCommand_s GXCommand_t;
+
+// Connect command
+struct connect_s;
+typedef struct connect_s connect_t;
+
+// Chat command
+struct chat_s;
+typedef struct chat_s chat_t;
+
+// Displace rotate command
+struct displace_rotate_s;
+typedef struct displace_rotate_s displace_rotate_t;
+
+// Disconnect command
+struct disconnect_s;
+typedef struct disconnect_s disconnect_t;
+
+// Camera controller
+struct GXCameraController_s;
+typedef struct GXCameraController_s GXCameraController_t;
+
+// Passed on callback execution
+struct callback_parameter_s;
+typedef struct callback_parameter_s callback_parameter_t;

@@ -682,13 +682,15 @@ int         set_active_camera ( GXScene_t* scene, const char  name[] )
     {
         if (strcmp(name, i->next->name) == 0)
         {
-            GXCamera_t* j = i->next;
-            GXCamera_t* k = i->next->next;
+            // Initialized data
+            GXCamera_t* j  = i->next;
+            GXCamera_t* k  = i->next->next;
     
             // Stitch up the linked list 
-            i->next = k;
-            j->next = scene->cameras;
+            i->next        = k;
+            j->next        = scene->cameras;
             scene->cameras = j;
+
             return 0;
         }
         i = i->next;

@@ -16,10 +16,6 @@ struct GXCamera_s {
     // Name
     char              *name;
 
-    // Displacement derivatives
-    vec3               acceleration,
-                       velocity;
-
     // View
     vec3               where,
                        target,
