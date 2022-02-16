@@ -1,13 +1,17 @@
 ﻿TODO File, place TODOs here
 
-=== Armature goals ===
- - ❌ Set up vertex weight map
+=== Rig goals ===
+ - ✅ Bones
+ - ✅ Rig
+ - ✅ Vertex weights
+ - ❌ Poses
+ - ❌ Pose interpolation
  - ❌ Animations
- - ❌ Implement an inverse kinetics solver for ragdolls
+ - ❌ Rig collision?
 
 === IK Solver ===
- - ❌ Write an inverse kinematics solver
- - ❌ Ragdoll physics?
+ - ❌ Implement an inverse kinematics solver
+ - ❌ Ragdoll physics
 
 === Debugger goals ===
  - ✅ Increase the specificity of error messages while in debugger mode
@@ -21,40 +25,57 @@
  - ✅ Parse rigidbody files as paths
  - ✅ Parse camera files as paths
  - ✅ Parse light files as paths
- - ❌ Normalize return values across all functions. 1 is bad and 0 is good.
+ - ❌ Normalize return values across all functions. 0 is bad and 1 is good maybe?
  - ✅ Improve granularity and specificity of the mesh system
 
 
 
 === JSON Parser goals === 
-    NOTE: The JSON parser is now separately maintained. The source code, static libraries,
-          example code, and design commentary can be found at https://github.com/Jacob-C-Smith/JSON
 
+ NOTE: The JSON parser is now seperately maintained at https://github.com/Jacob-C-Smith/JSON,
+       where you can find the source, static libraries, example code, and design commentary. 
+       
 === Renderer goals ===
  - ✅ PBR model
- - ✅ Implement a key/value pairs system to associate scene information with uniform variables in glsl
- - ❌ Handle multiple albedo images in one material. 
+ - ✅ Implement a key / value system to associate uniform names with scene information
+ - ❌ Add support for tesselation control shaders and tesselation evaluation shaders
+ - ❌ Handle multiple albedo images in one material?
  - ✅ Process lights out of a scene file
  - ✅ Dynamically assign lights
- - ❌ Implement a method that periodically reprioritizes lights based on how far they are from a camera
-
+ - ❌ Phong lighting model
+ - ❌ Implement a method that periodically changes lights based distance to the camera controller 
+ - ❌ Dynamic reflections
+ - ❌ Reflection probes
+ - ❌ Tesselated height mapping 
+ - ❌ Volumetric lighting
+ - ❌ Decals
+ - ❌ Clouds, smoke, fire, particles
+ - ❌ Water
+ 
 === Physics goals ===
  - ✅ Summate and apply forces on an entity
  - ✅ Calculate acceleration, velocity, and position 
  - ❌ Summate and apply torque
  - ❌ Calculate angular acceleration, velocity, and rotation
- - ❌ Collision detection, box, sphere, (cylinder?).
+ - ❌ Collision detection, box, sphere, cylinder, capsule, cone, and other simple shapes.
  - ✅ Implement BVH construction
- - ❌ Broad phase collision detection
- - ❌ Implement GJK
+ - ❌ Broad phase collision detection between leafs of bounding volumes
+ - ❌ Implement GJK for convex hull collisions
  - ❌ Narrow phase collision detection
- - ❌ Rigidbody physics.
+ - ❌ Collision resolution, force and torque feedback
+
+=== Network goals ===
+ - ✅ Network commands
+ - ✅ in / out command queues
+ - ❌ Respond to commands
+ - ❌ Establish some security mechanisms?
 
 === General goals ===
- - ✅ Write broader initialization functions for G10. The function should use clargs to initialize OpenGL, SDL2, and GX by passing a scene to load.
- - ❌ Implement multithreading.
+ - ✅ Write broader initialization functions for G10. The function should initialize OpenGL, SDL2, and G10 according to an instance json file.
+ - ❌ Implement multithreading (maybe use C++ to avoid Win32 API)
+ - ✅ Export this whole project into a static library so that other developers can use it.
  - ❌ Export this whole project into a DLL file so that other developers can use it.
- - ✅ Figure out a better way of handling input.
-      UPDATE: Binds, keys, etc
-      TODO: Callbacks
- Other TODOs can be found littered throughout the source code
+ - ✅ Binds
+ - ✅ Callbacks
+ 
+ Other TODOs can be found littered throughout the source code. Most are debug mode checks.
