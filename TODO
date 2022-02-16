@@ -24,15 +24,11 @@
  - ❌ Normalize return values across all functions. 1 is bad and 0 is good.
  - ✅ Improve granularity and specificity of the mesh system
 
+
+
 === JSON Parser goals === 
- - ✅ Write a JSON parser to read scenes and entities from the game.
- - ✅ In the JSON parser, skip objects within objects by keeping track of how many '{' and '}' we have hit; Also, skip over strings as they may contain a '{' but not a '}', and vice versa.
- - ✅ Parse arrays in JSON parser.
- - ✅ Fully document the JSON parser
- - ✅ Deduce what is causing the seemingly random preparser errors. 
-      UPDATE: Found the error. The file was being loaded as binary instead of text.
- - ❌ Rewrite the JSON parser in assembly with SIMD string instructions. 
- - ❌ Make the SIMD JSON parser branchless. That ought to be a fun challenge. 
+    NOTE: The JSON parser is now separately maintained. The source code, static libraries,
+          example code, and design commentary can be found at https://github.com/Jacob-C-Smith/JSON
 
 === Renderer goals ===
  - ✅ PBR model

@@ -121,14 +121,14 @@ GXRigidbody_t *load_rigidbody_as_json       ( char          *token )
     return ret;
 }
 
-int            update_position_and_velocity ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 deltaTime )
+int            update_position_and_velocity ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 delta_time )
 {
     // Initialized data
     vec3 f = apply_force(rigidbody);
     vec3 a = mul_vec3_f(f, 1 / rigidbody->mass);
 
-    add_vec3(&rigidbody->velocity, rigidbody->velocity, mul_vec3_f(a, deltaTime / 1000.f));
-    add_vec3(&transform->location, transform->location, mul_vec3_f(rigidbody->velocity, deltaTime / 1000.f));
+    add_vec3(&rigidbody->velocity, rigidbody->velocity, mul_vec3_f(a, delta_time / 1000.f));
+    add_vec3(&transform->location, transform->location, mul_vec3_f(rigidbody->velocity, delta_time / 1000.f));
 
     return 0;
 }

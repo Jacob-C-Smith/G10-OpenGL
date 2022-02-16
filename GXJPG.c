@@ -32,7 +32,7 @@ GXTexture_t* load_jpg_image ( const char path[] )
     if (data == 0)
         return (void*)0;
 
-    // Copy what we need.
+    // Copy the required data
     memcpy(data, image->pixels, allocateSize);
 
     // Set up the OpenGL texture 
@@ -51,7 +51,7 @@ GXTexture_t* load_jpg_image ( const char path[] )
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
-    // Free data. We don't really need the header anymore. 
+    // Free JPEG data
     free(data);
     SDL_FreeSurface(image);
     SDL_FreeRW(r);

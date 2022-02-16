@@ -13,10 +13,6 @@ GXBV_t* create_bv ( void )
 		#endif
 	}
 
-	// Allocate for location and scale
-	ret->location = calloc(1, sizeof(vec3));
-	ret->scale    = calloc(1, sizeof(vec3));
-
 	return ret;
 
 	// Error handling
@@ -31,18 +27,18 @@ GXBV_t* create_bv ( void )
 
 GXBV_t* create_bv_from_entity(GXEntity_t* entity)
 {
-	// TODO: Argument check
+	// Argument check
 	{
-		// 
+		if (entity == (void *)0)
+			goto noEntity;
 	}
 
 	// Initialized data
 	GXBV_t *ret   = create_bv();
 
 	// Copy location and scale
-	free(ret->location);
 	ret->location = &entity->transform->location;
-	memcpy(ret->scale, &entity->transform->scale, sizeof(vec3));
+	ret->scale    = &entity->transform->scale;
 
 	ret->entity   = entity;
 
@@ -50,24 +46,23 @@ GXBV_t* create_bv_from_entity(GXEntity_t* entity)
 	if (entity->collider == (void*)0)
 		entity->collider     = create_collider();
 
-	if (strcmp(entity->name, "Tank") == 0)
-		ret->scale->x *= 4,
-		ret->scale->y *= 4,
-		ret->scale->z *= 4;
-
 	// Set the collider if there isn't one
 	if (entity->collider->bv == (void*)0)
 		entity->collider->bv = ret;
 
-	// We are already at the bottom of the tree, so we won't have any nodes after these
+	// Entity nodes are by definition leafs
 	ret->left     = (void*)0;
 	ret->right    = (void*)0;
 
 	return ret;
 
-	// TODO: Error handling
+	// Error handling
 	{
-
+		noEntity:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null pointer provided for \"entity\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
 	}
 }
 
@@ -75,6 +70,10 @@ GXBV_t* create_bv_from_bvs(GXBV_t* a, GXBV_t* b)
 {
 	// TODO: Argument check
 	GXBV_t* ret = create_bv();
+
+	// Allocate for location and scale
+	ret->location = calloc(1, sizeof(vec3));
+	ret->scale = calloc(1, sizeof(vec3));
 
 	// This is not a terminal node
 	ret->entity   = 0;
@@ -163,13 +162,14 @@ GXBV_t* create_bvh_from_scene(GXScene_t* scene)
 
 	// Uninitialized data
 	GXBV_t      **BVList;                            // List of references to bounding volumes 
-
+	
 	// Initialized data
-	size_t       entitiesInScene = 0;                // How many entities are in the scene?
-	size_t       i               = 0,                // Iterators      ...
+	size_t       entitiesInScene = 0,                // How many entities are in the scene?
+	             i               = 0,                // Iterators      ...
 		         j               = 0,                //                ...
 		         bI              = 0,                // Best indicies  ...
 		         bJ              = 0;                //                ...
+	GXBV_t      *ret             = 0;
 	GXEntity_t  *e               = scene->entities;  // The list of entities
 
 	// Count up all the entities in the scene
@@ -199,7 +199,7 @@ GXBV_t* create_bvh_from_scene(GXScene_t* scene)
 		e = e->next;
 	}
 	
-	// Iterate through the list until we have no more bounding volumes to combine
+	// Iterate through the list until there are no more bounding volumes to combine
 	while (entitiesInScene > 1)
 	{
 		float   best = FLT_MAX;
@@ -213,10 +213,10 @@ GXBV_t* create_bvh_from_scene(GXScene_t* scene)
 			// Iterate over bounding volumes with j
 			for (j = 0; j < entitiesInScene; j++)
 			{
-				// Make sure that i and j are not the same. If they are, we just set the test distance to float max so it will always fail
+				// Make sure that i and j are not the same. If they are, set the test distance to float max so it will always fail
 				float pD = (BVList[i] != BVList[j]) ? distance(BVList[i], BVList[j]) : FLT_MAX;
 
-				// If we have a better distance, we record the distance and the indicies to the bounding volume list
+				// If there is a better distance, record the distance and the indicies to the bounding volume list
 				if ((BVList[i] != BVList[j]) && pD < best)
 					best = pD,
 					bJ   = j,
@@ -243,8 +243,12 @@ GXBV_t* create_bvh_from_scene(GXScene_t* scene)
 		bJ = 0;
 	}
 
-	// If something goes wrong, we don't want to dereference a null pointer
-	return (BVList) ? *BVList : 0;
+	ret = (BVList) ? *BVList : 0;
+
+	free(BVList);
+
+	// Don't want to dereference a null pointer
+	return ret;
 
 	// Error handling
 	{
@@ -260,42 +264,116 @@ GXBV_t* find_closest_bv ( GXBV_t *bvh, GXBV_t* bv )
 {
 	// TODO: Argument check
 	{
-		// 
+
 	}
-	GXBV_t *ret = 0;
-	
+
+	GXBV_t* ret = 0;
+
+	if (checkIntersection(bvh, bv))
+	{
+		if (bvh->left == 0 && bvh->right == 0)
+			return bvh;
+		if (checkIntersection(bvh->left, bv))
+		{
+			ret = find_closest_bv(bvh->left, bv);
+			if (ret)
+				return bvh->left;
+		}
+
+		if (checkIntersection(bvh->right, bv))
+		{
+			ret = find_closest_bv(bvh->right, bv);
+			if (ret)
+				return bvh->right;
+		}
+
+
+	}
+
 	return ret;
 	// TODO: Error handling
-
 }
 
 GXBV_t* find_parent_bv ( GXBV_t *bvh, GXBV_t *bv )
 {
 	// TODO: Argument check
 	{
-		
+		if (bv == 0)
+			return 0;
 	}
 
 	GXBV_t* ret = 0;
-	u32     path = 0;
+
 	if (checkIntersection(bvh, bv))
 	{
-		if(bvh->left)
-			if (checkIntersection(bvh->left,bv))
-			{
-			
-			}
-		if(bvh->right)
-			if (checkIntersection(bvh->right, bv));
-			{
-	
-			}
-	
+		if (bvh->left == bv)
+			return bvh;
+
+		if (bvh->right == bv)
+			return bvh;
+
+		if (bvh->entity)
+			return bvh;
+
+		if (checkIntersection(bvh->left, bv))
+		{
+			ret = find_parent_bv(bvh->left, bv);
+			if (ret)
+				return ret;
+		}
+		
+		if (checkIntersection(bvh->right, bv))
+		{
+			ret = find_parent_bv(bvh->right, bv);
+			if (ret)
+				return ret;
+		}
+		
+
 	}
 
 	return ret;
 	// TODO: Error handling
 
+}
+
+int resise_bv(GXBV_t* bv)
+{
+	if (bv == 0)
+		return 0;
+	GXBV_t *a = bv->left,
+	       *b = bv->right;
+
+	if (bv->entity)
+		return 0;		
+
+	// Compute the scale
+	{
+		vec3 maxA,
+			 maxB,
+			 minA,
+		 	 minB,
+		 	 maxBound,
+			 minBound;
+
+		add_vec3(&maxA, *a->location, *a->scale);
+		sub_vec3(&minA, *a->location, *a->scale);
+		add_vec3(&maxB, *b->location, *b->scale);
+		sub_vec3(&minB, *b->location, *b->scale);
+
+		bv->scale->x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x))) - (min(min(maxA.x, minA.x), min(maxB.x, minB.x)))) / 2.f,
+		bv->scale->y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y))) - (min(min(maxA.y, minA.y), min(maxB.y, minB.y)))) / 2.f,
+		bv->scale->z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))) - (min(min(maxA.z, minA.z), min(maxB.z, minB.z)))) / 2.f;
+
+		maxBound = (vec3){ max(maxA.x, maxB.x), max(maxA.y, maxB.y), max(maxA.z, maxB.z) },
+		minBound = (vec3){ min(minA.x, minB.x), min(minA.y, minB.y), min(minA.z, minB.z) };
+
+		add_vec3(bv->location, minBound, maxBound);
+		bv->location->x /= 2.f,
+		bv->location->y /= 2.f,
+		bv->location->z /= 2.f;
+	}
+	return 0;
 }
 
 bool testCollision(GXEntity_t* entity, GXBV_t* bvh)
@@ -310,24 +388,49 @@ bool testCollision(GXEntity_t* entity, GXBV_t* bvh)
 
 int draw_scene_bv ( GXScene_t *scene, GXPart_t *cube, GXShader_t *shader, int depth )
 {
-	// TODO: Argument check
+	// Argument check
 	{
-		// 
+		if (scene == (void*)0)
+			goto no_scene;
+		if (cube == (void*)0)
+			goto no_cube;
+		if (shader == (void*)0)
+			goto no_shader;
 	}
 
 	// Draw the bounding volumes in wireframe mode
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDisable(GL_CULL_FACE);
-	draw_bv(scene->bvh, cube, shader, scene->cameras, 0);
+	draw_bv(scene->bvh, cube, shader, scene->cameras, depth);
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
 	return 0;
 
-	// TODO:Error handling
+	// Error handling
 	{
-		// 
+		// Argument errors
+		{
+			
+			no_scene:
+				#ifndef NDEBUG
+			        g_print_error("[G10] [BVH] Null pointer provided for \"scene\" in call to function \"%s\"\n", __FUNCSIG__);
+				#endif
+				return 0;
+
+			no_cube:
+				#ifndef NDEBUG
+					g_print_error("[G10] [BVH] Null pointer provided for \"cube\" in call to function \"%s\"\n", __FUNCSIG__);
+				#endif
+				return 0;
+
+			no_shader:
+				#ifndef NDEBUG
+					g_print_error("[G10] [BVH] Null pointer provided for \"shader\" in call to function \"%s\"\n", __FUNCSIG__);
+				#endif
+				return 0;
+		}
 	}
 }
 
@@ -338,19 +441,23 @@ int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera
 		// 
 	}
 
+	if (depth == 0)
+		return 0;
+
+
 	// Uninitialized data
 	mat4 m;
 
 	// Initialized data
 	const vec3 colors[8] = {
-					(vec3) { 1.f   , 0.f   , 0.f },   // 0 - Red
-					(vec3) { 8.f   , 0.65f , 0.f },   // 1 - Orange
-					(vec3) { 0.75f , 0.82f , 0.4f },  // 2 - Yellow
-					(vec3) { 0.f   , 0.75f , 0.25f }, // 3 - Green
-					(vec3) { 0.f   , 1.f   , 1.f },   // 4 - Cyan
-					(vec3) { 0.f   , 0.25f , 1.f },   // 5 - Blue
-					(vec3) { 0.75f , 0.f   , 1.f },   // 6 - Purple
-					(vec3) { 1.f   , 0.f   , 0.75f }, // 7 - Pink
+					(vec3) { 1.f   , 0.f   , 0.f },    // 0 - Red
+					(vec3) { 1.f   , 0.214f, 0.f },    // 1 - Orange
+					(vec3) { 1.f   , 1.f   , 0.0f },   // 2 - Yellow
+					(vec3) { 0.f   , 1.f   , 0.0f },   // 3 - Green
+					(vec3) { 0.f   , 1.f   , 1.f },    // 4 - Cyan
+					(vec3) { 0.f   , 0.f   , 1.f },    // 5 - Blue
+					(vec3) { 0.214f, 0.f   , 1.f },    // 6 - Purple
+					(vec3) { 1.f   , 0.f   , 0.214f }, // 7 - Pink
 				   };
 
 	// Use the provided shader, set the camera, model matrix, and color
@@ -361,25 +468,27 @@ int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera
 
 	// The color is set from accessing the list of colors at the depth modulo 8, so the colors will cycle. 
 	// The intuition is that as hue increases, the bounding volumes are deeper, and as the hue decreases, the bounding volumes are larger
-	set_shader_vec3(shader, "color", colors[depth%8]);
+	set_shader_vec3(shader, "color", colors[depth % 8]);
 
 	// Draw the cube
 	draw_part(cube);
 
 	// Draw the left box if there is one
 	if (bv->left)
-		draw_bv(bv->left, cube, shader, camera, depth + 1);
+		draw_bv(bv->left, cube, shader, camera, depth - 1);
 
 	// Draw the right box if there is one
 	if (bv->right)
-		draw_bv(bv->right, cube, shader, camera, depth + 1);
+		draw_bv(bv->right, cube, shader, camera, depth - 1);
+
+	
 
 	return 0;
 	// TODO: Error handling
 
 }
 
-int print_bv ( GXBV_t* bv, size_t d )
+int print_bv ( FILE *f, GXBV_t* bv, size_t d )
 {
 	// TODO: Argument check
 	{
@@ -388,32 +497,32 @@ int print_bv ( GXBV_t* bv, size_t d )
 			return 0;
 	}
 
-	// If we are at the start of the print, we print out a header
+	// Base case, print out a header
 	if (d == 0)
-		g_print_log("[G10] [BVH] Bounding volume heierarchy\n[ entity name ] - < location > - < scale >\n\n");
-
+		fprintf(f, "[G10] [BVH] Bounding volume heierarchy\n[ entity name ] - < location > - < scale >\n\n");
+		
 	// Indent proportional to the deapth of the BVH
 	for (size_t i = 0; i < d * 4; i++)
-		putchar(' ');
+		putc(' ', f);
 
-	// If the bounding volume is an entity, we take note of the entities name
+	// If the bounding volume is an entity, print the entities name
 	if (bv->entity)
-		g_print_log("\"%s\" ", bv->entity->name);
+		fprintf(f, "\"%s\"", bv->entity->name);
 
-	// In any case, we print the location and scale of the bounding volume
-	g_print_log("- < %.2f %.2f %.2f > - < %.2f %.2f %.2f >\n", bv->location->x, bv->location->y, bv->location->z, bv->scale->x, bv->scale->y, bv->scale->z);
+	// Print the location and scale of the bounding volume
+	fprintf(f, "%s - < %.2f %.2f %.2f > - < %.2f %.2f %.2f >\n", (bv->entity) ? "" : "Volume", bv->location->x, bv->location->y, bv->location->z, bv->scale->x, bv->scale->y, bv->scale->z);
 
 	// Print the left node
 	if (bv->left)
-		print_bv(bv->left, d+1);
+		print_bv(f, bv->left, d+1);
 
 	// Print the right node
 	if (bv->right)
-		print_bv(bv->right, d+1);
+		print_bv(f, bv->right, d+1);
 	
-	// If we are at the end of the print, we print a few newlines
+	// If there is nothing else to print, print a few newlines
 	if (d == 0)
-		g_print_log("\n\n");
+		fprintf(f,"\n\n");
 
 	return 0;
 
@@ -423,34 +532,37 @@ int print_bv ( GXBV_t* bv, size_t d )
 	}
 }
 
-size_t get_entities_from_bv(GXBV_t* bv, GXEntity_t** entities, size_t count)
+size_t get_entities_from_bv ( GXBV_t* bv, GXEntity_t** entities, size_t count)
 {
 	// Argument check
 	{
 		// TODO
 		if (entities == 0)
 			goto countingMode;
+		if (bv == 0)
+			return 0;
 	}
 
-	// Increment if we are on a bv
+	size_t i = count;
+
 	if (bv->entity)
-		entities[--count] = bv->entity;
+		entities[(i--) - 1] = bv->entity;
 
 	if (bv->left)
 		if (bv->left->entity)
-			entities[--count] = bv->left->entity;
+			entities[(i--) - 1] = bv->left->entity;
 		else
-			count = get_entities_from_bv(bv->left, entities, count);
+			i = get_entities_from_bv(bv->left, entities, i);
 
 	if (bv->right)
 		if (bv->right->entity)
-			entities[--count] = bv->right->entity;
+			entities[(i--) - 1] = bv->right->entity;
 		else
-			count = get_entities_from_bv(bv->right, entities, count);
+			i = get_entities_from_bv(bv->right, entities, i);
 
 
 
-	return count;
+	return i;
 
 	return 0;
 
@@ -461,26 +573,32 @@ size_t get_entities_from_bv(GXBV_t* bv, GXEntity_t** entities, size_t count)
 		// Initialized data
 		size_t ret = 0;
 
-		// Increment if we are on a bv
+		// FIX
 		if (bv)
 		{
 			if (bv->entity)
-				ret++;
+				return ret+1;
 
 			// Check if our left is valid
 			if (bv->left)
-
+			{
 				// Check if our left is an entity. If so, increment
 				if (bv->left->entity)
 					ret++;
 
-			// Otherwise, parse the left volume
+				// Otherwise, parse the left volume
 				else
 					ret += get_entities_from_bv(bv->left, entities, count);
+			}
 
 			// Same as above, but for right
 			if (bv->right)
-				ret = (bv->right->entity) ? ret + 1 : ret + get_entities_from_bv(bv->right, entities, count);
+			{
+				if (bv->right->entity)
+					ret++;
+				else
+					ret += get_entities_from_bv(bv->right, entities, count);
+			}
 		}
 		return ret;
 	}
@@ -496,4 +614,42 @@ bool checkIntersection(GXBV_t *a, GXBV_t *b)
             (a->location->z - a->scale->z) <= (b->location->z + b->scale->z) && (a->location->z + a->scale->z) >= (b->location->z - b->scale->z));
 	// TODO: Error handling
 
+}
+
+int destroy_bv(GXBV_t* bv)
+{
+
+	// Argument check
+	{
+		if (bv == (void*)0)
+			goto no_bv;
+	}
+
+	if (bv->entity == (void*)0)
+	{
+		free(bv->location);
+		free(bv->scale);
+	}
+
+	if(bv->left)
+		destroy_bv(bv->left);
+
+	if(bv->right)
+		destroy_bv(bv->right);
+	
+	free(bv);
+
+	return 0;
+
+	// Error handling
+	{
+		// Argument errors
+		{
+			no_bv:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"bv\" in call to function \"%s\"\n",__FUNCSIG__);
+			#endif
+			return 0;
+		}
+	}
 }

@@ -53,8 +53,8 @@ GXShader_t        *load_shader_as_json  ( char       *token );                  
 GXUniform_t       *load_uniform_as_json ( char       *token );                                                                    // ✅ Load a uniform as a JSON token.
 
 // Shader processing
-GXShader_t        *load_compile_shader  ( const char *vertexPath, const char  *fragmentPath    , const char *shaderName );        // ✅ Loads a glsl vertex and glsl fragment shader from path and return a pointer to GXShader_t
-int                compile_from_text    ( GXShader_t *shader    , char        *vertexShaderText, char       *fragmentShaderText); // ✅ Compiles a shader from shader text
+int                load_compile_shader  ( GXShader_t *shader    , const char  *vertexPath      , const char  *fragmentPath      ); // ✅ Loads a glsl vertex and glsl fragment shader from path and return a pointer to GXShader_t
+int                compile_from_text    ( GXShader_t *shader    , char        *vertexShaderText, char        *fragmentShaderText); // ✅ Compiles a shader from shader text
 
 // Shader manipulation
 int                use_shader           ( GXShader_t *shader );                                                                   // ✅ Uses a shader program
@@ -74,4 +74,4 @@ void               set_shader_bone      ( GXShader_t *shader, GXBone_t         *
 void               set_shader_rig       ( GXShader_t *shader, GXRig_t          *rig      );
 
 // Destructors
-int                unload_shader        ( GXShader_t *shader );                                                                   // ✅ Unloads a shader and deletes all its contents
+int                destroy_shader        ( GXShader_t *shader );                                                                   // ✅ Unloads a shader and deletes all its contents

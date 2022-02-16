@@ -79,7 +79,7 @@ boxBox:
 
     ptest xmm4, xmm5             ; carry flag is set if is set if xmm4 AND NOT xmm5 == 0
 
-    jc retTrue                   ; If the carry flag is set, we have a collision
+    jc retTrue                   ; If the carry flag is set, there is a collision
     jmp retFalse
 
     ret
@@ -121,7 +121,7 @@ boxSphere:
 
     ptest xmm4, xmm5             ; carry flag is set if is set if xmm4 AND NOT xmm5 == 0
 
-    jc retTrue                   ; If the carry flag is set, we have a collision
+    jc retTrue                   ; If the carry flag is set, there is a collision
     jmp retFalse
 
 

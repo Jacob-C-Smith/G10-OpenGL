@@ -75,6 +75,15 @@ GXPart_t *load_part_as_json ( char      *token )
         // Handle comments
         if (strcmp("name", tokens[j].key) == 0)
         {
+            GXPart_t *p_ret = g_find_part(g_get_active_instance(),tokens[j].value.n_where);
+            if (p_ret)
+            {
+                destroy_part(ret);
+                ret = p_ret;
+                g_print_log("[G10] [Part] Part \"%s\" loaded from cache\n", tokens[j].value.n_where);
+                goto exit_cache;
+            }
+
             // Initialized data
             char*  path    = tokens[j].value.n_where;
             size_t pathLen = strlen(path);
@@ -101,6 +110,10 @@ GXPart_t *load_part_as_json ( char      *token )
         }
     }
 
+    g_cache_part(g_get_active_instance(), ret);
+    exit_cache:
+    ret->users++;
+     
     free(tokens);
 
     //ret->next = 0;
@@ -134,11 +147,15 @@ GXPart_t *get_part        ( GXPart_t  *head, const char name[] )
     if (i == 0)
         goto noParts; 
 
-    // Iterate through list until we hit the part we want, or zero
+    // Iterate through parts list 
     while (i)
     {
+
+        // Correct part?
         if (strcmp(name, i->name) == 0)
-            return i; // If able to locate the part in question, return a pointer
+            return i; // Return a pointer
+
+        // Iterate
         i = i->next;
     }
 
@@ -347,10 +364,13 @@ int       destroy_part    ( GXPart_t  *part )
     part->vertex_buffer     = 0;
     part->element_buffer    = 0;
     part->elements_in_buffer = 0;
-    destroy_transform(part->transform);
 
-    // Free the part
+
+    // Free the part name and material string
     free(part->name);
+    free(part->material);
+
+    free(part);
 
     return 0;
 

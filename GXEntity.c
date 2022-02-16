@@ -128,9 +128,7 @@ GXEntity_t *load_entity_as_json      ( char       *token )
         // Process a transform
         else if (strcmp("transform", tokens[j].key) == 0)
         {
-            // TODO: Test inline transform
             ret->transform = (*(char*)tokens[j].value.n_where == '{') ? load_transform_as_json(tokens[j].value.n_where) : load_transform(tokens[j].value.n_where);
-
 
             continue;
         }
@@ -146,7 +144,6 @@ GXEntity_t *load_entity_as_json      ( char       *token )
         // Process a collider
         else if (strcmp("collider", tokens[j].key) == 0)
         {
-            // TODO: Write
             ret->collider = (*(char*)tokens[j].value.n_where == '{') ? load_collider_as_json((char*)tokens[j].value.n_where) : load_collider((const char*)tokens[j].value.n_where);
 
             if (ret->collider)
@@ -158,14 +155,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 }
             continue;
         }
-        else if (strcmp("rigs", tokens[j].key) == 0)
+        else if (strcmp("rig", tokens[j].key) == 0)
         {
-            ret->rigs = (*(char*)tokens[j].value.a_where[0] == '{') ? load_rig_as_json((const char*)tokens[j].value.a_where[0]) : load_rig(tokens[j].value.a_where[0]);
+            ret->rig = (*(char*)tokens[j].value.a_where[0] == '{') ? load_rig_as_json((const char*)tokens[j].value.a_where[0]) : load_rig(tokens[j].value.a_where[0]);
 
-            // TODO: write an appendRig function
-            //for (size_t k = 1; tokens[j].value.a_where[k]; k++)
-            //    (ret->materials, (*(char*)tokens[j].value.a_where[k] == '{') ? load_rig_as_json((const char*)tokens[j].value.a_where[k]) : load_rig(tokens[j].value.a_where[k]));
-
+            
         }
     }
 
@@ -177,7 +171,7 @@ GXEntity_t *load_entity_as_json      ( char       *token )
     return ret;
 }
 
-int         integrate_displacement ( GXEntity_t *entity, float  deltaTime)
+int         integrate_displacement ( GXEntity_t *entity, float  delta_time)
 {
     // Argument check
     {
@@ -186,21 +180,23 @@ int         integrate_displacement ( GXEntity_t *entity, float  deltaTime)
                 goto noEntity;
             if(entity->transform == (void*)0)
                 goto noTransform;
-            if (entity->rigidbody == (void*)0);
+            if (entity->rigidbody == (void*)0)
                 goto noRigidbody;
+            if (delta_time == 0)
+                return 0;
         #endif
     }
 
     GXRigidbody_t* rigidbody  = entity->rigidbody;
     GXTransform_t* transform  = entity->transform;
 
-    rigidbody->acceleration.x =  (rigidbody->forces->x / rigidbody->mass) * deltaTime,
-    rigidbody->acceleration.y =  (rigidbody->forces->y / rigidbody->mass) * deltaTime,
-    rigidbody->acceleration.z =  (rigidbody->forces->z / rigidbody->mass) * deltaTime,
+    rigidbody->acceleration.x =  (rigidbody->forces->x / rigidbody->mass) * delta_time,
+    rigidbody->acceleration.y =  (rigidbody->forces->y / rigidbody->mass) * delta_time,
+    rigidbody->acceleration.z =  (rigidbody->forces->z / rigidbody->mass) * delta_time;
 
     rigidbody->velocity.x     += (float) 0.5 * (rigidbody->acceleration.x * fabsf(rigidbody->acceleration.x)),
     rigidbody->velocity.y     += (float) 0.5 * (rigidbody->acceleration.y * fabsf(rigidbody->acceleration.y)),
-    rigidbody->velocity.z     += (float) 0.5 * (rigidbody->acceleration.z * fabsf(rigidbody->acceleration.z)),
+    rigidbody->velocity.z     += (float) 0.5 * (rigidbody->acceleration.z * fabsf(rigidbody->acceleration.z));
 
     transform->location.x     += (float) 0.5 * (rigidbody->velocity.x * fabsf(rigidbody->velocity.x)),
     transform->location.y     += (float) 0.5 * (rigidbody->velocity.y * fabsf(rigidbody->velocity.y)),
@@ -229,7 +225,7 @@ int         integrate_displacement ( GXEntity_t *entity, float  deltaTime)
     }
 }
 
-int         integrateRotation     ( GXEntity_t *entity, float  deltaTime )
+int         integrateRotation     ( GXEntity_t *entity, float  delta_time )
 {
     // Argument check
     {
@@ -305,35 +301,65 @@ int         draw_entity            ( GXEntity_t* entity )
     return 0;
 }
 
-int         destroy_entity         ( GXEntity_t* entity )
+int         destroy_entity(GXEntity_t* entity)
 {
-    // TODO: Use destructors functions
-
-    // Check to see if items are set before we unload them
+    // Check to see if items are set before destroying them
     if (entity->name != (void*)0)
-    {
         free(entity->name);
-        entity->name = (void*)0;
-    }
+
+    // Destroy parts
     if (entity->parts != (void*)0)
-        // TODO: Destroy all parts
+    {
+        GXPart_t* part = entity->parts;
+        while (part)
+        {
+            GXPart_t* i = part->next;
 
+            if ( --part->users < 1 )
+                destroy_part(part);
+
+            part = i;
+        }
+    }
+
+    // Destroy shader
     if (entity->shader != (void*)0)
-        entity->shader = (void*)0;
+        destroy_shader(entity->shader);
 
+    // Destroy materials
+    if (entity->materials != (void*)0)
+    {
+        GXMaterial_t* material = entity->materials;
+        while (material)
+        {
+            GXMaterial_t* i = material->next;
+            
+            if (--material->users < 1)
+                destroy_material(material);
+
+            material = i;
+        }
+    }
+
+    // Destroy transform
     if (entity->transform != (void*)0)
-        entity->transform = (void*)0;
+        destroy_transform(entity->transform);
 
+    // Destroy rigidbody
     if (entity->rigidbody != (void*)0)
-        entity->rigidbody = (void*)0;
+        destroy_rigidbody(entity->rigidbody);
 
+    // Destroy collider
     if (entity->collider != (void*)0)
-        entity->collider = (void*)0;
+        destroy_collider(entity->collider);
 
-    entity->next = (void*)0;
+    // Destroy rig
+    if (entity->rig != (void*)0)
+        destroy_rig(entity->rig);
 
     // Free the entity
     free(entity);
 
+    // Exit
     return 0;
 }

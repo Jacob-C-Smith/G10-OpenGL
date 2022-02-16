@@ -8,21 +8,6 @@ GXLight_t *create_light     ( )
     if (ret == (void*)0)
         return ret;
 
-    // Set everything to zero
-    ret->name = (void*)0;
-
-    ret->color.x    = 0.f;
-    ret->color.y    = 0.f;
-    ret->color.z    = 0.f;
-    ret->color.w    = 0.f;
-
-    ret->location.x = 0.f;
-    ret->location.y = 0.f;
-    ret->location.z = 0.f;
-    ret->location.w = 0.f;
-
-    ret->next       = 0;
-
     // Return
     return ret;
 }
@@ -35,7 +20,6 @@ GXLight_t *load_light       ( const char path[] )
 
     // Initialized data
     size_t       i = 0;
-    FILE*        f = fopen(path, "rb");
 
     // Load up the file
     i = g_load_file(path, 0, false);
@@ -71,10 +55,10 @@ GXLight_t *load_light_as_json ( char      *token )
         // Parse out the light name
         if (strcmp("name", tokens[l].key) == 0)
         {
-            ret->name = calloc(strlen(tokens[l].value.n_where)+1,sizeof(u8));
-            if (ret->name == (void*)0)
-                return 0;
-            strcpy(ret->name, (const char*)tokens[l].value.n_where);
+            size_t len = strlen(tokens[l].value.n_where);
+            ret->name = calloc(len + 1, sizeof(u8));
+
+            strncpy(ret->name, (const char*)tokens[l].value.n_where,len);
             continue;
         }
 
@@ -86,7 +70,7 @@ GXLight_t *load_light_as_json ( char      *token )
         }
 
         // Parse out light position
-        if (strcmp("position", tokens[l].key) == 0)
+        if (strcmp("location", tokens[l].key) == 0)
         {
             ret->location = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
             continue;
@@ -101,19 +85,29 @@ GXLight_t *load_light_as_json ( char      *token )
 
 int        destroy_light    ( GXLight_t *light )
 {
-    free((void*)light->name);
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(light==(void *)0)
+                goto noLight;
+        #endif
+    }
 
-    light->color.x    = 0.f,
-    light->color.y    = 0.f,
-    light->color.z    = 0.f;
-
-    light->location.x = 0.f,
-    light->location.y = 0.f,
-    light->location.z = 0.f;
-
-    light->next = 0;
+    free(light->name);
 
     free(light);
 
     return 0;
+
+    // Error handling
+    {
+        // Argument errors
+        {
+            noLight:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Light] Null pointer provided for \"light\" in call to \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }

@@ -58,7 +58,7 @@ GXTexture_t *load_bmp_image ( const char path[] )
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
-    // Free data. We don't really need the header anymore. 
+    // Free bitmap data.
     free(data);
 
     // Debugger logging

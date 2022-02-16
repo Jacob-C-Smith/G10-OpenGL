@@ -35,11 +35,14 @@ struct GXCamera_s {
     struct GXCamera_s *next;
 };
 
+// Allocators
 GXCamera_t*     create_camera                     ( void );                                                                                       // ✅ Creates a camera object to render a scene
 
+// Constructors
 GXCamera_t*     load_camera                       ( const char *path );                                                                           // ✅ Loads a camera from a JSON file
 GXCamera_t*     load_camera_as_json               ( char       *token );                                                                          // ✅ Loads a camera from a JSON object
- 
+
+// Matrix operations
 mat4            perspective                       ( float       fov,    float     aspect       , float nearClip , float farClip);                  // ✅ Computes perspective projection matrix from FOV, aspect ratio, near and far clipping planes.
 extern void     AVXPerspective                    ( mat4       *ret,    float     fov          , float aspect   , float nearClip, float farClip ); // ✅ Creates a camera object to render a scene
 void            computeProjectionMatrix           ( GXCamera_t *camera );                                                                         // ✅ Computes an updated projection matrix
@@ -75,6 +78,5 @@ inline void     compute_view_matrix               ( GXCamera_t *camera )        
     camera->view = look_at(camera->where, camera->target, camera->up);
 };
 
-int             update_camera_from_keyboard_input ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime );
-
+// Destructors
 int             destroy_camera                    ( GXCamera_t *camera );                                                                         // ✅ Destroys a camera

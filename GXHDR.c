@@ -1,5 +1,8 @@
 #include <G10/GXHDR.h>
 
+typedef u8 RGBE[4];
+
+
 float        convertComponent  ( int        expo,     int val )
 {
     float v = val / 256.0f;
@@ -188,7 +191,7 @@ GXTexture_t *load_hdr           ( const char path[] )
     
     c = oc;
 
-    // We no longer need the file
+    // The file is no longer needed
     fclose(f);
 
     // Set up the OpenGL texture 

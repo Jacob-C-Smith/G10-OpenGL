@@ -33,14 +33,15 @@
 #define GXPLY_double              0x62756F64 // "doub"
 #define GXPLY_list                0x7473696C // "list"
 
-// Vertex groups that we are likely to encounter
+// Vertex groups that are likely to be encountered
 #define GXPLY_Geometric           0x00001
 #define GXPLY_Texture             0x00002
 #define GXPLY_Normal              0x00004
 #define GXPLY_Bitangent           0x00008
-#define GXPLY_Color               0x00010
-#define GXPLY_Bones               0x00020
-#define GXPLY_Weights             0x00040
+#define GXPLY_Tangent             0x00010
+#define GXPLY_Color               0x00020
+#define GXPLY_Bones               0x00040
+#define GXPLY_Weights             0x00080
 
 #define GXPLY_MAXVERTEXGROUPS     8
 

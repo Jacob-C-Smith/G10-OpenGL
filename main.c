@@ -29,17 +29,39 @@
 // ARM specific includes
 #endif
 
-// For some reason, SDL defines main. I don't know why, but we have to undef it.
+// For some reason, SDL defines main. I don't know why, but it needs to be undef'd.
 #undef main
+
+void bfun(GXCollision_t *collision)
+{
+    printf("BEGIN %lld <<< %s %s >>> \n", collision->begin_tick, collision->a->name, collision->b->name);
+}
+
+void fun(GXCollision_t* collision)
+{
+    printf("<<< %s %s >>> \r", collision->a->name, collision->b->name);
+}
+
+
+void efun(GXCollision_t* collision)
+{
+    printf("\nEND %lld <<< %s %s >>> \n", collision->end_tick, collision->a->name, collision->b->name);
+}
+
+
 
 int main ( int argc, const char *argv[] )
 {
 
     // Initialized G10 data
-    GXInstance_t *instance     = 0;
-    GXScene_t    *scene        = 0;
-    char         *initialScene = 0,
-                 *initialIP    = 0;
+    GXInstance_t         *instance          = 0;
+    GXScene_t            *scene             = 0;
+    GXCameraController_t *camera_controller = 0;
+    char                 *initialScene      = 0,
+                         *initialIP         = 0;
+
+    GXPart_t             *cube;
+    GXShader_t           *cube_shader;
 
     // Parse command line arguments
     {
@@ -82,7 +104,7 @@ int main ( int argc, const char *argv[] )
         #ifndef NDEBUG
             instance = g_init("G10/Debug instance.json");
         #else 
-            instance = g_init("G10/Release inscance.json");
+            instance = g_init("G10/Release instance.json");
         #endif
     }
 
@@ -94,35 +116,48 @@ int main ( int argc, const char *argv[] )
     }
 
     // Load the scene
-    scene = load_scene("Room 1/Room 1.json");
+    scene            = load_scene("Room 3.json");
 
     instance->scenes = scene;
+    cube_shader      = load_shader("G10/shaders/G10 solid color.json");
+    cube             = load_part("G10/cube.json");
 
-    GXServer_t  *server         = load_server_as_json("G10/G10 server.json");
-    instance->server = server;
-    connect(server, "172.29.159.42", 8877);
+    // Server?
+    /*
+    {
 
-    GXCommand_t *_join_command  = connect_command("Jake");
-    GXCommand_t *_no_op_command = no_op_command();
-    GXCommand_t *_chat_command  = chat_command(CHAT_ALL, "Hello, World!\n");
-    
-    //GXCommand_t *_displace_orient_command = displace_orient_command();
+        GXServer_t* server = load_server_as_json("G10/G10 server.json");
+        instance->server = server;
+        connect(server, "172.29.159.42", 8877);
 
-    enqueue_command(server, _join_command);
-    enqueue_command(server, _no_op_command);
-    enqueue_command(server, _chat_command);
+        GXCommand_t* _join_command = connect_command("Jake");
+        GXCommand_t* _no_op_command = no_op_command();
+        GXCommand_t* _chat_command = chat_command(CHAT_ALL, "Hello, World!\n");
+        //GXCommand_t *_displace_orient_command = displace_orient_command();
 
-    flush_commands(server);
+        enqueue_command(server, _join_command);
+        enqueue_command(server, _no_op_command);
+        enqueue_command(server, _chat_command);
+
+        flush_commands(server);
+    }
+    */
 
     // Set up some binds
     {
-        GXBind_t *quit = find_bind(instance->input, "QUIT");
+        // Find the quit bind and the mouse locking bind
+        GXBind_t *quit       = find_bind(instance->input, "QUIT"),
+                 *lock_mouse = find_bind(instance->input, "TOGGLE LOCK MOUSE");
 
+        // If quit is fired, exit the game loop
         register_bind_callback(quit, &g_exit_game_loop);
+
+        // Toggle mouse
+        register_bind_callback(lock_mouse, &g_toggle_mouse_lock);
 
         // Set up the camera controller from the primary camera.
         // NOTE: Requires the following binds: FORWARD, BACKWARD, STRAFE LEFT, STRAFE RIGHT, UP, DOWN, LEFT, and RIGHT. 
-        camera_controller_from_camera(instance, scene->cameras);
+        camera_controller = camera_controller_from_camera(instance, scene->cameras);
         
     }
 
@@ -159,7 +194,7 @@ int main ( int argc, const char *argv[] )
         // Debug only FPS readout
         {
             #ifndef NDEBUG
-                //printf("FPS: %.1f\r", (float)instance->deltaTime * (float)1000.f); // Uses CR instead of CR LF so as to provide a quasi realtime FPS readout
+                //printf("FPS: %.1f\r", (float)instance->delta_time * (float)1000.f); // Uses CR instead of CR LF so as to provide a quasi realtime FPS readout
             #endif
         }
 
@@ -167,26 +202,39 @@ int main ( int argc, const char *argv[] )
         process_input(instance);
 
         // Process networking actions
+        if (instance->server)
         {
-            if (instance->server)
-            {
-                GXCommand_t* c = no_op_command();
 
+            // Create a displace orient command 
+            //GXCommand_t* _displace_orient_command = displace_orient_command(camera_controller);
 
-                enqueue_command(server, c);
+            // Add the position packet
+            //enqueue_command(server, _displace_orient_command);
 
-                flush_commands(server);
-            }
+            // 
+            //flush_commands(server);
         }
 
         // Compute physics
         if (instance->scenes)
-            update_controlee_camera(instance->deltaTime);
-            //compute_physics(scene, instance->deltaTime);
+        {
+            update_controlee_camera(camera_controller, instance->delta_time);
+            compute_physics(scene, instance->delta_time);
+        }
 
         // Draw the scene
-        if(instance->scenes)
+        if (instance->scenes)
+        {
             draw_scene(instance->scenes);
+            draw_lights(instance->scenes, cube, cube_shader);
+        }
+
+        // Draw bounding volumes on the scene
+        {
+            #ifndef NDEBUG
+                draw_scene_bv(instance->scenes, cube, cube_shader, 32);
+            #endif
+        }
 
         // Swap the window 
         g_swap(instance);
@@ -194,8 +242,10 @@ int main ( int argc, const char *argv[] )
 
     // G10 Unloading
     {
+        destroy_part(cube);
+        destroy_shader(cube_shader);
         g_exit(instance);
     }
 
-    return 0;
+     return 0;
 }

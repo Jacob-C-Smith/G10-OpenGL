@@ -1,32 +1,15 @@
 #include <G10/GXTransform.h>
 
 // TODO: Refactor into allocator, write a constructor
-GXTransform_t *create_transform       ( vec3           location, quaternion rotation, vec3 scale )
+GXTransform_t *create_transform       ( void )
 {
-    // TODO: Argument check
-
+   
     // Allocate space
     GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
 
-    // Check if valid
+    // Check if memory was allocated
     if (ret == 0)
         return (void*)0;
-
-    // Set location, rotation, and scale
-    ret->location = location;
-    ret->rotation = rotation;
-    ret->scale    = scale;
-
-    // Create a model matrix from the location, rotation, and scale
-    make_model_matrix( &ret->model_matrix, ret );
-
-    // Debug information
-    #ifndef NDEBUG
-        g_print_log("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
-                  "                                         rotation (%f,%f,%f,%f)\n"
-                  "                                         scale    (%f,%f,%f)\n"
-                  , location.x, location.y, location.z, rotation.u, rotation.i, rotation.j, rotation.k, scale.x, scale.y, scale.z);
-    #endif
 
     return ret;
 }
@@ -113,9 +96,33 @@ GXTransform_t *load_transform_as_json   ( char          *token )
 
 
     // Process transform
-    return create_transform(location, q, scale);
+    return transform_from_loc_quat_sca(location, q, scale);
     // TODO: Error handling
 
+}
+
+GXTransform_t* transform_from_loc_quat_sca(vec3 location, quaternion rotation, vec3 scale)
+{
+    // Initialized data
+    GXTransform_t *ret = create_transform();
+
+    // Set location, rotation, and scale
+    ret->location = location;
+    ret->rotation = rotation;
+    ret->scale    = scale;
+
+    // Create a model matrix from the location, rotation, and scale
+    make_model_matrix( &ret->model_matrix, ret );
+
+    // Debug information
+    #ifndef NDEBUG
+        g_print_log("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
+                  "                                         rotation (%f,%f,%f,%f)\n"
+                  "                                         scale    (%f,%f,%f)\n"
+                  , location.x, location.y, location.z, rotation.u, rotation.i, rotation.j, rotation.k, scale.x, scale.y, scale.z);
+    #endif
+
+    return ret;
 }
 
 void make_model_matrix(mat4 *r, GXTransform_t* transform)
@@ -134,10 +141,10 @@ int            rotate_about_quaternion ( GXTransform_t *transform, quaternion ax
 {
     // TODO: Argument check
     /*
-    * To rotate around a quaternion, we multiply the transform
-    * quaternion a special quaternion called 'p' derived by multiplying
+    * To rotate around a quaternion, multiply the transform
+    * quaternion a special quaternion called 'p', derived by multiplying
     * u by sin( theta/2 ) and multiplying i, j, and k by cos( theta/2 ).
-    * Then, we multiply the inverse of p, henceforth ' p' '. This is analogous
+    * Then, multiply the inverse of p, henceforth " p' ". This is analogous
     * to complex multiplication.
     */
 
@@ -156,20 +163,22 @@ int            rotate_about_quaternion ( GXTransform_t *transform, quaternion ax
 
 int            destroy_transform      ( GXTransform_t *transform )
 {
-    // TODO: Argument check
-    // Zero set everything
-    transform->location    = (vec3)       { 0,0,0 };
-    transform->rotation    = (quaternion) { 0,0,0,0 };
-    transform->scale       = (vec3)       { 0,0,0 };
-    transform->model_matrix = (mat4)       { 0,0,0,0,
-                                            0,0,0,0,
-                                            0,0,0,0,
-                                            0,0,0,0 };
-     
+    // Argument check
+    {
+        if (transform == (void*)0)
+            goto noTransform;
+    }
     // Free the transform
     free(transform);
 
     return 0;
-    // TODO: Error handling
+    //  Error handling
+    {
+        noTransform:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Transform] Null pointer provided for \"transform\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 
 }

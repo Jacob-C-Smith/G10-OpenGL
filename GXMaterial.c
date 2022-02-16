@@ -38,17 +38,8 @@ GXMaterial_t *load_material       ( const char     path[] )
     // Uninitialized data
     u8*          data;
     size_t       i;
-
-    // Initialized data
-    GXMaterial_t* ret          = calloc(1,sizeof(GXMaterial_t));
-    FILE*         f            = fopen(path, "rb");  
-
-    #ifndef NDEBUG
-        // Check allocated memory
-        if (ret == 0)
-            return ret;
-    #endif
-
+    GXMaterial_t* ret;
+    
     // Load up the file
     i = g_load_file(path, 0, false);
     data = calloc(i, sizeof(u8));
@@ -98,11 +89,22 @@ GXMaterial_t *load_material_as_json ( char         *token )
     {
         if (strncmp("name", tokens[k].key, 4) == 0)
         {
+            GXMaterial_t *p_ret = g_find_material(g_get_active_instance(), tokens[k].value.n_where);
+            
+            if(p_ret)
+            { 
+                destroy_material(ret);
+                g_print_log("[G10] [Material] Material \"%s\" loaded from cache\n",p_ret->name);
+                return p_ret;
+            }
+
+
             size_t nameLen = strlen(tokens[k].value.n_where);
             ret->name = calloc(nameLen + 1, sizeof(u8));
             if (ret->name == (void*)0)
                 return 0;
             strncpy(ret->name, tokens[k].value.n_where, nameLen);
+
             continue;
         }
         if (strncmp("albedo", tokens[k].key, 6) == 0)
@@ -125,7 +127,7 @@ GXMaterial_t *load_material_as_json ( char         *token )
             ret->rough = load_texture(tokens[k].value.n_where);
             continue;
         }
-        else if (strcmp("AO", tokens[k].key) == 0)
+        else if (strcmp("ao", tokens[k].key) == 0)
         {
             ret->ao = load_texture(tokens[k].value.n_where);
             continue;
@@ -137,6 +139,11 @@ GXMaterial_t *load_material_as_json ( char         *token )
         }
     }
     
+
+    g_cache_material(g_get_active_instance(), ret);
+
+    exit:
+
     // Free root contents
     free(tokens);
 
@@ -162,20 +169,23 @@ GXMaterial_t * get_material( GXMaterial_t *materials, const char name[] )
     if (i == 0)
         goto noMaterial;
     
-    // Iterate through list until we hit the entity we want, or zero
+    // Iterate through materials list
     while (i)
     {
+        // Correct material?
         if (strcmp(name, i->name) == 0)
-            return i; // If able to locate the entity in question, return a pointer
+            return i; // Return a pointer
+
+        // Iterate
         i = i->next;
     }
     
-    // Unable to locate entity
+    // Unable to locate material
     goto noMatch;
 
     // Error handling
     {
-        // There are no entities
+        // There are no materials
         noMaterial:
         #ifndef NDEBUG
             g_print_error("[G10] [Material] There are no materials.\n");
@@ -189,7 +199,7 @@ GXMaterial_t * get_material( GXMaterial_t *materials, const char name[] )
         #endif
         return 0;
     
-        // The scene parameter was null
+        // The materials parameter was null
         nullMaterials:
         #ifndef NDEBUG
             g_print_error("[G10] [Material] Null pointer provided for material in function \"%s\"\n", __FUNCSIG__);
@@ -244,7 +254,7 @@ int           append_material     ( GXMaterial_t *head     , GXMaterial_t *mater
         // Two materials with the same name cannot exist in the same list
         duplicateName:
         #ifndef NDEBUG
-            g_print_error("[G10] [Material] Material \"%s\" can not be appended because a material with that name already exists\n", material->name);
+            g_print_warning("[G10] [Material] Material \"%s\" can not be appended because a material with that name already exists\n", material->name);
         #endif
         return 0;
 
@@ -264,14 +274,22 @@ int           append_material     ( GXMaterial_t *head     , GXMaterial_t *mater
     }
 }
 
-int           unload_material     ( GXMaterial_t *material )
+int           destroy_material     ( GXMaterial_t *material )
 {
     // Unload all of the textures
-    unload_texture(material->albedo);
-    unload_texture(material->normal);
-    unload_texture(material->metal);
-    unload_texture(material->rough);
-    unload_texture(material->ao);
+    if(material->albedo)
+        unload_texture(material->albedo);
+        
+    if(material->normal)
+        unload_texture(material->normal);
+    if(material->metal)
+        unload_texture(material->metal);
+    if(material->rough)
+        unload_texture(material->rough);
+    if(material->ao)
+        unload_texture(material->ao);
+
+    free(material->name);
 
     // Free the material
     free(material);

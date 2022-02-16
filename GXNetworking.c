@@ -204,9 +204,22 @@ GXCommand_t* displace_orient_command(GXCameraController_t* camera_controller)
 	ret->type = COMMAND_DISPLACE_ROTATE;
 	ret->len  = 2+sizeof(struct displace_rotate_s);
 
-	//struct displace_rotate_s *l = calloc(1, sizeof(struct displace_rotate_s));
+	// Allocate for a displace rotate struct
+	struct displace_rotate_s *l = calloc(1, sizeof(struct displace_rotate_s));
 
+	// Set the position vector of the camera
+	l->x     = camera_controller->camera->where.x;
+	l->y     = camera_controller->camera->where.y;
+	l->z     = camera_controller->camera->where.z;
 
+	// Set the vertical and horizontal angle of the camera
+	l->v_ang = camera_controller->v_ang;
+	l->h_ang = camera_controller->h_ang;
+
+	// Set the command pointer to the right place
+	ret->command.displace_rotate = l;
+
+	// Return the command
 	return ret;
 }
 

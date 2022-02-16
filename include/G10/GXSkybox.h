@@ -35,11 +35,15 @@ struct GXSkybox_s
     vec3         color;
 };
 
+// Allocators
 GXSkybox_t *create_skybox       ( void );                                    // ❌ Creates an empty skybox
 
+// Constructors
 GXSkybox_t *load_skybox         ( const char  path[] );                      // ❌ Loads a skybox from a file
 GXSkybox_t *load_skybox_as_json ( char       *token );                       // ✅ Loads a skybox from a JSON token
 
+// Graphical operations
 int         draw_skybox         ( GXSkybox_t *skybox, GXCamera_t *camera );  // ✅ Draws the skybox 
 
+// Destructors
 int         destroy_skybox      ( GXSkybox_t* skybox );                      // ✅ Destroys the skybox

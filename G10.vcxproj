@@ -246,6 +246,7 @@
     <ClCompile Include="GXSplashscreen.c" />
     <ClCompile Include="GXTexture.c" />
     <ClCompile Include="GXTransform.c" />
+    <ClCompile Include="include\G10\GXCollision.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -257,6 +258,7 @@
     <ClInclude Include="include\G10\GXCamera.h" />
     <ClInclude Include="include\G10\GXCameraController.h" />
     <ClInclude Include="include\G10\GXCollider.h" />
+    <ClInclude Include="include\G10\GXCollision.h" />
     <ClInclude Include="include\G10\GXEntity.h" />
     <ClInclude Include="include\G10\GXFlycam.h" />
     <ClInclude Include="include\G10\GXHDR.h" />
@@ -281,6 +283,7 @@
     <ClInclude Include="include\G10\GXTexture.h" />
     <ClInclude Include="include\G10\GXTransform.h" />
     <ClInclude Include="include\G10\GXtypedef.h" />
+    <ClInclude Include="include\G10\GXGJK.h" />
     <ClInclude Include="resource.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

@@ -49,7 +49,7 @@ _TEXT SEGMENT
 ; Summates vector array pointed to by rdx+0x10. Stores resultant vector rdx.
 PUBLIC AVXSumVecs
 AVXSumVecs PROC 
-    push rdx                    ; Save rdx on the stack so we can dereference it later
+    push rdx                    ; Save rdx on the stack so it can be dereferenced later
     add rdx, 10h                ; Start at the array pointed to by rdx+0x10
     vmovaps xmm4, [rdx]         ; Copy out the vector
     loops:                      
@@ -58,8 +58,8 @@ AVXSumVecs PROC
         vaddps xmm4, xmm4, xmm5 ; Add the vectors together and sotre the result in xmm0
 
         dec rcx                 ; Decrement the counter
-        jrcxz e                 ; If we're done, we exit
-        jmp loops               ; If not we keep going
+        jrcxz e                 ; If done, exit
+        jmp loops               ; If not keep going
     e:                          ;
     pop rdx                     ; Pop rdx from the stack
     vmovaps [rdx], xmm4         ; Copy xmm0 to memory 

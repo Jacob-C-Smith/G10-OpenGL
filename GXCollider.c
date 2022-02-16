@@ -95,7 +95,7 @@ GXCollider_t *load_collider_as_json ( char         *token )
             ret->type = 0;
 
             if      ( strcmp("plane"      , tokens[j].value.n_where) == 0)
-                ret->type = plane;
+                ret->type = quad;
             else if ( strcmp("box"        , tokens[j].value.n_where) == 0)
                 ret-> type = box;
             else if ( strcmp("sphere"     , tokens[j].value.n_where) == 0)
@@ -135,6 +135,147 @@ GXCollider_t *load_collider_as_json ( char         *token )
         invalidShape:
         #ifndef NDEBUG
             g_print_error("[G10] [Collider] Failed to determine collider type\n");
+        #endif
+        return 0;
+    }
+}
+
+int add_start_collision_callback  ( GXCollider_t *collider, void* function_pointer )
+{
+        // TODO: Argument check
+    {
+        if (collider == (void*)0)
+            goto no_collider;
+        if (function_pointer == (void*)0)
+            goto noFunPtr;
+    }
+
+    if (collider->aabb_start_callbacks == 0)
+    {
+        collider->aabb_callback_max = 2,
+        collider->aabb_start_callbacks = calloc(collider->aabb_start_callback_max, sizeof(void*));
+    }
+
+    if (collider->aabb_start_callback_count + 1 > collider->aabb_start_callback_max)
+    {
+        collider->aabb_callback_max *= 2;
+        void **callbacks    = calloc(collider->aabb_callback_max, sizeof(void*)),
+              *t            = collider->aabb_start_callbacks;
+
+        memcpy(callbacks, collider->aabb_start_callbacks, collider->aabb_start_callback_count * sizeof(void*));
+        collider->aabb_start_callbacks = callbacks;
+
+        free(t);
+    }
+
+    collider->aabb_start_callbacks[collider->aabb_start_callback_count++] = function_pointer;
+
+    return 0;
+    // TODO: Error handling
+    {
+        no_collider:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Collider] Null pointer provided for \"collider\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+
+        noFunPtr:
+        #ifndef NDEBUG
+            g_print_warning("[G10] [Collider] Null pointer provided for \"function_pointer\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
+}
+
+int add_collision_callback        ( GXCollider_t *collider, void* function_pointer )
+{
+    // TODO: Argument check
+    {
+        if (collider == (void*)0)
+            goto no_collider;
+        if (function_pointer == (void*)0)
+            goto noFunPtr;
+    }
+
+    if (collider->aabb_callbacks == 0)
+    {
+        collider->aabb_callback_max = 2,
+            collider->aabb_callbacks = calloc(collider->aabb_callback_max, sizeof(void*));
+    }
+
+    if (collider->aabb_callback_count + 1 > collider->aabb_callback_max)
+    {
+        collider->aabb_callback_max *= 2;
+        void **callbacks    = calloc(collider->aabb_callback_max, sizeof(void*)),
+              *t            = collider->aabb_callbacks;
+
+        memcpy(callbacks, collider->aabb_callbacks, collider->aabb_callback_count * sizeof(void*));
+        collider->aabb_callbacks = callbacks;
+
+        free(t);
+    }
+
+    collider->aabb_callbacks[collider->aabb_callback_count++] = function_pointer;
+
+    return 0;
+    // TODO: Error handling
+    {
+        no_collider:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Collider] Null pointer provided for \"collider\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+
+        noFunPtr:
+        #ifndef NDEBUG
+            g_print_warning("[G10] [Collider] Null pointer provided for \"function_pointer\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
+}
+
+int add_end_collision_callback    ( GXCollider_t *collider, void* function_pointer )
+{
+    // TODO: Argument check
+    {
+        if (collider == (void*)0)
+            goto no_collider;
+        if (function_pointer == (void*)0)
+            goto noFunPtr;
+    }
+
+    if (collider->aabb_end_callbacks == 0)
+    {
+        collider->aabb_end_callback_max = 2,
+        collider->aabb_end_callbacks = calloc(collider->aabb_end_callback_max, sizeof(void*));
+    }
+
+    if (collider->aabb_end_callback_count + 1 > collider->aabb_end_callback_max)
+    {
+        collider->aabb_end_callback_max *= 2;
+        void **callbacks    = calloc(collider->aabb_end_callback_max, sizeof(void*)),
+              *t            = collider->aabb_end_callbacks;
+
+        memcpy(callbacks, collider->aabb_end_callbacks, collider->aabb_end_callback_count * sizeof(void*));
+        collider->aabb_end_callbacks = callbacks;
+
+        free(t);
+    }
+
+    collider->aabb_end_callbacks[collider->aabb_end_callback_count++] = function_pointer;
+
+    return 0;
+    // TODO: Error handling
+    {
+        no_collider:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Collider] Null pointer provided for \"collider\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+
+        noFunPtr:
+        #ifndef NDEBUG
+            g_print_warning("[G10] [Collider] Null pointer provided for \"function_pointer\" in call to funciton \"%s\"\n",__FUNCSIG__);
         #endif
         return 0;
     }

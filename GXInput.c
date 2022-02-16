@@ -43,8 +43,8 @@ const kn_t keys[] = {
         "0"
     },
     {
-SDL_SCANCODE_1,
-"1"
+        SDL_SCANCODE_1,
+        "1"
     },
     {
         SDL_SCANCODE_2,
@@ -485,6 +485,9 @@ GXInput_t* load_input_as_json(char* token)
             }
         }
     }
+
+    free(tokens);
+
     return ret;
     // TODO: Error handling
 }
@@ -528,6 +531,8 @@ GXBind_t* load_bind_as_json(char* token)
         }
 
     }
+
+    free(tokens);
 
     return ret;
     // TODO: Error handling
@@ -643,10 +648,19 @@ int print_all_binds(GXInput_t* inputs)
 
 int process_input(GXInstance_t* instance)
 {
-    // TODO: Argument check
-    const  u8* keyboard_state = SDL_GetKeyboardState(NULL);
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if (instance == (void*)0)
+                goto noInstance;
+            if (instance->input == (void*)0)
+                goto noInputs;
+        #endif  
+    }
+
 
     // Poll for events 
+    
     while (SDL_PollEvent(&instance->event)) {
         switch (instance->event.type)
         {
@@ -656,6 +670,10 @@ int process_input(GXInstance_t* instance)
             case SDL_MOUSEBUTTONUP:
             //case SDL_MOUSEWHEEL:
             {
+                // Don't fire binds if the mouse isn't lockced
+                if (!SDL_GetRelativeMouseMode())
+                    break;
+
                 GXBind_t* iter   = instance->input->binds;
                 u8        button = 0;
 
@@ -690,28 +708,7 @@ int process_input(GXInstance_t* instance)
 
             // Key up
             // Key down
-            case SDL_KEYDOWN:
-            case SDL_KEYUP:
-            {
-                GXBind_t* iter = instance->input->binds;
-                callback_parameter_t input = { KEYBOARD, { instance->event.key.state } };
-                while (iter)
-                {
-                    for (size_t j = 0; j < iter->key_count; j++)
-                    {
-                        SDL_Scancode k = find_key(iter->keys[j]);
-                        if (k > 512)
-                            continue;
-                        if (keyboard_state[k])
-                            fire_bind(iter, input, instance);
-
-                    }
-                    iter = iter->next;
-                }
-                break;
-            }
-            
-            
+            case SDL_KEYDOWN:            
 
             // Window resize
             case SDL_WINDOWEVENT:
@@ -734,10 +731,57 @@ int process_input(GXInstance_t* instance)
                 break;
             }
         }
+
     }
+
+    GXBind_t* iter = instance->input->binds;
+    callback_parameter_t input;
+    while (iter)
+    {
+        u8* keyboard_state = SDL_GetKeyboardState(NULL);
+
+        for (size_t j = 0; j < iter->key_count; j++)
+        {
+            SDL_Scancode k = find_key(iter->keys[j]);
+            if (k > 512)
+                continue;
+
+            if (keyboard_state[k])
+            {
+                input = (callback_parameter_t) {KEYBOARD, {1}};
+                iter->active = true;
+                fire_bind(iter, input, instance);
+            }
+            else if(iter->active == true) {
+                input = (callback_parameter_t){ KEYBOARD, {0} };
+                iter->active = false;
+                fire_bind(iter, input, instance);
+            }
+
+        }
+        iter = iter->next;
+    }
+
     return 0;
 
-    // TODO: Error handling
+    // Error handling
+    {
+        // Argument errors
+        {
+            noInstance:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"instance\" in call to \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            noInputs:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] No input in \"instance\" in call to \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+
+    }
 }
 
 int fire_bind ( GXBind_t* bind, callback_parameter_t input, GXInstance_t* instance )
@@ -799,22 +843,66 @@ int remove_bind(GXInput_t* input, GXBind_t* bind)
 
 int destroy_bind(GXBind_t* bind)
 {
-    // TODO: Argument check
-    free(bind->name);
+    // Argument check
+    {
+        if (bind == (void*)0)
+            goto noBind;
+    }
 
     // TODO: Free everything
-    bind->key_count = 0;
-    bind->callback_count = 0;
-    bind->callback_max = 0;
+
+    free(bind->name);
+    
+    for (size_t i = 0; i < bind->key_count; i++)
+        free(bind->keys[i]);
+    
+    if(bind->callbacks)
+        free(bind->callbacks);
+
+    free(bind->keys);
+
     bind->next = 0;
 
+    free(bind);
+
     return 0;
-    // TODO: Error handling
+
+    // Error handling
+    {
+        noBind:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Input] Null pointer provided for \"bind\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 int destroy_input(GXInput_t* input)
 {
-    // TODO: Argument check
+    // Argument check
+    if (input == (void*)0)
+        goto noInput;
+    
+    // Free the input name
+    free(input->name);
+
+    GXBind_t *bind = input->binds;
+
+    while (bind)
+    {
+        GXBind_t *i = bind;
+        bind = bind->next;
+        destroy_bind(i);
+
+    }
+
+    free(input);
+
     return 0;
-    // TODO: Error handling
+
+    // Error handling
+    {
+        noInput:
+            return 0;
+    }
 }

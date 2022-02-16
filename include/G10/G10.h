@@ -43,39 +43,57 @@ struct GXInstance_s
 	// Server 
 	GXServer_t   *server;
 
-	// Loaded assets
-	GXTexture_t  **loaded_textures;
-	GXPart_t     **loaded_parts;
-	GXMaterial_t **loaded_materials;
-	GXEntity_t   **loaded_entities;
+	// Cached assets
+	GXTexture_t  **cached_textures;
+	GXPart_t     **cached_parts;
+	GXMaterial_t **cached_materials;
+	GXEntity_t   **cached_entities;
 
-	// Names of loaded assets
-	char         **loaded_texture_names,
-		         **loaded_part_names,
-		         **loaded_material_names,
-		         **loaded_entitie_names;
+	// Names of cached assets
+	char         **cached_texture_names,
+		         **cached_part_names,
+		         **cached_material_names,
+		         **cached_entity_names;
+
+	// Length of cached asset lists
+	size_t         cached_texture_count,
+		           cached_part_count,
+		           cached_material_count,
+				   cached_entity_count;
+
 	// Delta time
 	u32            d, 
 		           lastTime;
-	float          deltaTime;
+	float          delta_time;
     bool           running;
 
 };
 
-GXInstance_t *g_init           ( const char           *path );                                      // ✅ g_init initializes SDL and OpenGL
+GXInstance_t *g_init                ( const char           *path );                                      // ✅ g_init initializes SDL and OpenGL
+ 
+size_t        g_load_file           ( const char           *path    , void   *buffer, bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
 
-size_t        g_load_file      ( const char           *path    , void   *buffer, bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
+int           g_print_error         ( const char *const     format  , ... );                             // ✅ printf, but in red
+int           g_print_warning       ( const char *const     format  , ... );                             // ✅ printf, but in yellow
+int           g_print_log           ( const char *const     format  , ... );                             // ✅ printf, but in blue
 
-int           g_print_error    ( const char *const     format  , ... );                             // ✅ printf, but in red
-int           g_print_warning  ( const char *const     format  , ... );                             // ✅ printf, but in yellow
-int           g_print_log      ( const char *const     format  , ... );                             // ✅ printf, but in blue
+int           g_clear               ( void );                                                        // ✅ g_clear clears the color and depth buffers
+int           g_swap                ( GXInstance_t         *instance );
+int           g_window_resize       ( GXInstance_t         *instance );
+int           g_exit_game_loop      ( callback_parameter_t  c       , GXInstance_t* i );
 
-int           g_clear          ( void );                                                        // ✅ g_clear clears the color and depth buffers
-int           g_swap           ( GXInstance_t         *instance );
-int           g_window_resize  ( GXInstance_t         *instance );
-int           g_exit_game_loop ( callback_parameter_t  c       , GXInstance_t* i );
+GXInstance_t *g_get_active_instance ( void );
 
-int           g_delta          ( GXInstance_t         *instance );
-u8            g_checksum       ( u8                   *data    , size_t len );                      // TODO: Document
+int           g_cache_texture       ( GXInstance_t         *instance, GXMaterial_t *material );
+int           g_cache_material      ( GXInstance_t         *instance, GXMaterial_t *material );
+int           g_cache_part          ( GXInstance_t         *instance, GXPart_t     *part );
+int           g_cache_entity        ( GXInstance_t         *instance, GXMaterial_t *material );
 
-int           g_exit           ( GXInstance_t         *instance );                                  // ✅ g_exit deinitializes SDL and OpenGL
+GXMaterial_t *g_find_material       ( GXInstance_t         *instance, char *name );
+GXPart_t     *g_find_part           ( GXInstance_t         *instance, char *name );
+
+int           g_delta               ( GXInstance_t         *instance );
+
+void          g_toggle_mouse_lock   ( void );
+
+int           g_exit                ( GXInstance_t         *instance );                                  // ✅ g_exit deinitializes SDL and OpenGL

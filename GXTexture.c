@@ -47,7 +47,7 @@ GXTexture_t *load_texture                  ( const char   path[] )
 
 	// TODO: It might be worth finding a better way of doing this?
 	
-	// Figure out what type of file we are dealing with throught the extenstion. This is an admittedly naive approach,
+	// Figure out the file type via the extension. This is an admittedly naive approach, 
 	// but each loader function checks for signatures, so any error handling is handed off to them. 
 	
 	// Load as a png
@@ -69,9 +69,12 @@ GXTexture_t *load_texture                  ( const char   path[] )
 		     strcmp( fileExtension, "JFIF" ) == 0 || strcmp( fileExtension, "JFI" )  == 0 )
 
 		return load_jpg_image(path);
+	else if (strcmp( fileExtension, "hdr")   == 0 || strcmp( fileExtension, "HDR")   == 0 )
+
+		return load_hdr(path);
 	else
 		#ifndef NDEBUG
-			g_print_error("[G10] [Texture] Could not load file %s, unrecognized file extension.\n", path);
+			g_print_error("[G10] [Texture] Could not load file %s, \"%s\" is an unrecognized file extension.\n", path, fileExtension);
 		#endif
 		;
 
@@ -86,6 +89,11 @@ GXTexture_t *load_texture                  ( const char   path[] )
 		return 0;
 	}
 
+}
+
+GXTexture_t* load_texture_as_json(char* token)
+{
+	// TODO
 }
 
 unsigned int bind_texture_to_unit     ( GXTexture_t *image )
@@ -122,12 +130,11 @@ unsigned int bind_texture_to_unit     ( GXTexture_t *image )
 				image->texture_unit_index = i;
 
 				// Activate and bind the texture
-				glActiveTexture(GL_TEXTURE0 + activeTextures->active_texture_block[i]->texture_unit_index);
-				glBindTexture((image->cubemap) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, activeTextures->active_texture_block[i]->texture_id);
+				glActiveTexture(GL_TEXTURE0 + i);
+				glBindTexture((image->cubemap) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, image->texture_id);
 
 				// Remove next texture 
-				remove_texture_from_texture_unit((i + (activeTextures->active_texture_count / 2)) % activeTextures->active_texture_count);
-
+				remove_texture_from_texture_unit(i + 1);
 
 				return i;
 			}
@@ -149,7 +156,7 @@ unsigned int bind_texture_to_unit     ( GXTexture_t *image )
 
 unsigned int remove_texture_from_texture_unit ( unsigned int       index )
 {
-	if (index == -1)
+	if (index == -1 || index > activeTextures->active_texture_count)
 		return 0;
 	activeTextures->active_texture_block[index] = 0;
 	return 0;
@@ -157,10 +164,9 @@ unsigned int remove_texture_from_texture_unit ( unsigned int       index )
 
 int          unload_texture                ( GXTexture_t *image )
 {
-	// TODO: Argument check
-	// Invalidate width, height.
-	image->width  = 0,
-	image->height = 0;
+	// Argument check
+	if (image == (void*)0)
+		goto noImage;
 
 	// Delete OpenGL buffers
 	glDeleteTextures(1, &image->texture_id);
@@ -170,6 +176,10 @@ int          unload_texture                ( GXTexture_t *image )
 	free(image);
 
 	return 0;
-	// TODO: Error handling
+	// Error handling
+	{
+		noImage:
+			g_print_error("[G10] [Texture] Null pointer provided for \"image\" in call to \"%s\"\n", __FUNCSIG__);
+	}
 
 }

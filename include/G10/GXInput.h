@@ -19,6 +19,7 @@
 
 struct GXBind_s
 {
+	bool      active;
 	char     *name,
 	   	    **keys;
 	void    **callbacks;

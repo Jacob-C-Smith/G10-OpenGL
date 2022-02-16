@@ -9,7 +9,14 @@ SDL_Rect     fTexture,
 
 int  create_splashscreen  ( const char *forePath, const char *backPath )
 {
-	// TODO: Argument check
+
+	// Argument check
+	{
+		if( forePath == (void*)0 )
+			goto noForePath;
+		if (backPath == (void*)0)
+			goto noBackPath;
+	}
 	// Uninitialized data
 	unsigned int fw, 
 		         bw,
@@ -40,7 +47,23 @@ int  create_splashscreen  ( const char *forePath, const char *backPath )
 	render_textures();
 
 	return 0;
-	// TODO: Error handling
+	// Error handling
+	{
+		// Argument errors
+		{
+			noForePath:
+			#ifndef NDEBUG
+				g_print_error("[G10] [Splash screen] Null parameter provided for \"forePath\" in call to function \"%s\"\n", __FUNCSIG__);
+			#endif	
+			return 0;
+
+			noBackPath:
+			#ifndef NDEBUG
+				g_print_error("[G10] [Splash screen] Null parameter provided for \"forePath\" in call to function \"%s\"\n", __FUNCSIG__);
+			#endif	
+			return 0;
+		}
+	}
 
 }
 

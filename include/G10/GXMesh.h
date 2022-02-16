@@ -36,6 +36,8 @@ struct GXPart_s
 
     GLuint           elements_in_buffer;
 
+    size_t           users;
+
     struct GXPart_s *next;
 };
 

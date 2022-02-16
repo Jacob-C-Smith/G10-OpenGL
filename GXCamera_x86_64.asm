@@ -80,7 +80,7 @@ AVXView PROC
     vmovups xmm1, xmmword ptr [rcx]     ; xmm1 = eye
     vmovups xmm2, xmmword ptr [rdx]     ; xmm2 = target
     vmovups xmm3, xmmword ptr [r8]      ; xmm3 = up
-
+    
     ;Clear w, because a nonzero w will interfere with some computations
     vandps xmm1, xmm0, xmm1
     vandps xmm2, xmm0, xmm2

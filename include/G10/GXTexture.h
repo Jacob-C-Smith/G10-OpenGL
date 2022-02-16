@@ -38,13 +38,22 @@ struct GXTextureUnit_s
 typedef struct GXTextureUnit_s GXTextureUnit_t;
 
 
-// Constructors
+// Allocators
 GXTexture_t *create_texture                   ( void );               // ✅ Creates an empty texture
-GXTexture_t *load_texture                     ( const char path[] );  // ✅ Loads a texture from the disk
 
-// Texture streaming
+// Constructors
+
+// NOTE: These constructors are different than the rest of the engine. 
+//       load_texture loads a PNG, JPG, Bitmap, or HDR file.
+//       load_texture_as_json loads a texture from a token, with
+//       special attributes (repeat uv, bits per pixel, etc)
+GXTexture_t *load_texture                     ( const char  path[] );  // ✅ Loads a texture from the disk
+GXTexture_t *load_texture_as_json             ( char       *token );   // ❌ Constructs a texture from a JSON token
+
+
+// Texture operations
 unsigned int bind_texture_to_unit             ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit
-unsigned int remove_texture_from_texture_unit ( unsigned int index );
+unsigned int remove_texture_from_texture_unit ( unsigned int index ); // ✅ Unbinds a texture from a texture unit at the specified index
 
 // Destructors
 int          unload_texture                   ( GXTexture_t *image ); // ✅ Unloads a texture and all of its contents

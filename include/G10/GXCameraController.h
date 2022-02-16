@@ -18,7 +18,8 @@ struct GXCameraController_s
 	GXCamera_t *camera;
 
     float v_ang,
-          h_ang;
+          h_ang,
+          spdlim;
 
 	// Displacement derivatives
     vec2        orientation;
@@ -27,10 +28,10 @@ struct GXCameraController_s
     
 };
 
-int                    camera_controller_from_camera ( GXInstance_t         *instance , GXCamera_t   *camera );
-int                    update_controlee_camera       ( float delta_time );
+GXCameraController_t *camera_controller_from_camera ( GXInstance_t         *instance , GXCamera_t   *camera );
+int                   update_controlee_camera       ( GXCameraController_t *camera_controller, float delta_time );
 /*
-int         update_camera_from_keyboard_input ( GXCamera_t *camera, const u8 *keyboardState, float deltaTime )
+int         update_camera_from_keyboard_input ( GXCamera_t *camera, const u8 *keyboardState, float delta_time )
 {
     // Argument check
     {
@@ -105,19 +106,19 @@ int         update_camera_from_keyboard_input ( GXCamera_t *camera, const u8 *ke
     float cosTheta = n / (c * d);
 
     float lenvPa   = length(mul_vec3_f(camera->acceleration, n / d));
-    float lenAdT   = length(mul_vec3_f(camera->acceleration, deltaTime));
+    float lenAdT   = length(mul_vec3_f(camera->acceleration, delta_time));
     float speedLim = 60000;
 
     if (lenvPa < speedLim - lenAdT)
     {
-        camera->velocity = mul_vec3_f(camera->acceleration, deltaTime);
+        camera->velocity = mul_vec3_f(camera->acceleration, delta_time);
     }
     else if (speedLim - lenAdT <= lenvPa < speedLim)
     {
     }
 
-    camera->where.x += camera->velocity.x * deltaTime,
-    camera->where.y += camera->velocity.y * deltaTime;
+    camera->where.x += camera->velocity.x * delta_time,
+    camera->where.y += camera->velocity.y * delta_time;
 
     vec3 tw;
     add_vec3(&tw, camera->target, camera->where);

@@ -3,22 +3,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <G10/GXtypedef.h>
 #include <G10/GXDebug.h>
 #include <G10/GXLinear.h>
 #include <G10/GXEntity.h>
 
-struct GXBVHNode_s
+struct GXCollision_s
 {
-	GXEntity_t* entity;
-	struct GXBVHNode_s* left;
-	struct GXBVHNode_s* right;
+	GXEntity_t           *a,
+		                 *b;
+	size_t                begin_tick,
+		                  end_tick;
+	vec3                  a_in_b,
+		                  b_in_a,
+		                  normal;
+	float                 depth;
+	bool                  has_collision,
+		                  has_aabb_collision;
+	struct GXCollision_s *next;
 };
-typedef struct GXBVHNode_s GXBVHNode_t;
 
-struct GXBVH_s
-{
-	GXBVHNode_t* root;
-};
-typedef struct GXBVH_s GXBVH_t;
+// Allocators
+GXCollision_t *create_collision               ( );
 
-GXBVH_t* createBVHTreeFromEntities(GXEntity_t* head);
+// Constructors
+GXCollision_t *create_collision_from_entities ( GXEntity_t *a, GXEntity_t *b );
+
+int            update_collision               ( GXCollision_t *collision );
+
+// Destructors
+int            destroy_collision              ( GXCollision_t *collision );

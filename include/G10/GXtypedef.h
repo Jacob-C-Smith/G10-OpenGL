@@ -127,6 +127,10 @@ typedef struct GXRigidbody_s GXRigidbody_t;
 struct GXCollider_s;
 typedef struct GXCollider_s GXCollider_t;
 
+// Collision
+struct GXCollision_s;
+typedef struct GXCollision_s GXCollision_t;
+
 // Armature
 struct GXRig_s;
 typedef struct GXRig_s GXRig_t;

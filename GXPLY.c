@@ -5,10 +5,10 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
     // Commentary
     {
         /* 
-         * The PLY loaders job is essentially to turn a PLY file header into a 64 bit metadata 
-         * value. It is written to recognize vertex properties and parse them into common vertex
+         * The PLY loaders job is  to turn a PLY file header into a 64 bit metadata value.
+         * the function is written to recognize vertex properties and parse them into common vertex
          * groups. Each vertex property in a vertex group should appear concurrently. Each 
-         * group has an associated code. The vertex groups metadata value is used to create a 
+         * group has an associated byte code. The vertex groups metadata value is used to create a 
          * vertex array object, vertex buffer object, and element buffer object.  
          * 
          * ┌─────────────────────┬──────────────────────────────────────────────────┬──────┐
@@ -17,10 +17,11 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
          * │ Geometric vertices  │ ( x, y, z )                                      │ 0x01 │
          * │ Texture coordinates │ ( u, v ) or ( s, t )                             │ 0x02 │
          * │ Vertex normals      │ ( nx, ny, nz )                                   │ 0x04 │
-         * │ Vertex normals      │ ( bx, by, bz )                                   │ 0x08 │
-         * │ Vertex colors       │ ( red, green, blue, alpha ) or ( r, g, b, a )    │ 0x10 │
-         * │ Bone groups         │ ( b0, b1, b2, b3 )                               │ 0x20 │
-         * │ Bone weights        │ ( w0, w1, w2, w3 )                               │ 0x40 │
+         * │ Vertex bitangents   │ ( bx, by, bz )                                   │ 0x08 │
+         * │ Vertex tangents     │ ( tx, ty, tz )                                   │ 0x10 │
+         * │ Vertex colors       │ ( red, green, blue, alpha ) or ( r, g, b, a )    │ 0x20 │
+         * │ Bone groups         │ ( b0, b1, b2, b3 )                               │ 0x40 │
+         * │ Bone weights        │ ( w0, w1, w2, w3 )                               │ 0x80 │
          * └─────────────────────┴──────────────────────────────────────────────────┴──────┘
          * 
          * NOTE: The function can be modified to read two more vertex groups, supporting a 
@@ -31,11 +32,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
          * 
          * Pass 1.
          *     On pass 1, the function counts all the elements in the header. It will also print
-         *     any comments it encounters. After this pass, the elements are al
-         
-         
-         
-         ted for.
+         *     any comments it encounters. After this pass, the elements are allocated for
          * 
          * Pass 2.
          *     On pass 2, the elements are populated and the properties are counted up and 
@@ -48,28 +45,30 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
          *     present and which are absent. 
          * 
          *     All this work to determine the vertex groups is integrated when the function creates
-         *     the vertexGroups variable. This 64 bit number is an especially compact way to 
-         *     represent both the type and position of each vertex group we have encountered. Each 
-         *     code is packed into  the 64 bit number, such that the last vertex group occupies 
+         *     the vertexGroups quad word. This 64 bit number is an especially compact way to 
+         *     represent both the type and position of each vertex group in the file. Each 
+         *     code is packed into the 64 bit number, such that the last vertex group occupies 
          *     the eight least significant bits. For comprehension and completeness, here are a 
          *     few examples and how they should be interpreted.
          * 
          *        63......................................0
-         *     A. | 00 | 00 | 00 | 00 | 00 | 01 | 04 | 08 |
+         *     A. | 00 | 00 | 00 | 00 | 00 | 01 | 04 | 20 |
          *     B. | 00 | 00 | 00 | 00 | 00 | 04 | 02 | 01 |
-         *     C. | 00 | 00 | 01 | 02 | 04 | 08 | 10 | 20 |
-         * 
+         *     C. | 01 | 02 | 04 | 08 | 10 | 20 | 40 | 80 |
+         *       
          *     A. First is geometric, second is normals, third is colors 
          *     B. First is normals, second is texture coordinates, third is geometric
-         *     C. First is geometric, second is texture coordinates, third is normals, fourth is 
-         *        colors, fifth is bone groups, sixth is bone weights.
+         *     C. First is geometric, second is texture coordinates, third is vertex normals, fourth is 
+         *        vertex bitangents, fifth is vertex tangents, sixth is vertex bitangents, seventh is 
+         *        bone groups,and eighth is bone weights.
          * 
-         * After the third pass, we have extracted all of the valuable information we can from the
-         * header. We are now prepared to start making the VAO, and VBO. The last meaningful byte
-         * of the vertex groups variable is masked off, and switch()ed against known vertex groups. 
+         * After the third pass, all the metadata to describe the file data has been extracted, and 
+         * the function can start making the VAO, and VBO. The last significant byte
+         * of the vertex groups variable is masked off, and switch()ed against the vertex group codes. 
          * Vertex attribute pointers are created for the specific offset and stride of the vertex
-         * group automatically. The first vertex group will be at layout position 0, the second at
-         * 1, the third at 2, soforth. 
+         * group. The first vertex group will be at layout position 0, the second at 1, the third at 2, and soforth. 
+         * 
+         * 
          */
     }
 
@@ -151,7 +150,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
             while (*(u32*)cData != GXPLY_HEnd)
             {
 
-                // Check if we are on an element
+                // Check if iterator is on an element
                 if (*(u32*)cData == GXPLY_HElement)
                 {
                     // TODO: Dynamically determine size. 
@@ -164,7 +163,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
                     while (cData[++i] != '\n'); // Skip to the end of the line
                     cData = &cData[i + 1];      // Set the pointer
 
-                    // Check if we are on a property
+                    // Check if iterator is on a property
                     while (*(u32*)cData == GXPLY_HProperty)
                     {
                         // Increment properties
@@ -186,7 +185,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
                 cData = &cData[i + 1];      // Set the pointer
                 continue;
 
-                // Allocate the space we need for the properties on the way out
+                // Allocate space for the properties
             p2propertyExit:
                 plyFile->elements[j].properties = calloc(plyFile->elements[j].nProperties, sizeof(GXPLYproperty_t));
                 j++;
@@ -204,7 +203,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
             while (*(u32*)cData != GXPLY_HEnd)
             {
 
-                // Check if we are on an element
+                // Check if iterator is on an element
                 if (*(u32*)cData == GXPLY_HElement)
                 {
                     // TODO: Dynamically determine size. 
@@ -213,7 +212,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
                     while (cData[++i] != '\n'); // Skip to the end of the line
                     cData = &cData[i + 1];      // Set the pointer
 
-                    // Check if we are on a property
+                    // Check if iterator is on a property
                     while (*(u32*)cData == GXPLY_HProperty)
                     {
                         // Increment properties
@@ -425,12 +424,12 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
             goto processVAO;
     }
     processVAO:
-    data = cData+11;
+    cData = cData+11;
 
-    // Here we set a few variables
-    vertexArray            = (float*)data;
+    // Set a few variables to construct the VAO, VBO, and EBO
+    vertexArray            = (float*)cData;
     verticesInBuffer       = plyFile->elements[0].nCount * plyFile->elements[0].sStride;
-    indices                = (void*)&data[verticesInBuffer];
+    indices                = (void*)&cData[verticesInBuffer];
     part->elements_in_buffer = ((GLuint)plyFile->elements[1].nCount * (GLuint)3);
 
     correctedIndicies      = calloc((size_t)part->elements_in_buffer, sizeof(u32));
@@ -550,8 +549,8 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part ) {
         free(plyFile);
     }
 
-    //free(correctedIndicies);
-    //free(data);
+    free(correctedIndicies);
+    free(data);
 
     // Count up properties
     return part;

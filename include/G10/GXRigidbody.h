@@ -61,7 +61,7 @@ extern void            compute_applied_force                 ( void          *en
 static inline vec3     apply_force                           ( GXRigidbody_t *rigidbody ) {
     return mul_vec3_f(rigidbody->acceleration, rigidbody->mass);
 }
-int                    update_position_and_velocity          ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 deltaTime ); // ✅ Updates the position and velocity vectors
+int                    update_position_and_velocity          ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 delta_time ); // ✅ Updates the position and velocity vectors
 int                    compute_collision                     ( GXRigidbody_t *a,         GXRigidbody_t *b );
 
 // Destructors

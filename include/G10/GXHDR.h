@@ -8,6 +8,6 @@
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
 
-typedef u8 RGBE[4];
 
+// Texture constructor
 GXTexture_t *load_hdr ( const char path[] );

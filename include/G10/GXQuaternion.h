@@ -21,4 +21,4 @@ mat4          rotation_mat4_from_quaternion       ( quaternion q );             
 void          rotate_vec3_by_quaternion           ( vec3      *r , vec3       v, quaternion q );
 
 quaternion    normalize_quaternion                ( quaternion q );
-quaternion    q_slerp                             ( quaternion q0, quaternion q1, float deltaTime);
+quaternion    q_slerp                             ( quaternion q0, quaternion q1, float delta_time);

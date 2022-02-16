@@ -18,8 +18,6 @@ mat4        perspective                   ( float        fov, float       aspect
         0,                              0,                 (-(farClip + nearClip) / (farClip - nearClip)), -1,
         0,                              0,                 (2 * farClip * nearClip / (nearClip - farClip)), 0
     };
-    // TODO: Error handling
-
 }
 
 GXCamera_t *create_camera                  ( )
@@ -95,8 +93,7 @@ GXCamera_t *load_camera_as_json              ( char        *token )
                 #endif
             }
 
-            strncpy(ret->name, (const char*)tokens[l].value.n_where, len);
-            ret->name[len] = '\0';
+            strncpy(ret->name, tokens[l].value.n_where, len);
             continue;
         }
 

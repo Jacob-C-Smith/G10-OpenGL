@@ -1,6 +1,8 @@
 ﻿#include <G10/G10.h>
 
-GXInstance_t *g_init          ( const char       *path )
+static GXInstance_t *active_instance = 0;
+
+GXInstance_t *g_init              ( const char       *path )
 {
     // Argument Check
     {
@@ -66,7 +68,7 @@ GXInstance_t *g_init          ( const char       *path )
                 size_t l = strlen(n);
                 window_title = calloc(l + 1, sizeof(char));
 
-                strncpy(ret->name, n, l);
+                strncpy(window_title, n, l);
             }
             continue;
         }
@@ -86,6 +88,9 @@ GXInstance_t *g_init          ( const char       *path )
             continue;
         }
     }
+
+    free(tokens);
+    free(token_text);
 
     // SDL + GLAD Initialization
     {
@@ -108,7 +113,7 @@ GXInstance_t *g_init          ( const char       *path )
             SDL_WINDOWPOS_CENTERED,
             window_width, window_height,
             SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | ((fullscreen==1) ? SDL_WINDOW_RESIZABLE : 0) ); 
-        
+
         // Context attributes
         // OpenGL 4.6
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -167,7 +172,7 @@ GXInstance_t *g_init          ( const char       *path )
             glDepthFunc(GL_LEQUAL);
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
             glEnable(GL_MULTISAMPLE);
-            glLineWidth(3);
+            glLineWidth(2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
             // Initialize the active texture block
@@ -194,8 +199,8 @@ GXInstance_t *g_init          ( const char       *path )
                 #endif
             }
 
-            // Set the clear color to white
-            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            // Set the clear color to black
+            glClearColor(1.f, 1.f, 1.f, 1.0f);
         }
 
         // Load a missing texture texture
@@ -205,7 +210,22 @@ GXInstance_t *g_init          ( const char       *path )
         }
     }
 
-    ret->deltaTime = 0.01f;
+    free(window_title);
+
+    ret->delta_time = 0.01f;
+
+    ret->cached_entities       = calloc(128, sizeof(void*));
+    ret->cached_parts          = calloc(128, sizeof(void*));
+    ret->cached_materials      = calloc(128, sizeof(void*));
+    ret->cached_textures       = calloc(128, sizeof(void*));
+
+    ret->cached_entity_names   = calloc(128, sizeof(void*));
+    ret->cached_part_names     = calloc(128, sizeof(void*));
+    ret->cached_material_names = calloc(128, sizeof(void*));
+    ret->cached_texture_names  = calloc(128, sizeof(void*));
+
+
+    active_instance = ret;
 
     return ret;
 
@@ -269,7 +289,7 @@ GXInstance_t *g_init          ( const char       *path )
     }
 }
 
-size_t        g_load_file     ( const char       *path,   void          *buffer   , bool binaryMode )
+size_t        g_load_file         ( const char       *path,   void          *buffer   , bool binaryMode )
 {
     // Argument checking 
     {
@@ -296,7 +316,7 @@ size_t        g_load_file     ( const char       *path,   void          *buffer 
     if(buffer)
         ret = fread(buffer, 1, ret, f);
 
-    // We no longer need the file
+    // The file is no longer needed
     fclose(f);
     
     return ret;
@@ -317,31 +337,49 @@ size_t        g_load_file     ( const char       *path,   void          *buffer 
     }
 }
 
-int           g_print_error   ( const char *const format, ... ) 
+int           g_print_error       ( const char *const format, ... ) 
 {
-    // TODO: Argument check
-    
-    // We use the varadic argument list in vprintf
+    // Argument check
+    {
+        if (format == (void*)0)
+            goto no_format;
+    }
+
+    // Use the varadic argument list in vprintf call
     va_list aList;
     va_start(aList, format);
 
     // Uses ANSI terminal escapes to set the color to red, 
     // print the message, and restore the color.
     printf("\033[91m");
-    vprintf(format, aList);
+
+    // TODO: Configure error messages to write to other files?
+    vfprintf(stdout, format, aList);
     printf("\033[0m");
 
     va_end(aList);
 
     return 0;
-    // TODO: Error handling
+    
+    // Error handling
+    {
+        no_format:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+    }
 }
 
-int           g_print_warning ( const char *const format, ... ) 
+int           g_print_warning     ( const char *const format, ... ) 
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        if (format == (void*)0)
+            goto no_format;
+    }
 
-    // We use the varadic argument list in vprintf
+    // Use the varadic argument list in vprintf call
     va_list aList;
     va_start(aList, format);
 
@@ -354,15 +392,26 @@ int           g_print_warning ( const char *const format, ... )
     va_end(aList);
 
     return 0;
-    // TODO: Error handling
+    // Error handling
+    {
+        no_format:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+    }
 
 }
 
-int           g_print_log     ( const char *const format, ... ) 
+int           g_print_log         ( const char *const format, ... ) 
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        if (format == (void*)0)
+            goto no_format;
+    }
 
-    // We use the varadic argument list in vprintf
+    // Use the varadic argument list in vprintf call
     va_list aList;
     va_start(aList, format);
 
@@ -376,25 +425,57 @@ int           g_print_log     ( const char *const format, ... )
     va_end(aList);
 
     return 0;
-    // TODO: Error handling
+    // Error handling
+    {
+        no_format:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+    }
 
 }
 
-int           g_clear         ( void )
+int           g_clear             ( void )
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-int           g_swap          ( GXInstance_t     *instance )
+int           g_swap              ( GXInstance_t     *instance )
 {
-    // TODO: Argument checking
+
+    // Argument checking
+    {
+        if(instance == (void *)0)
+            goto noInstance;
+
+        if (instance->window == (void*)0)
+            goto noWindow;
+    }
+
     SDL_GL_SwapWindow(instance->window);
+    
     return 0;
-    // TODO: Error handling
+    
+    // Error handling
+    {
+        noInstance:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n"__FUNCSIG__);
+        #endif
+        return 0;
+
+        noWindow:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer for \"window\" in instance in call to function \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
+
 
 }
 
-int           g_window_resize ( GXInstance_t     *instance )
+int           g_window_resize     ( GXInstance_t     *instance )
 {
     // Uninitialized data
     int w,
@@ -407,7 +488,7 @@ int           g_window_resize ( GXInstance_t     *instance )
     glViewport(0, 0, w, h);
 }
 
-int g_exit_game_loop ( callback_parameter_t  c, GXInstance_t* i )
+int           g_exit_game_loop    ( callback_parameter_t  c, GXInstance_t* i )
 {
     if(c.input_state == KEYBOARD)
         if(c.inputs.key.depressed == true)
@@ -416,34 +497,167 @@ int g_exit_game_loop ( callback_parameter_t  c, GXInstance_t* i )
     return 0;
 }
 
-int           g_delta         ( GXInstance_t     *instance )
+GXInstance_t* g_get_active_instance(void)
 {
-    // TODO: Argument checking
+    return active_instance;
+}
+
+int g_cache_material(GXInstance_t* instance, GXMaterial_t* material)
+{
+    if (instance->cached_material_count >= 128)
+        return 0;
+
+    instance->cached_material_count++;
+
+    for (size_t i = 0; i < instance->cached_material_count; i++)
+    {
+        if (instance->cached_materials[i])
+            continue;
+
+        instance->cached_materials[i] = material,
+            instance->cached_material_names[i] = material->name;
+
+        break;
+    }
+
+    return 0;
+}
+
+int g_cache_part ( GXInstance_t *instance, GXPart_t *part )
+{
+    if (instance->cached_part_count >= 128)
+        return 0;
+
+    instance->cached_part_count++;
+
+    for (size_t i = 0; i < instance->cached_part_count; i++)
+    {
+        if (instance->cached_parts[i])
+            continue;
+
+        instance->cached_parts[i] = part,
+        instance->cached_part_names[i] = part->name;
+
+        break;
+    }
+
+    return 0;
+}
+
+
+GXMaterial_t* g_find_material(GXInstance_t* instance, char* name)
+{
+
+    // Argument check
+    {
+        if (instance == (void*)0)
+            goto no_instance;
+        if (name == (void*)0)
+            goto no_name;
+    }
+
+    // Search the cache for materials
+    for (size_t i = 0; i < instance->cached_material_count; i++)
+        if (strcmp(instance->cached_material_names[i], name) == 0)
+            return instance->cached_materials[i];
+
+    return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__ );
+            #endif
+            return 0;
+
+            no_name:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"name\" in call to function \"%s\"\n", __FUNCSIG__ );
+            #endif
+            return 0;
+        }
+    }
+}
+
+GXPart_t* g_find_part(GXInstance_t* instance, char* name)
+{
+    // Argument check
+    {
+        if (instance == (void*)0)
+            goto no_instance;
+        if (name == (void*)0)
+            goto no_name;
+    }
+
+    // Search the cache for parts
+    for (size_t i = 0; i < instance->cached_part_count; i++)
+        if (strcmp(instance->cached_part_names[i], name) == 0)
+            return instance->cached_parts[i];
+
+    return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__ );
+            #endif
+            return 0;
+
+            no_name:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"name\" in call to function \"%s\"\n", __FUNCSIG__ );
+            #endif
+            return 0;
+        }
+    }
+}
+
+int           g_delta             ( GXInstance_t     *instance )
+{
+    // Argument checking
+    {
+        if (instance == (void*)0)
+            goto noInstance;
+    }
+
     // Calculate delta time
     instance->ticks       = SDL_GetTicks();
     instance->d           = instance->ticks - instance->lastTime;
     instance->lastTime    = instance->ticks;
-    instance->deltaTime   = (float)1 / instance->d;
+    instance->delta_time   = (float)1 / instance->d;
 
     return 0;
-    // TODO: Error handling
+    
+    // Error handling
+    {
+        noInstance:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 
 }
 
-u8            g_checksum      ( u8               *data    , size_t         len)
+void          g_toggle_mouse_lock ( void )
 {
-    u8 ret = 0;
-    for (size_t i = 0; i < len; i++)
-        ret += data[i];
-
-    return ~ret;
+    SDL_SetRelativeMouseMode(!SDL_GetRelativeMouseMode());
 }
 
-int           g_exit          ( GXInstance_t     *instance )
+int           g_exit              ( GXInstance_t     *instance )
 {
-    if(instance->server)
+    //if(instance->server)
 
     // G10 Deinitialization
+    if(instance->scenes)
     {
         GXScene_t* i = instance->scenes;
 
@@ -455,8 +669,17 @@ int           g_exit          ( GXInstance_t     *instance )
             destroy_scene(j);
         }
 
-
     }
+
+    if(instance->input)
+        destroy_input(instance->input);
+
+    extern GXTextureUnit_t *activeTextures;
+    extern GXTexture_t     *missingTexture;
+    unload_texture(missingTexture);
+    free(activeTextures->active_texture_block);
+    free(activeTextures);
+    free(instance->name);
 
     // SDL Deinitialization
     {
@@ -466,6 +689,8 @@ int           g_exit          ( GXInstance_t     *instance )
         IMG_Quit();
         SDL_Quit();
     }
-
+    
+    free(instance);
+    
     return 0;
 }
