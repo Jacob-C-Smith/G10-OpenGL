@@ -9,7 +9,7 @@ GXSkybox_t *create_skybox     ( )
     {
         #ifndef NDEBUG
             if (ret == 0)
-                goto noMem;
+                goto no_mem;
         #endif
     }
 
@@ -17,7 +17,7 @@ GXSkybox_t *create_skybox     ( )
 
     // Error handling
     {
-        noMem:
+        no_mem:
         #ifndef NDEBUG
             g_print_error("[G10] [Skybox] Out of memory.\n");
         #endif
@@ -27,11 +27,12 @@ GXSkybox_t *create_skybox     ( )
 
 GXSkybox_t *load_skybox       ( const char  path[] )
 {
+
     // Argument check
     {
         #ifndef NDEBUG
-        if (path == (void*)0)
-            goto noPath;
+            if (path == (void*)0)
+                goto no_path;
         #endif
     }
 
@@ -58,9 +59,9 @@ GXSkybox_t *load_skybox       ( const char  path[] )
 
     // Error handling
     {
-        noPath:
+        no_path:
         #ifndef NDEBUG
-            g_print_error("[G10] [Skybox] No path supplied to function \"%s\"\n",__FUNCSIG__);
+            g_print_error("[G10] [Skybox] Null pointer provided for \"path\" in call to \"%s\"\n",__FUNCSIG__);
         #endif
         return (void*)0;
     }
@@ -72,7 +73,7 @@ GXSkybox_t* load_skybox_as_json ( char *token )
     {
         #ifndef NDEBUG
             if(token==(void*)0)
-                goto nullToken;
+                goto no_token;
         #endif
     }   
 
@@ -83,8 +84,8 @@ GXSkybox_t* load_skybox_as_json ( char *token )
     char        *envPath    = 0,
                 *irrPath    = 0;
     size_t       len        = strlen(token),
-                 tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t *tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+                 token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t *tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     GXTexture_t* environmentHDR;
 
@@ -92,10 +93,10 @@ GXSkybox_t* load_skybox_as_json ( char *token )
                 renderbuffer  = -1;
 
     // Parse the skybox token
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Search through values and pull out relevent information
-    for (size_t j = 0; j < tokenCount; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
         // Name
         if (strcmp("name", tokens[j].key) == 0)
@@ -128,11 +129,6 @@ GXSkybox_t* load_skybox_as_json ( char *token )
     ret->environment_cubemap          = create_texture();
     ret->irradiance_cubemap           = create_texture();
     ret->prefilter_cubemap            = create_texture();
-    ret->lut                          = create_texture();
-
-    ret->environment_cubemap->cubemap = true;
-    ret->irradiance_cubemap->cubemap  = true;
-    ret->prefilter_cubemap->cubemap   = true;
     
     // Generate perspective and view matrices
 
@@ -161,11 +157,12 @@ GXSkybox_t* load_skybox_as_json ( char *token )
     // Load the cube part
     ret->cube        = load_part("G10/cube.json");
     ret->quad        = load_part("G10/plane.json");
+    ret->lut         = load_hdr("G10/BRDF.hdr");
 
-    // Load the environment maps and the irradiance convolution
-    environmentHDR = load_hdr(envPath);
 
+    glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // Generate environment cubemap
     {
@@ -179,8 +176,13 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1024, 1024);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
 
+        // Load the environment maps and the irradiance convolution
+        environmentHDR = load_hdr(envPath);
+
+
         glGenTextures(1, &ret->environment_cubemap->texture_id);
         glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
+        ret->environment_cubemap->cubemap = true;
 
         // Generate cubemap textures
         for (u32 i = 0; i < 6; ++i)
@@ -189,7 +191,7 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         use_shader(ret->environment);
@@ -205,22 +207,28 @@ GXSkybox_t* load_skybox_as_json ( char *token )
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ret->environment_cubemap->texture_id, 0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // If this stops working, be sure that face culling is off.
-
             draw_part(ret->cube);
         }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     
-    // Generate irradiance cubemap
+    // Generate the irradiance cubemap
     {
+        glDeleteFramebuffers(1, &framebuffer);
+        glDeleteRenderbuffers(1, &renderbuffer);
+
+        // Generate environment framebuffers
+        glGenFramebuffers(1, &framebuffer);
+        glGenRenderbuffers(1, &renderbuffer);
+
         glGenTextures(1, &ret->irradiance_cubemap->texture_id);
         glBindTexture(GL_TEXTURE_CUBE_MAP, ret->irradiance_cubemap->texture_id);
+        ret->irradiance_cubemap->cubemap = true;
 
-        for (u32 i = 0; i < 6; ++i)
+        for(u32 i = 0; i < 6; i++)
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, (void*)0);
 
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -234,77 +242,98 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
 
         use_shader(ret->irradiance);
-        set_shader_mat4(ret->irradiance, "P", &ret->projection);
         set_shader_texture(ret->irradiance, "environmentMap", ret->environment_cubemap);
-        
+        set_shader_mat4(ret->irradiance, "P", &ret->projection);
+
         glViewport(0, 0, 32, 32);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
         for (u32 i = 0; i < 6; ++i)
         {
             set_shader_mat4(ret->irradiance, "V", &ret->views[i]);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ret->irradiance_cubemap->texture_id, 0);
-
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             draw_part(ret->cube);
         }
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+        glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
     }
-
-    // Create a 2D lookup table from the BRDF equations
+    
+    // Generate the prefilter map
     {
-        glGenTextures(1, &ret->lut->texture_id);
-
-        glBindTexture(GL_TEXTURE_2D, ret->lut->texture_id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
+           
     }
-    
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    
 
     return ret;
 
     // Error handling
     {
         #ifndef NDEBUG
-        nullToken:
+        no_token:
             g_print_error("[G10] [Skybox] Null pointer provided for \"token\" in call to function \"%s\"",__FUNCSIG__);
         #endif
         return 0;
     }
 }
 
-int         draw_skybox       ( GXSkybox_t *skybox, GXCamera_t *camera )
+int         draw_skybox       ( GXSkybox_t *skybox )
 {
-    // TODO: Argument check
-    GXShader_t *shader = skybox->background;
+
+    // Argument check
+    {
+        if(skybox == (void *)0)
+            goto no_skybox;
+    }
+
+    GXInstance_t *instance = g_get_active_instance();
+    GXShader_t   *shader   = skybox->background;
 
     use_shader(shader);
-    set_shader_camera(shader, camera);
     set_shader_texture(shader, "environmentMap", skybox->environment_cubemap);
+    set_shader_camera(shader, instance->scenes->cameras);
     draw_part(skybox->cube);
 
     return 0;
-    // TODO: Error handling
 
+    // Error handling
+    {
 
+        // Argument check
+        {
+            no_skybox:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Skybox] Null pointer provided for \"skybox\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif  
+            return 0;
+        }
+    }
 }
 
 // TODO: Write
 int         destroy_skybox    ( GXSkybox_t *skybox )
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        if(skybox == (void *)0)
+            goto no_skybox;
+    }
+
     return 0;
-    // TODO: Error handling
+
+    // Error handling
+    {
+
+        // Argument check
+        {
+            no_skybox:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Skybox] Null pointer provided for \"skybox\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 
 }

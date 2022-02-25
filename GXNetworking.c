@@ -51,14 +51,14 @@ GXServer_t *load_server_as_json ( char       *token )
 	 // Initialized data
 	GXServer_t  *ret        = create_server();
 	size_t       len        = strlen(token);
-    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t *tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+    size_t       token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t *tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the camera object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Copy relevent data for a server object
-	for ( size_t l = 0; l < tokenCount; l++ )
+	for ( size_t l = 0; l < token_count; l++ )
 	{
 
 		// Parse out the server name

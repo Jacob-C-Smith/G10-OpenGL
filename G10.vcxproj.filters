@@ -28,12 +28,6 @@
     <Filter Include="Header Files\G10">
       <UniqueIdentifier>{9ed44460-90dd-4ce6-ba73-c4296df353b6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\G10\texture">
-      <UniqueIdentifier>{530bad72-8b24-4ee1-85e2-b8487dd0a1c0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\G10\mesh">
-      <UniqueIdentifier>{27909343-a3bb-489c-a404-b9c5f7085eb0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\G10\scene">
       <UniqueIdentifier>{7d742d88-fdf1-4f3d-af68-8615fc110f02}</UniqueIdentifier>
     </Filter>
@@ -58,11 +52,17 @@
     <Filter Include="Header Files\G10\rig">
       <UniqueIdentifier>{ddd7e484-e9c3-492f-afb0-95f2de027733}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\G10\entity">
+    <Filter Include="Header Files\G10\scene\entity">
       <UniqueIdentifier>{1b6eb7cf-42cd-4b53-829e-5a3c0a4b0be0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\G10\camera">
+    <Filter Include="Header Files\G10\scene\camera">
       <UniqueIdentifier>{ef80b865-d302-4da4-90a3-f102a635bdcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\scene\entity\mesh">
+      <UniqueIdentifier>{27909343-a3bb-489c-a404-b9c5f7085eb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\texture">
+      <UniqueIdentifier>{530bad72-8b24-4ee1-85e2-b8487dd0a1c0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -95,7 +95,7 @@
     <ClCompile Include="GXJPG.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GXMesh.c">
+    <ClCompile Include="GXPart.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GXPLY.c">
@@ -170,6 +170,9 @@
     <ClCompile Include="include\G10\GXCollision.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GXGJK.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\G10\GXtypedef.h">
@@ -206,16 +209,16 @@
       <Filter>Header Files\G10\scene</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXShader.h">
-      <Filter>Header Files\G10\entity</Filter>
+      <Filter>Header Files\G10\scene\entity</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXRigidbody.h">
-      <Filter>Header Files\G10\entity</Filter>
+      <Filter>Header Files\G10\scene\entity</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXCollider.h">
       <Filter>Header Files\G10\physics</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\GXMesh.h">
-      <Filter>Header Files\G10\entity</Filter>
+    <ClInclude Include="include\G10\GXPart.h">
+      <Filter>Header Files\G10\scene\entity</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXBVH.h">
       <Filter>Header Files\G10\scene</Filter>
@@ -224,16 +227,16 @@
       <Filter>Header Files\G10\scene</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXMaterial.h">
-      <Filter>Header Files\G10\entity</Filter>
+      <Filter>Header Files\G10\scene\entity</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXSplashscreen.h">
       <Filter>Header Files\G10</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXTransform.h">
-      <Filter>Header Files\G10\entity</Filter>
+      <Filter>Header Files\G10\scene\entity</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXPLY.h">
-      <Filter>Header Files\G10\mesh</Filter>
+      <Filter>Header Files\G10\scene\entity\mesh</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXilmath.h">
       <Filter>Header Files\G10\math</Filter>
@@ -257,7 +260,7 @@
       <Filter>Header Files\G10\rig</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXFlycam.h">
-      <Filter>Header Files\G10\camera</Filter>
+      <Filter>Header Files\G10\scene\camera</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXInput.h">
       <Filter>Header Files\G10\input</Filter>
@@ -266,7 +269,7 @@
       <Filter>Header Files\G10</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXCameraController.h">
-      <Filter>Header Files\G10\camera</Filter>
+      <Filter>Header Files\G10\scene\camera</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXCollision.h">
       <Filter>Header Files\G10\physics</Filter>

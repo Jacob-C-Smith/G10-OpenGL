@@ -43,7 +43,7 @@ GXSkybox_t *load_skybox         ( const char  path[] );                      // 
 GXSkybox_t *load_skybox_as_json ( char       *token );                       // ✅ Loads a skybox from a JSON token
 
 // Graphical operations
-int         draw_skybox         ( GXSkybox_t *skybox, GXCamera_t *camera );  // ✅ Draws the skybox 
+int         draw_skybox         ( GXSkybox_t *skybox );  // ✅ Draws the skybox 
 
 // Destructors
 int         destroy_skybox      ( GXSkybox_t* skybox );                      // ✅ Destroys the skybox

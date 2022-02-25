@@ -27,6 +27,14 @@ GXRigidbody_t *create_rigidbody           ( )
 
 GXRigidbody_t *load_rigidbody             ( const char     path[] )
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(path == (void*)0)
+                goto no_path;
+        #endif
+    }
+    
     // Initialized data
     GXRigidbody_t* ret      = 0;
     FILE*          f        = fopen(path, "rb");
@@ -45,26 +53,48 @@ GXRigidbody_t *load_rigidbody             ( const char     path[] )
     free(data);
 
     return ret;
+
     invalidFile:
     #ifndef NDEBUG
         g_print_error("[G10] [Rigidbody] Failed to load file %s\n", path);
     #endif
     return 0;
+
+    // Error handling
+    {
+
+        // Argument error
+        {
+            no_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Rigidbody] Null pointer provided for \"path\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 GXRigidbody_t *load_rigidbody_as_json       ( char          *token )
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(token==(void*)0)
+                goto no_token;
+        #endif
+    }
+    
     // Initialized data
     GXRigidbody_t*  ret        = create_rigidbody();
     size_t          len        = strlen(token);
-    size_t          tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t*    tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+    size_t          token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t*    tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the rigid body  object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Copy relevent data for a rigid body object
-    for (size_t l = 0; l < tokenCount; l++)
+    for (size_t l = 0; l < token_count; l++)
     {
         // Parse out type
         if (strcmp("active", tokens[l].key) == 0)
@@ -119,10 +149,34 @@ GXRigidbody_t *load_rigidbody_as_json       ( char          *token )
     free(tokens);
 
     return ret;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Rigidbody] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 int            update_position_and_velocity ( GXRigidbody_t *rigidbody, GXTransform_t *transform, u32 delta_time )
 {
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(rigidbody == (void*)0)
+                goto no_rigidbody;
+            if(transform == (void*)0)
+                goto no_transform;
+        #endif
+    }
+
     // Initialized data
     vec3 f = apply_force(rigidbody);
     vec3 a = mul_vec3_f(f, 1 / rigidbody->mass);
@@ -131,14 +185,50 @@ int            update_position_and_velocity ( GXRigidbody_t *rigidbody, GXTransf
     add_vec3(&transform->location, transform->location, mul_vec3_f(rigidbody->velocity, delta_time / 1000.f));
 
     return 0;
+
+    // Error handling
+    {
+        no_rigidbody:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Rigidbody] Null pointer provided for \"rigidbody\" in call to function \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+        no_transform:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Rigidbody] Null pointer provided for \"transform\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 int            destroy_rigidbody          ( GXRigidbody_t *rigidbody )
 {
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if (rigidbody == (void*)0)
+                goto no_rigidbody;
+        #endif
+    }
+
     rigidbody->mass         = 0;
     rigidbody->acceleration = (vec3){ 0.f,0.f,0.f };
 
     free(rigidbody);
 
     return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_rigidbody:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Rigidbody] Null pointer provided for \"rigidbody\" in call to function \"%s\"\n",__FUNCSIG__);
+                #endif
+                return 0;
+        }
+    }
 }

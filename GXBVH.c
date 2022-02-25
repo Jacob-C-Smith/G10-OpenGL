@@ -38,7 +38,7 @@ GXBV_t* create_bv_from_entity(GXEntity_t* entity)
 
 	// Copy location and scale
 	ret->location = &entity->transform->location;
-	ret->scale    = &entity->transform->scale;
+	ret->dimensions = &entity->transform->scale;
 
 	ret->entity   = entity;
 
@@ -68,12 +68,22 @@ GXBV_t* create_bv_from_entity(GXEntity_t* entity)
 
 GXBV_t* create_bv_from_bvs(GXBV_t* a, GXBV_t* b)
 {
-	// TODO: Argument check
+
+	// Argument check
+	{
+		#ifndef NDEBUG
+			if (a == (void*)0)
+				goto no_a;
+			if (b == (void*)0)
+				goto no_b;
+		#endif
+	}
+
 	GXBV_t* ret = create_bv();
 
 	// Allocate for location and scale
 	ret->location = calloc(1, sizeof(vec3));
-	ret->scale = calloc(1, sizeof(vec3));
+	ret->dimensions = calloc(1, sizeof(vec3));
 
 	// This is not a terminal node
 	ret->entity   = 0;
@@ -93,31 +103,57 @@ GXBV_t* create_bv_from_bvs(GXBV_t* a, GXBV_t* b)
 			 maxBound,
 			 minBound;
 
-		add_vec3(&maxA, *a->location, *a->scale);
-		sub_vec3(&minA, *a->location, *a->scale);
-		add_vec3(&maxB, *b->location, *b->scale);
-		sub_vec3(&minB, *b->location, *b->scale);
+		add_vec3(&maxA, *a->location, *a->dimensions);
+		sub_vec3(&minA, *a->location, *a->dimensions);
+		add_vec3(&maxB, *b->location, *b->dimensions);
+		sub_vec3(&minB, *b->location, *b->dimensions);
 
-		ret->scale->x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x))) - (min(min(maxA.x, minA.x), min(maxB.x, minB.x))))/2.f,
-		ret->scale->y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y))) - (min(min(maxA.y, minA.y), min(maxB.y, minB.y))))/2.f,
-		ret->scale->z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))) - (min(min(maxA.z, minA.z), min(maxB.z, minB.z))))/2.f;
+		ret->dimensions->x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x))) - (min(min(maxA.x, minA.x), min(maxB.x, minB.x))))/2.f,
+		ret->dimensions->y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y))) - (min(min(maxA.y, minA.y), min(maxB.y, minB.y))))/2.f,
+		ret->dimensions->z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))) - (min(min(maxA.z, minA.z), min(maxB.z, minB.z))))/2.f;
 
 		maxBound      = (vec3){ max(maxA.x, maxB.x), max(maxA.y, maxB.y), max(maxA.z, maxB.z) },
 		minBound      = (vec3){ min(minA.x, minB.x), min(minA.y, minB.y), min(minA.z, minB.z) };
 
 		add_vec3(ret->location, minBound, maxBound);
-		ret->location->x /= 2.f,
-		ret->location->y /= 2.f,
-		ret->location->z /= 2.f;
+		ret->location->x = (ret->location->x + maxBound.x) / 2.f,
+		ret->location->y = (ret->location->y + maxBound.y) / 2.f,
+		ret->location->z = (ret->location->z + maxBound.z) / 2.f;
 	}
 
 	return ret;
-	// TODO: Error handling
+
+	// Error handling
+	{
+		
+		// Argument errors
+		{
+			no_a:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"a\" in call to function \"%s\"\n",__FUNCSIG__);
+			#endif
+			return 0;
+			no_b:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"b\" in call to function \"%s\"\n",__FUNCSIG__);
+			#endif
+			return 0;
+		}
+	}
 }
 
 float distance  (GXBV_t *a, GXBV_t *b)
 {
-	// TODO: Argument check
+	// Argument check
+	{
+		#ifndef NDEBUG
+			if (a == (void*)0)
+				goto no_a;
+			if (b == (void*)0)
+				goto no_b;
+		#endif
+	}
+
 	// Initialized data
 	vec3 rV = (vec3) {0.f, 0.f, 0.f};
 
@@ -130,7 +166,23 @@ float distance  (GXBV_t *a, GXBV_t *b)
 	// Return the square root of the sum of each component
 	return sqrtf(rV.x + rV.y + rV.z);
 
-	// TODO: Error handling
+	// Error handling
+	{
+		
+		// Argument errors
+		{
+			no_a:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"a\" in call to function \"%s\"\n",__FUNCSIG__);
+			#endif
+			return 0;
+			no_b:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"b\" in call to function \"%s\"\n",__FUNCSIG__);
+			#endif
+			return 0;
+		}
+	}
 }
 
 GXBV_t* create_bvh_from_scene(GXScene_t* scene)
@@ -262,9 +314,15 @@ GXBV_t* create_bvh_from_scene(GXScene_t* scene)
 
 GXBV_t* find_closest_bv ( GXBV_t *bvh, GXBV_t* bv ) 
 {
-	// TODO: Argument check
-	{
 
+	// Argument check
+	{
+		#ifndef NDEBUG
+			if(bvh == (void*)0)
+				goto no_bvh;
+			if(bv == (void*)0)
+				goto no_bv;
+		#endif
 	}
 
 	GXBV_t* ret = 0;
@@ -291,14 +349,34 @@ GXBV_t* find_closest_bv ( GXBV_t *bvh, GXBV_t* bv )
 	}
 
 	return ret;
-	// TODO: Error handling
+
+	// Error handling
+	{
+	
+		// Argument errors
+		{
+			no_bvh:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"bvh\" in call to function \"%s\"\n", __FUNCSIG__);
+			#endif
+			return 0;
+			
+			no_bv:
+			#ifndef NDEBUG
+				g_print_error("[G10] [BVH] Null pointer provided for \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
+			#endif
+			return 0;
+		}
+	}
 }
 
 GXBV_t* find_parent_bv ( GXBV_t *bvh, GXBV_t *bv )
 {
-	// TODO: Argument check
+	// Argument check
 	{
 		if (bv == 0)
+			return 0;
+		if (bv == bvh)
 			return 0;
 	}
 
@@ -333,19 +411,23 @@ GXBV_t* find_parent_bv ( GXBV_t *bvh, GXBV_t *bv )
 	}
 
 	return ret;
-	// TODO: Error handling
 
 }
 
-int resise_bv(GXBV_t* bv)
+int resize_bv(GXBV_t* bv)
 {
-	if (bv == 0)
-		return 0;
+	// Argument check
+	{
+		if (bv == 0)
+			goto no_bv;
+		if (bv->entity)
+			return 0;//goto no_bv_entity;
+	}
+
 	GXBV_t *a = bv->left,
 	       *b = bv->right;
 
-	if (bv->entity)
-		return 0;		
+
 
 	// Compute the scale
 	{
@@ -356,14 +438,14 @@ int resise_bv(GXBV_t* bv)
 		 	 maxBound,
 			 minBound;
 
-		add_vec3(&maxA, *a->location, *a->scale);
-		sub_vec3(&minA, *a->location, *a->scale);
-		add_vec3(&maxB, *b->location, *b->scale);
-		sub_vec3(&minB, *b->location, *b->scale);
+		add_vec3(&maxA, *a->location, *a->dimensions);
+		sub_vec3(&minA, *a->location, *a->dimensions);
+		add_vec3(&maxB, *b->location, *b->dimensions);
+		sub_vec3(&minB, *b->location, *b->dimensions);
 
-		bv->scale->x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x))) - (min(min(maxA.x, minA.x), min(maxB.x, minB.x)))) / 2.f,
-		bv->scale->y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y))) - (min(min(maxA.y, minA.y), min(maxB.y, minB.y)))) / 2.f,
-		bv->scale->z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))) - (min(min(maxA.z, minA.z), min(maxB.z, minB.z)))) / 2.f;
+		bv->dimensions->x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x))) - (min(min(maxA.x, minA.x), min(maxB.x, minB.x)))) / 2.f,
+		bv->dimensions->y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y))) - (min(min(maxA.y, minA.y), min(maxB.y, minB.y)))) / 2.f,
+		bv->dimensions->z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))) - (min(min(maxA.z, minA.z), min(maxB.z, minB.z)))) / 2.f;
 
 		maxBound = (vec3){ max(maxA.x, maxB.x), max(maxA.y, maxB.y), max(maxA.z, maxB.z) },
 		minBound = (vec3){ min(minA.x, minB.x), min(minA.y, minB.y), min(minA.z, minB.z) };
@@ -373,17 +455,23 @@ int resise_bv(GXBV_t* bv)
 		bv->location->y /= 2.f,
 		bv->location->z /= 2.f;
 	}
+
 	return 0;
-}
 
-bool testCollision(GXEntity_t* entity, GXBV_t* bvh)
-{
-	// TODO: Argument check
-	GXBV_t *e = entity->collider->bv;
-	e = find_closest_bv(bvh, e);
-	return false;
-	// TODO: Error handling
+	// Error handling
+	{
+		no_bv:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null pointer provided for \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
 
+		no_bv_entity:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null pointer provided for \"entity\" in \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
+	}
 }
 
 int draw_scene_bv ( GXScene_t *scene, GXPart_t *cube, GXShader_t *shader, int depth )
@@ -436,7 +524,7 @@ int draw_scene_bv ( GXScene_t *scene, GXPart_t *cube, GXShader_t *shader, int de
 
 int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera, int depth )
 {
-	// TODO: Argument check
+	// Argument check
 	{
 		// 
 	}
@@ -463,9 +551,19 @@ int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera
 	// Use the provided shader, set the camera, model matrix, and color
 	use_shader(shader);
 	set_shader_camera(shader, camera);
-	m = mul_mat4_mat4(mul_mat4_mat4(scale_mat4(*bv->scale), rotation_mat4_from_quaternion((quaternion) { 1.f, 0.f, 0.f, 0.f })), translation_mat4(*bv->location));
-	set_shader_mat4(shader, "M", &m);
-
+	if (bv->entity == (void*)0)
+	{
+	    mat4 sca = scale_mat4(*bv->dimensions),
+			 rot = rotation_mat4_from_quaternion((quaternion) { 1.f, 0.f, 0.f, 1.f }),
+             tra = translation_mat4(*bv->location),
+             tr  = mul_mat4_mat4(tra, sca),
+		     r   = mul_mat4_mat4(rot, tr);
+		set_shader_mat4(shader, "M", &r);
+	}
+	else
+	{
+		set_shader_transform(shader, bv->entity->transform);
+	}
 	// The color is set from accessing the list of colors at the depth modulo 8, so the colors will cycle. 
 	// The intuition is that as hue increases, the bounding volumes are deeper, and as the hue decreases, the bounding volumes are larger
 	set_shader_vec3(shader, "color", colors[depth % 8]);
@@ -490,11 +588,11 @@ int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera
 
 int print_bv ( FILE *f, GXBV_t* bv, size_t d )
 {
-	// TODO: Argument check
+
+	// Argument check
 	{
-		// 
-		if(bv == (void*) 0)
-			return 0;
+		if (bv == (void*)0)
+			goto no_bv;
 	}
 
 	// Base case, print out a header
@@ -510,7 +608,7 @@ int print_bv ( FILE *f, GXBV_t* bv, size_t d )
 		fprintf(f, "\"%s\"", bv->entity->name);
 
 	// Print the location and scale of the bounding volume
-	fprintf(f, "%s - < %.2f %.2f %.2f > - < %.2f %.2f %.2f >\n", (bv->entity) ? "" : "Volume", bv->location->x, bv->location->y, bv->location->z, bv->scale->x, bv->scale->y, bv->scale->z);
+	fprintf(f, "%s - < %.2f %.2f %.2f > - < %.2f %.2f %.2f >\n", (bv->entity) ? "" : "Volume", bv->location->x, bv->location->y, bv->location->z, bv->dimensions->x, bv->dimensions->y, bv->dimensions->z);
 
 	// Print the left node
 	if (bv->left)
@@ -526,9 +624,13 @@ int print_bv ( FILE *f, GXBV_t* bv, size_t d )
 
 	return 0;
 
-	// TODO: Error handling
+	// Error handling
 	{
-		// 
+		no_bv:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null pointer provided for \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
 	}
 }
 
@@ -536,11 +638,10 @@ size_t get_entities_from_bv ( GXBV_t* bv, GXEntity_t** entities, size_t count)
 {
 	// Argument check
 	{
-		// TODO
 		if (entities == 0)
 			goto countingMode;
 		if (bv == 0)
-			return 0;
+			goto no_bv;
 	}
 
 	size_t i = count;
@@ -602,18 +703,47 @@ size_t get_entities_from_bv ( GXBV_t* bv, GXEntity_t** entities, size_t count)
 		}
 		return ret;
 	}
-	// TODO: Error handling
 
+	// Error handling
+	{
+		no_bv:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null poiner provided for \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
+	}
 }
 
 bool checkIntersection(GXBV_t *a, GXBV_t *b)
 {
-	// TODO: Argument check
-	return ((a->location->x - a->scale->x) <= (b->location->x + b->scale->x) && (a->location->x + a->scale->x) >= (b->location->x - b->scale->x) &&
-            (a->location->y - a->scale->y) <= (b->location->y + b->scale->y) && (a->location->y + a->scale->y) >= (b->location->y - b->scale->y) && 
-            (a->location->z - a->scale->z) <= (b->location->z + b->scale->z) && (a->location->z + a->scale->z) >= (b->location->z - b->scale->z));
-	// TODO: Error handling
 
+	// Argument check
+	{
+		#ifndef NDEBUG
+			if(a==(void*)0)
+				goto no_a;
+			if (b == (void*)0)
+				goto no_b;
+		#endif
+	}
+
+	return ((a->location->x - a->dimensions->x) <= (b->location->x + b->dimensions->x) && (a->location->x + a->dimensions->x) >= (b->location->x - b->dimensions->x) &&
+            (a->location->y - a->dimensions->y) <= (b->location->y + b->dimensions->y) && (a->location->y + a->dimensions->y) >= (b->location->y - b->dimensions->y) &&
+            (a->location->z - a->dimensions->z) <= (b->location->z + b->dimensions->z) && (a->location->z + a->dimensions->z) >= (b->location->z - b->dimensions->z));
+	
+	// Error handling
+	{
+		no_a:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null pointer provided for \"a\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
+		no_b:
+		#ifndef NDEBUG
+			g_print_error("[G10] [BVH] Null pointer provided for \"b\" in call to function \"%s\"\n", __FUNCSIG__);
+		#endif
+		return 0;
+	}
 }
 
 int destroy_bv(GXBV_t* bv)
@@ -628,7 +758,7 @@ int destroy_bv(GXBV_t* bv)
 	if (bv->entity == (void*)0)
 	{
 		free(bv->location);
-		free(bv->scale);
+		free(bv->dimensions);
 	}
 
 	if(bv->left)

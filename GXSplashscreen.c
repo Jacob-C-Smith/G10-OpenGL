@@ -17,6 +17,7 @@ int  create_splashscreen  ( const char *forePath, const char *backPath )
 		if (backPath == (void*)0)
 			goto noBackPath;
 	}
+
 	// Uninitialized data
 	unsigned int fw, 
 		         bw,

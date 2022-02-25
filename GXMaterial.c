@@ -56,7 +56,7 @@ GXMaterial_t *load_material       ( const char     path[] )
     {
         noPath:
         #ifndef NDEBUG
-            g_print_log("[G10] [Material] No path provided to function \"%s\"\n", __FUNCSIG__);
+            g_print_log("[G10] [Material] Null pointer provided for \"path\" in call to function \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
@@ -64,10 +64,15 @@ GXMaterial_t *load_material       ( const char     path[] )
 
 GXMaterial_t *load_material_as_json ( char         *token )
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        if (token == (void*)0)
+            goto no_token;
+    }
+
     // Uninitialized data
     size_t        len,
-                  rootTokenCount;
+                  rootToken_count;
     JSONToken_t  *tokens;
 
     // Initialized data
@@ -75,17 +80,17 @@ GXMaterial_t *load_material_as_json ( char         *token )
 
     // Parse JSON Values
     {
-        len = strlen(token), rootTokenCount = parse_json(token, len, 0, 0);
-        tokens = calloc(rootTokenCount, sizeof(JSONToken_t));
+        len = strlen(token), rootToken_count = parse_json(token, len, 0, 0);
+        tokens = calloc(rootToken_count, sizeof(JSONToken_t));
         if (tokens == (void*)0)
             return 0;
-        parse_json(token, len, rootTokenCount, tokens);
+        parse_json(token, len, rootToken_count, tokens);
     }
 
     // TODO: Write code to load many albedos     
 
     // Find and load the textures
-    for (size_t k = 0; k < rootTokenCount; k++)
+    for (size_t k = 0; k < rootToken_count; k++)
     {
         if (strncmp("name", tokens[k].key, 4) == 0)
         {
@@ -94,8 +99,11 @@ GXMaterial_t *load_material_as_json ( char         *token )
             if(p_ret)
             { 
                 destroy_material(ret);
-                g_print_log("[G10] [Material] Material \"%s\" loaded from cache\n",p_ret->name);
-                return p_ret;
+                ret = p_ret;
+                #ifndef NDEBUG
+                    g_print_log("[G10] [Material] Material \"%s\" loaded from cache\n", p_ret->name);
+                #endif
+                goto exit_cache;
             }
 
 
@@ -141,17 +149,31 @@ GXMaterial_t *load_material_as_json ( char         *token )
     
 
     g_cache_material(g_get_active_instance(), ret);
-
-    exit:
+    exit_cache:
+    ret->users++;
 
     // Free root contents
     free(tokens);
 
     return ret;
+
+    // Error handling
+    {
+
+        // Argument check
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif 
+            return 0;
+        }
+    }
 }
 
 GXMaterial_t * get_material( GXMaterial_t *materials, const char name[] )
 {
+
     // Argument checking
     {
         #ifndef NDEBUG
@@ -199,19 +221,22 @@ GXMaterial_t * get_material( GXMaterial_t *materials, const char name[] )
         #endif
         return 0;
     
-        // The materials parameter was null
-        nullMaterials:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Material] Null pointer provided for material in function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+        // Argument errors
+        {
+        
+            nullMaterials:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for material in function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
     
-        // The name parameter was null
-        nullName:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Material] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+            
+            nullName:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for name in function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
 }
 
@@ -238,14 +263,23 @@ int           append_material     ( GXMaterial_t *head     , GXMaterial_t *mater
     // Search for the end of the linked list, and check every material 
     while (i->next)
     {
+
+        if (i == material)
+            goto already_here;
+
         // Error checking
         if (strcmp(i->name, material->name) == 0)
             goto duplicateName;
+
+
+
         i = i->next;
     }
 
     // Assign next as entity
     i->next = material;
+
+    already_here:;
 
     return 0;
 
@@ -258,28 +292,39 @@ int           append_material     ( GXMaterial_t *head     , GXMaterial_t *mater
         #endif
         return 0;
 
-        // The head argument was null
-        nullHead:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Material] Null pointer provided for \"head\" in function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+        // Argument errors
+        {
+            nullHead:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for \"head\" in function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
 
-        // The material argument was null
-        nullMaterial:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Material] Null pointer provided for \"part\" in function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+            // The material argument was null
+            nullMaterial:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for \"part\" in function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
 }
 
+
 int           destroy_material     ( GXMaterial_t *material )
 {
+
+    // Argument check
+    {
+        if (material == (void*)0)
+            goto no_material;
+        if (material->users > 1)
+            goto in_use;
+    }
+
     // Unload all of the textures
     if(material->albedo)
         unload_texture(material->albedo);
-        
     if(material->normal)
         unload_texture(material->normal);
     if(material->metal)
@@ -295,4 +340,21 @@ int           destroy_material     ( GXMaterial_t *material )
     free(material);
 
     return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_material:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for \"material\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+
+        in_use:
+            material->users--;
+            return 0;
+    }
 }

@@ -9,7 +9,7 @@
 #include <glad/glad.h>
 
 #include <G10/GXtypedef.h>
-#include <G10/GXMesh.h>
+#include <G10/GXPart.h>
 
 // PLY Debugging
 #define GXPLY_CheckTriangulation  false
@@ -33,7 +33,7 @@
 #define GXPLY_double              0x62756F64 // "doub"
 #define GXPLY_list                0x7473696C // "list"
 
-// Vertex groups that are likely to be encountered
+// Vertex groups that are likely to be en_countered
 #define GXPLY_Geometric           0x00001
 #define GXPLY_Texture             0x00002
 #define GXPLY_Normal              0x00004
@@ -92,23 +92,23 @@ typedef enum GXPLYFileType_e GXPLYFileType_t;
 
 struct GXPLYproperty_s
 {
-    size_t typeSize;
+    size_t type_size;
     char  *name;
 };
 typedef struct GXPLYproperty_s GXPLYproperty_t;
 
 struct GXPLYelement_s
 {
-    size_t           nCount;
-    size_t           nProperties;
-    size_t           sStride;
+    size_t           n_count;
+    size_t           n_properties;
+    size_t           s_stride;
     GXPLYproperty_t *properties;
     char            *name;
 };
 typedef struct GXPLYelement_s GXPLYelement_t;
 
 struct GXPLYfile_s {
-    size_t          nElements,
+    size_t          n_elements,
                     flags;
     GXPLYFileType_t format;
     GXPLYelement_t *elements;
@@ -126,4 +126,5 @@ struct GXPLYindex_s {
 #pragma pack (pop)
 typedef struct GXPLYindex_s GXPLYindex_t;
 
-GXPart_t *load_ply ( const char path[], GXPart_t *part ); // ✅ Loads a PLY file from path and returns a pointer to GXMesh_t
+GXPart_t *load_ply                  ( const char path[], GXPart_t *part ); // ✅ Loads a PLY file from path and returns a pointer to GXMesh_t
+vec3     *load_ply_geometric_points ( const char path[], size_t   *count );

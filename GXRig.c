@@ -82,7 +82,7 @@ GXRig_t  *load_rig            ( const char *path )
     // Uninitialized data
     size_t       i;
     char        *data;
-    int          tokenCount;
+    int          token_count;
     JSONToken_t *tokens;
     GXRig_t     *ret;
 
@@ -114,14 +114,14 @@ GXRig_t  *load_rig_as_json      ( char       *token )
     // Initialized data
     GXRig_t*     ret        = create_rig();
     size_t       len        = strlen(token);
-    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+    size_t       token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the rig object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Search through values and pull out relevent information
-    for (size_t j = 0; j < tokenCount; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
         // Handle comments
         if (strcmp("comment", tokens[j].key) == 0)
@@ -183,7 +183,7 @@ GXBone_t *load_bone       ( const char *path )
     // Uninitialized data
     size_t       i;
     char*        data;
-    int          tokenCount;
+    int          token_count;
     JSONToken_t* tokens;
 
     // Initialized data
@@ -212,14 +212,14 @@ GXBone_t *load_bone_as_json ( char       *token)
     // Initialized data
     GXBone_t*    ret        = create_bone();
     size_t       len        = strlen(token);
-    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+    size_t       token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the rig object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Search through values and pull out relevent information
-    for (size_t j = 0; j < tokenCount; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
         // Set flags
         if (strcmp("name", tokens[j].key) == 0)

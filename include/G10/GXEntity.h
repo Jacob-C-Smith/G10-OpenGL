@@ -9,7 +9,7 @@
 
 #include <G10/GXLinear.h>
 
-#include <G10/GXMesh.h>
+#include <G10/GXPart.h>
 #include <G10/GXShader.h>
 #include <G10/GXTransform.h>
 #include <G10/GXMaterial.h>

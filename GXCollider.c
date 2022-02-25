@@ -77,20 +77,29 @@ GXCollider_t *load_collider       ( const char   *path )
 
 GXCollider_t *load_collider_as_json ( char         *token )
 {
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(token==(void*)0)
+                goto no_token;
+        #endif
+    }
+
 	// Initialized data
     GXCollider_t *ret        = create_collider();
     size_t        len        = strlen(token),
-                  tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t  *tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+                  token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t  *tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the collider object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Search through values and pull out relevent information
-    for (size_t j = 0; j < tokenCount; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
-        // Set shape
-        if (strcmp("shape", tokens[j].key) == 0)
+        // Set type
+        if (strcmp("type", tokens[j].key) == 0)
         {
             ret->type = 0;
 
@@ -114,13 +123,26 @@ GXCollider_t *load_collider_as_json ( char         *token )
             continue;
         }
         if (strcmp("dimensions", tokens[j].key) == 0)
-        {
-            ret->bv = create_bv();
-            ret->bv->scale->x = (float)atof(tokens[j].value.a_where[0]),
-            ret->bv->scale->y = (float)atof(tokens[j].value.a_where[1]),
-            ret->bv->scale->z = (float)atof(tokens[j].value.a_where[2]);
+        { 
+            ret->bv           = create_bv();
+            if(ret->bv->entity)
+            {
+                if(ret->bv->entity->transform)
+                    ret->bv->dimensions = &ret->bv->entity->transform->scale;
+            }
+            else
+            {
+                ret->bv->dimensions = calloc(1, sizeof(vec3));
+            }
+            ret->bv->dimensions->x = (float)atof(tokens[j].value.a_where[0]),
+            ret->bv->dimensions->y = (float)atof(tokens[j].value.a_where[1]),
+            ret->bv->dimensions->z = (float)atof(tokens[j].value.a_where[2]);
             
 
+        }
+        if (strcmp("convex hull path",tokens[j].key) == 0)
+        {
+            ret->convex_hull = load_ply_geometric_points(tokens[j].value.n_where, ret->convex_hull_count);
         }
     }
 
@@ -137,12 +159,21 @@ GXCollider_t *load_collider_as_json ( char         *token )
             g_print_error("[G10] [Collider] Failed to determine collider type\n");
         #endif
         return 0;
+
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Collider] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
 }
 
 int add_start_collision_callback  ( GXCollider_t *collider, void* function_pointer )
 {
-        // TODO: Argument check
+    // Argument check
     {
         if (collider == (void*)0)
             goto no_collider;
@@ -171,7 +202,8 @@ int add_start_collision_callback  ( GXCollider_t *collider, void* function_point
     collider->aabb_start_callbacks[collider->aabb_start_callback_count++] = function_pointer;
 
     return 0;
-    // TODO: Error handling
+
+    // Error handling
     {
         no_collider:
         #ifndef NDEBUG
@@ -189,7 +221,8 @@ int add_start_collision_callback  ( GXCollider_t *collider, void* function_point
 
 int add_collision_callback        ( GXCollider_t *collider, void* function_pointer )
 {
-    // TODO: Argument check
+
+    // Argument check
     {
         if (collider == (void*)0)
             goto no_collider;
@@ -218,7 +251,8 @@ int add_collision_callback        ( GXCollider_t *collider, void* function_point
     collider->aabb_callbacks[collider->aabb_callback_count++] = function_pointer;
 
     return 0;
-    // TODO: Error handling
+
+    // Error handling
     {
         no_collider:
         #ifndef NDEBUG
@@ -236,7 +270,7 @@ int add_collision_callback        ( GXCollider_t *collider, void* function_point
 
 int add_end_collision_callback    ( GXCollider_t *collider, void* function_pointer )
 {
-    // TODO: Argument check
+    // Argument check
     {
         if (collider == (void*)0)
             goto no_collider;
@@ -265,7 +299,8 @@ int add_end_collision_callback    ( GXCollider_t *collider, void* function_point
     collider->aabb_end_callbacks[collider->aabb_end_callback_count++] = function_pointer;
 
     return 0;
-    // TODO: Error handling
+
+    // Error handling
     {
         no_collider:
         #ifndef NDEBUG
@@ -283,6 +318,24 @@ int add_end_collision_callback    ( GXCollider_t *collider, void* function_point
 
 int          destroy_collider     ( GXCollider_t *collider )
 {
-	// TODO: Write
+	// Argument check
+    {
+        if (collider == (void*)0)
+            goto no_collider;
+    }
+
 	return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_collider:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Collider] Null pointer provided for \"collider\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }

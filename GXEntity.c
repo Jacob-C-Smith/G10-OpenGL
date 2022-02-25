@@ -2,14 +2,17 @@
 
 GXEntity_t *create_entity          ( )
 {
+
     // Allocate space
     GXEntity_t* ret = calloc(1,sizeof(GXEntity_t)); 
     
     // Check the memory
-    #ifndef NDEBUG
-        if (ret == 0)
-            goto noMem;
-    #endif
+    {
+        #ifndef NDEBUG
+            if (ret == 0)
+                goto noMem;
+        #endif
+    }
 
     return ret;
 
@@ -25,6 +28,12 @@ GXEntity_t *create_entity          ( )
 
 GXEntity_t *load_entity            ( const char  path[] )
 {
+    // Argument check
+    {
+        if(path == (void *)0)
+            goto no_path;
+    }
+
     // Uninitialized data
     u8         *data;
     GXEntity_t *ret;
@@ -55,22 +64,37 @@ GXEntity_t *load_entity            ( const char  path[] )
                 g_print_error("[G10] [Entity] Failed to load file %s\n", path);
             #endif
         return 0;
+
+        // Argument errors
+        {
+            no_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Entity] Null pointer provided for \"path\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
 }
 
 GXEntity_t *load_entity_as_json      ( char       *token )
 {
+    // Argument check
+    {
+        if(token == (void *)0)
+            goto no_token;
+    }
+
     // Initialized data
     GXEntity_t  *ret        = create_entity();
     size_t       len        = strlen(token),
-                 tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t *tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+                 token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t *tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the entity object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Search through values and pull out relevent information
-    for (size_t j = 0; j < tokenCount; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
         // Handle comments
         if (strcmp("comment", tokens[j].key) == 0)
@@ -150,8 +174,8 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 if (ret->collider->bv)
                 {
                     ret->collider->bv->entity = ret;
-                    if (&ret->transform->location)
-                        ret->collider->bv->location = &ret->transform->location;
+                    ret->collider->bv->location = &ret->transform->location;
+                    ret->collider->bv->dimensions = &ret->transform->scale;
                 }
             continue;
         }
@@ -169,6 +193,19 @@ GXEntity_t *load_entity_as_json      ( char       *token )
     free(tokens);
 
     return ret;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Entity] Null pointer provided for \"token\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 int         integrate_displacement ( GXEntity_t *entity, float  delta_time)
@@ -271,6 +308,12 @@ int         integrateRotation     ( GXEntity_t *entity, float  delta_time )
 
 int         draw_entity            ( GXEntity_t* entity )
 {
+    // Argument check
+    {
+        if (entity == (void*)0)
+            goto no_entity;
+    }
+
     // Initilized data
     GXPart_t *i = entity->parts;
 
@@ -299,10 +342,25 @@ int         draw_entity            ( GXEntity_t* entity )
     }
 
     return 0;
+
+    // Error handling
+    {
+        no_entity:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Entity] Null pointer provided for \"entity\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 int         destroy_entity(GXEntity_t* entity)
 {
+    // Argument check
+    {
+        if (entity == (void*)0)
+            goto no_entity;
+    }
+
     // Check to see if items are set before destroying them
     if (entity->name != (void*)0)
         free(entity->name);
@@ -315,8 +373,7 @@ int         destroy_entity(GXEntity_t* entity)
         {
             GXPart_t* i = part->next;
 
-            if ( --part->users < 1 )
-                destroy_part(part);
+            destroy_part(part);
 
             part = i;
         }
@@ -324,7 +381,12 @@ int         destroy_entity(GXEntity_t* entity)
 
     // Destroy shader
     if (entity->shader != (void*)0)
+    {
+        GXShader_t* shader = entity->shader;
+
         destroy_shader(entity->shader);
+    }
+        
 
     // Destroy materials
     if (entity->materials != (void*)0)
@@ -333,9 +395,8 @@ int         destroy_entity(GXEntity_t* entity)
         while (material)
         {
             GXMaterial_t* i = material->next;
-            
-            if (--material->users < 1)
-                destroy_material(material);
+
+            destroy_material(material);
 
             material = i;
         }
@@ -362,4 +423,17 @@ int         destroy_entity(GXEntity_t* entity)
 
     // Exit
     return 0;
+
+    // Error handling
+    {
+
+        // Argument error
+        {
+            no_entity:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Entity] Null pointer provided for \"entity\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }

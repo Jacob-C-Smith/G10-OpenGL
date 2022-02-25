@@ -3,26 +3,38 @@
 // TODO: Refactor into allocator, write a constructor
 GXTransform_t *create_transform       ( void )
 {
-   
-    // Allocate space
+    // Allocate for transform
     GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
 
     // Check if memory was allocated
+    #ifndef NDEBUG
     if (ret == 0)
-        return (void*)0;
+        goto no_mem;
+    #endif
 
+    // Return 
     return ret;
+
+    // Error handling
+    {
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Transform] Failed to allocate memory for transform in call to \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
-GXTransform_t *load_transform         ( const char     path[] )
+GXTransform_t *load_transform         ( char    *path )
 {
-    // TODO: Argument check
-
     // Argument check
     {
         #ifndef NDEBUG
-            if(path==(void*)0)
-                goto noArgument;
+            if(path==(void *)0)
+                goto no_path;
         #endif
     }
 
@@ -48,17 +60,10 @@ GXTransform_t *load_transform         ( const char     path[] )
     
     // Error handling
     {
-        // File not found
-        invalidFile:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Transform] Failed to load file %s\n", path);
-        #endif
-        return 0;
-
         // Path was null pointer
-        noArgument:
+        no_path:
         #ifndef NDEBUG
-            g_print_error("[G10] [Transform] No file supplied for path in function %s\n", __FUNCSIG__);
+            g_print_error("[G10] [Transform] Null pointer provided for \"path\" in call to \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }
@@ -66,22 +71,26 @@ GXTransform_t *load_transform         ( const char     path[] )
 
 GXTransform_t *load_transform_as_json   ( char          *token ) 
 {
-    // TODO: Argument check
-    
+    // Argument check
+    {
+        if ( token == (void *) 0 )
+            goto no_token;
+    }
+
     // Initialiazed data
     GXTransform_t* ret        = 0;
     size_t         len        = strlen(token),
-                   tokenCount = parse_json(token, len, 0, 0);
-    JSONToken_t*   tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+                   token_count = parse_json(token, len, 0, 0);
+    JSONToken_t*   tokens     = calloc(token_count, sizeof(JSONToken_t));
     vec3           location   = { 0,0,0 },
                    scale      = { 0,0,0 };
     quaternion     q          = { 0,0,0,0 };
 
     // Parse JSON Values
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Find and assign location, rotation, and scale vectors
-    for (size_t k = 0; k < tokenCount; k++)
+    for (size_t k = 0; k < token_count; k++)
         if (strcmp("location", tokens[k].key) == 0)
             location = (vec3){ (float)atof(tokens[k].value.a_where[0]), (float)atof(tokens[k].value.a_where[1]), (float)atof(tokens[k].value.a_where[2]) };
         else if (strcmp("rotation", tokens[k].key) == 0)
@@ -94,10 +103,20 @@ GXTransform_t *load_transform_as_json   ( char          *token )
     // Free subcontents
     free(tokens);
 
-
     // Process transform
     return transform_from_loc_quat_sca(location, q, scale);
-    // TODO: Error handling
+
+    // Error handling
+    {
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Transform] Null pointer provided for \"token\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 
 }
 
@@ -114,32 +133,56 @@ GXTransform_t* transform_from_loc_quat_sca(vec3 location, quaternion rotation, v
     // Create a model matrix from the location, rotation, and scale
     make_model_matrix( &ret->model_matrix, ret );
 
-    // Debug information
-    #ifndef NDEBUG
-        g_print_log("[G10] [Transform] Transform created with location (%f,%f,%f)\n" 
-                  "                                         rotation (%f,%f,%f,%f)\n"
-                  "                                         scale    (%f,%f,%f)\n"
-                  , location.x, location.y, location.z, rotation.u, rotation.i, rotation.j, rotation.k, scale.x, scale.y, scale.z);
-    #endif
-
     return ret;
 }
 
 void make_model_matrix(mat4 *r, GXTransform_t* transform)
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        if(r ==  (void*)0)
+            goto no_result;
+        if (transform == (void*)0)
+            goto no_transform;
+    }
+
     mat4 sca = scale_mat4(transform->scale),
          rot = rotation_mat4_from_quaternion(transform->rotation),
          tra = translation_mat4(transform->location),
-         ts  = mul_mat4_mat4(tra, sca);
-    *r = mul_mat4_mat4(rot, ts);
-    // TODO: Error handling
+         tr  = mul_mat4_mat4(tra, sca);
+        *r   = mul_mat4_mat4(rot, tr);
 
+    return;
+
+    // Error handling
+    {
+        
+        // Argument errors
+        {
+            no_result:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Transform] Null pointer provided for \"r\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            no_transform:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Transform] Null pointer provided for \"transform\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 int            rotate_about_quaternion ( GXTransform_t *transform, quaternion axis, float theta)
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        if(transform==(void*)0)
+            goto no_transform;
+    }
+
     /*
     * To rotate around a quaternion, multiply the transform
     * quaternion a special quaternion called 'p', derived by multiplying
@@ -157,7 +200,14 @@ int            rotate_about_quaternion ( GXTransform_t *transform, quaternion ax
     transform->rotation = (quaternion){ cosHalf, sinHalf * newIJK.x, sinHalf * newIJK.y, sinHalf * newIJK.z };
 
     return 0;
-    // TODO: Error handling
+    // Error handling
+    {
+        no_transform:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Transform] Null pointer provided for \"transform\" in call to funciton \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
 
 }
 
@@ -168,10 +218,12 @@ int            destroy_transform      ( GXTransform_t *transform )
         if (transform == (void*)0)
             goto noTransform;
     }
+
     // Free the transform
     free(transform);
 
     return 0;
+
     //  Error handling
     {
         noTransform:
@@ -180,5 +232,4 @@ int            destroy_transform      ( GXTransform_t *transform )
         #endif
         return 0;
     }
-
 }

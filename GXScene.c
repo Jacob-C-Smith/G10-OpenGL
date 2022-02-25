@@ -64,9 +64,15 @@ GXScene_t  *load_scene       ( const char path[] )
 
 GXScene_t  *load_scene_as_json ( char*      token )
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        if (token == (void*)0)
+            goto no_token;
+    }
+
     // Uninitialized data
-    int          tokenCount;
+    int          token_count;
     JSONToken_t *tokens;
 
     // Initialized data
@@ -79,14 +85,14 @@ GXScene_t  *load_scene_as_json ( char*      token )
     #endif
 
     // Preparse the scene
-    tokenCount       = parse_json(token, l, 0, (void*)0);
-    tokens           = calloc(tokenCount, sizeof(JSONToken_t));
+    token_count       = parse_json(token, l, 0, (void*)0);
+    tokens           = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the scene
-    parse_json(token, l, tokenCount, tokens);
+    parse_json(token, l, token_count, tokens);
 
     // Find and exfiltrate pertinent information.
-    for (size_t j = 0; j < tokenCount; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
         // Copy out the name of the scene
         if (strcmp("name", tokens[j].key) == 0)
@@ -138,8 +144,7 @@ GXScene_t  *load_scene_as_json ( char*      token )
     // Finish up
     free(tokens);
 
-    // Compute and print how long it took to load the scene
-    
+    // Compute and print how long it took to load the scene 
     {
         #ifndef NDEBUG
             c = clock() - c;
@@ -157,6 +162,18 @@ GXScene_t  *load_scene_as_json ( char*      token )
     }
 
     return ret;
+
+    // Error handling
+    {
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"token\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif 
+            return 0;
+        }
+    }
 }
 
 int         append_entity    ( GXScene_t* scene, GXEntity_t* entity )
@@ -384,21 +401,24 @@ int         append_collision ( GXScene_t* scene, GXCollision_t* collision )
         
         return 0;
 
-        // The scene argument was null
-        null_scene:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Scene] Null pointer provided for \"scene\" in function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+        // Argument errors
+        {
 
-        // The collision argument was null
-        null_collision:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Scene] Null pointer provided for \"collision\" in function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+            // The scene argument was null
+            null_scene:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"scene\" in function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            // The collision argument was null
+            null_collision:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"collision\" in function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
-    return 0;
 }
 
 int         draw_scene       ( GXScene_t* scene ) 
@@ -417,7 +437,7 @@ int         draw_scene       ( GXScene_t* scene )
     GXLight_t  *l           = scene->lights;
     GXShader_t* last_shader = 0;
     
-    // Iterate through until encountering a null entity
+    // Iterate through until en_countering a null entity
     while (i)
     {
         // Set up the shader
@@ -433,8 +453,8 @@ int         draw_scene       ( GXScene_t* scene )
             set_shader_camera(i->shader, scene->cameras);
             
             // Set up image based lighting 
-            // if(scene->skybox)
-            //     set_shader_ibl(i->shader, scene->skybox);
+            if(scene->skybox)
+                set_shader_ibl(i->shader, scene->skybox);
         }
         
         // Set up lights
@@ -455,8 +475,8 @@ int         draw_scene       ( GXScene_t* scene )
     draw_skybox:
 
     // Lastly, draw the skybox if there is a skybox
-    //if (scene->skybox)
-        //draw_skybox(scene->skybox, scene->cameras);
+    if (scene->skybox)
+        draw_skybox(scene->skybox);
 
 
     return 0;
@@ -558,7 +578,12 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
          * Computing physics is divided into 4 concurrent steps. The first step is to apply forces
          * on the object. Forces are summated from array indicies 1-n, where n is forces count. 
          * The same is done for torque. New displacement and rotation derivatives are calculated 
-         * from net forces. 
+         * from net forces. Collision detection takes place in two steps. Broad phase collision
+         * detection happens between aabb's. If a broad phase collision is detected, it is added
+         * to the list of collisions. Narrow phase collision detection is performed on actively colliding
+         * aabb's using theconvex hulls and the Gilbert Johnson Keerthi algorithm. The Expanding Polytope
+         * Algorithm is used to compute collision normals, to calculate torque. A simple moment impulse
+         * solver resolves collisions. 
          */
     }
 
@@ -569,40 +594,60 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
         if (delta_time == 0.f)
             goto noDelta;
     }
+
+    // Initialized data
     GXEntity_t* i = scene->entities;
 
     // Update active collisions
     {
+        // Initialized data
         GXCollision_t* active_collisions = scene->collisions;
+
+        // Iterate through active collisions
         while (active_collisions)
         {
-            update_collision(active_collisions);
-            
+            // Initialized data
             GXEntity_t *a = active_collisions->a,
                        *b = active_collisions->b;
 
+            // Update the collision
+            update_collision(active_collisions);
+            
+            // Is the aabb collision over?
             if (active_collisions->has_aabb_collision==false)
             {
-                GXInstance_t* instance = g_get_active_instance();
+                // Initialized data
+                GXInstance_t  *instance = g_get_active_instance();
+                GXCollision_t *c        = 0;
 
+                // Set the ending tick
                 active_collisions->end_tick = instance->ticks;
 
-                for (size_t i = 0; i < a->collider->aabb_end_callback_count; i++)
+                // End collision callback
                 {
-                    void (*function)(collision) = a->collider->aabb_end_callbacks[i];
-                    function(active_collisions);
+                    for (size_t i = 0; i < a->collider->aabb_end_callback_count; i++)
+                    {
+                        void (*function)(collision) = a->collider->aabb_end_callbacks[i];
+                        function(active_collisions);
+                    }
+
+                    for (size_t i = 0; i < b->collider->aabb_end_callback_count; i++)
+                    {
+                        void (*function)(collision) = b->collider->aabb_end_callbacks[i];
+                        function(active_collisions);
+                    }
                 }
 
-                for (size_t i = 0; i < b->collider->aabb_end_callback_count; i++)
-                {
-                    void (*function)(collision) = b->collider->aabb_end_callbacks[i];
-                    function(active_collisions);
-                }
-                
-                GXCollision_t *c = remove_collision(scene, active_collisions);
+                // Remove and destroy the collision
+                c = remove_collision(scene, active_collisions);
                 destroy_collision(c);
                 
             }
+
+            // Is collision over?
+            // TODO
+
+            // Iterate
             active_collisions = active_collisions->next;
         }
     }
@@ -642,42 +687,59 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
 
             // Recompute BV size and BVH tree
             if (i->collider)
-            {
-                vec3 l = normalize( (vec3) { i->transform->scale.x, 0.f, 0.f } ),
-                     f = normalize( (vec3) { 0.f, i->transform->scale.y, 0.f } ),
-                     u = normalize( (vec3) { 0.f, 0.f, i->transform->scale.z } );
+                if(i->collider->bv)
+                {
+                    vec3 l = normalize( (vec3) { i->transform->scale.x, 0.f, 0.f } ),
+                         f = normalize( (vec3) { 0.f, i->transform->scale.y, 0.f } ),
+                         u = normalize( (vec3) { 0.f, 0.f, i->transform->scale.z } );
+                        
+                    rotate_vec3_by_quaternion(&l, l, i->transform->rotation);
+                    rotate_vec3_by_quaternion(&f, f, i->transform->rotation);
+                    rotate_vec3_by_quaternion(&u, u, i->transform->rotation);
 
-                rotate_vec3_by_quaternion(&l, l, i->transform->rotation);
-                rotate_vec3_by_quaternion(&f, f, i->transform->rotation);
-                rotate_vec3_by_quaternion(&u, u, i->transform->rotation);
-
-                i->collider->bv->scale->x = fabs(l.x) + fabs(f.x) + fabs(u.x) + 0.001;
-                i->collider->bv->scale->y = fabs(l.y) + fabs(f.y) + fabs(u.y) + 0.001;
-                i->collider->bv->scale->z = fabs(l.z) + fabs(f.z) + fabs(u.z) + 0.001;
-            }
+                  i->collider->bv->dimensions->x = fabs(l.x) + fabs(f.x) + fabs(u.x) + 0.001;
+                  i->collider->bv->dimensions->y = fabs(l.y) + fabs(f.y) + fabs(u.y) + 0.001;
+                  i->collider->bv->dimensions->z = fabs(l.z) + fabs(f.z) + fabs(u.z) + 0.001;
+              }
         }
 
         // Detect collisions
+        if (i->collider)
         {
-
-
-            // Check current collisions
+            
+            // Initialized data
             GXCollision_t  *collision                = 0;
             GXBV_t         *neighbors                = 0;
             GXEntity_t    **possibe_collisions       = 0;
             size_t          possible_collision_count = 0;
 
+            
             // Broad phase collision detection with bounding volumes
             {
 
-                // Find the neighboring bounding volume
+                // Find the neighboring bounding volume for the current entity
                 {
-                    if (i->collider)
-                        if (i->collider->bv)
-                            neighbors = find_parent_bv(scene->bvh, i->collider->bv);
+                    if (i->collider->bv)
+                    {
 
-                    if (neighbors)
-                        neighbors = (neighbors->left == i->collider->bv) ? neighbors->right : neighbors->left;
+                        neighbors = find_parent_bv(scene->bvh, i->collider->bv);
+                        
+                        if (neighbors)
+                            neighbors = (neighbors->left == i->collider->bv) ? neighbors->right : neighbors->left;
+
+                        GXBV_t* pbv = i->collider->bv;
+
+                        while (pbv)
+                        {
+                            resize_bv(pbv);
+
+                            pbv = find_parent_bv(scene->bvh, pbv);
+                        }
+
+                        
+                    }
+
+
                 }
 
                 // Extract entities from the bounding volume
@@ -689,7 +751,8 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                     possibe_collisions = calloc(possible_collision_count, sizeof(void*));
 
                     // Get collision count
-                    get_entities_from_bv(neighbors, possibe_collisions, possible_collision_count);
+                    if(neighbors)
+                        get_entities_from_bv(neighbors, possibe_collisions, possible_collision_count);
                                        
                     // No collisions?
                     if (possible_collision_count == 0)
@@ -737,7 +800,13 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
 
             // TODO: Narrow phase collision detection between two colliders using GJK or collision primatives
             {
-
+                GXCollision_t* c = scene->collisions;
+                while(c)
+                {
+                    bool result = GJK(c);
+                    printf("%s\n", (result) ? "GJK TRUE" : "GJK FALSE");
+                    c = c->next;
+                }
             }
 
             no_collisions:;
@@ -747,7 +816,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
 
         // Resolve constraints
         {
-            
+            // TODO
 
         }
 
@@ -797,7 +866,7 @@ GXEntity_t *get_entity       ( GXScene_t* scene, const char  name[] )
     if (i == 0)
         goto noEntities;
     
-    // Iterate through list until encountering a null pointer
+    // Iterate through list until en_countering a null pointer
     while (i)
     {
         if (strcmp(name, i->name) == 0)
@@ -860,7 +929,7 @@ GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
     if (i == 0)
         goto noCameras; 
 
-    // Iterate through list until encountering a null pointer
+    // Iterate through list until en_countering a null pointer
     while (i)
     {
         if (strcmp(name, i->name) == 0)
@@ -906,6 +975,14 @@ GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
 GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
 {
 
+    // Argument check
+    {
+        if(scene == (void *)0)
+            goto no_scene;
+        if (name == (void*)0)
+            goto no_name;
+    }
+
     // Create a pointer to the head of the list
     GXLight_t* i = scene->lights;
 
@@ -913,7 +990,7 @@ GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
     if (i == 0)
         goto noLights;
 
-    // Iterate through list until encountering a null pointer
+    // Iterate through list until en_countering a null pointer
     while (i)
     {
         if (strcmp(name, i->name) == 0)
@@ -924,7 +1001,23 @@ GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
     // Unable to locate specified light
     goto noMatch;
 
+    // Error handling
     {
+
+        // Argument errors
+        {
+            no_scene:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"scene\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+            no_name:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"name\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+
         noLights:
         #ifndef NDEBUG
             g_print_error("[G10] [Scene] There are no lights in \"%s\".\n", scene->name);
@@ -951,6 +1044,7 @@ int         set_active_camera ( GXScene_t* scene, const char  name[] )
                 goto nullName;
         #endif
     }
+
     // Create a pointer to the head of the list 
     GXCamera_t* i = scene->cameras;
     
@@ -1246,25 +1340,33 @@ GXLight_t  *remove_light     ( GXScene_t* scene, const char  name[] )
         #endif
         return 0;
 
-        // The scene parameter was null
-        nullScene:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+        // Argument errors
+        {
+            nullScene:
+            #ifndef NDEBUG
+                    g_print_error("[G10] [Scene] Null pointer provided for \"scene\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
     
-        // The name parameter was null
-        nullName:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+            nullName:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"name\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+            
         }
+    }
 }
 
 GXCollision_t *remove_collision ( GXScene_t* scene, GXCollision_t *collision )
 {
-    // TODO: Argument checking 
+    // Argument checking 
+    {
+        if (scene == (void *)0)
+            goto no_scene;
+        if (collision == (void*)0)
+            goto no_collision;
+    }
 
 
     // Create a pointer to the head of the list
@@ -1306,7 +1408,19 @@ GXCollision_t *remove_collision ( GXScene_t* scene, GXCollision_t *collision )
 
     // Error handling
     {
-
+        // Argument errors
+        {
+            no_scene:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Scene] Null pointer provided for \"scene\" in call to function \"%s\"\n",__FUNCSIG__);
+                #endif
+                return 0;
+            no_collision:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Scene] Null pointer provided for \"collision\" in call to function \"%s\"\n",__FUNCSIG__);
+                #endif
+                return 0;
+        }
     }
 }
 
@@ -1360,11 +1474,14 @@ int         destroy_scene    ( GXScene_t* scene )
 
     // Error handling 
     {
-        // The scene parameter was null
-        nullScene:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Scene] Null pointer provided to \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+
+        // Argument errors
+        {
+            nullScene:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Null pointer provided for \"scene\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+         }
     }
 }

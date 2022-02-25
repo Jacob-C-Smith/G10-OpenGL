@@ -32,24 +32,6 @@
 // For some reason, SDL defines main. I don't know why, but it needs to be undef'd.
 #undef main
 
-void bfun(GXCollision_t *collision)
-{
-    printf("BEGIN %lld <<< %s %s >>> \n", collision->begin_tick, collision->a->name, collision->b->name);
-}
-
-void fun(GXCollision_t* collision)
-{
-    printf("<<< %s %s >>> \r", collision->a->name, collision->b->name);
-}
-
-
-void efun(GXCollision_t* collision)
-{
-    printf("\nEND %lld <<< %s %s >>> \n", collision->end_tick, collision->a->name, collision->b->name);
-}
-
-
-
 int main ( int argc, const char *argv[] )
 {
 
@@ -57,11 +39,7 @@ int main ( int argc, const char *argv[] )
     GXInstance_t         *instance          = 0;
     GXScene_t            *scene             = 0;
     GXCameraController_t *camera_controller = 0;
-    char                 *initialScene      = 0,
-                         *initialIP         = 0;
-
-    GXPart_t             *cube;
-    GXShader_t           *cube_shader;
+    char                 *initial_instance  = 0;
 
     // Parse command line arguments
     {
@@ -86,96 +64,44 @@ int main ( int argc, const char *argv[] )
             // Load
             if (strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--load") == 0)
             {
-                initialScene = argv[++i];
+                initial_instance = argv[++i];
                 continue;
             }
 
-            // Connect
-            if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i],"--connect") == 0)
-            {
-                initialIP = argv[++i];
-                continue;
-            }
         }
     }
 
     // Initialize G10
     {
         #ifndef NDEBUG
-            instance = g_init("G10/Debug instance.json");
+            instance = g_init(initial_instance ? initial_instance : "G10/Debug instance.json");
         #else 
-            instance = g_init("G10/Release instance.json");
+            instance = g_init(initial_instance ? initial_instance : "G10/Release instance.json");
         #endif
     }
-
-    // Create a splash screen
-    {
-        #ifdef NDEBUG
-            create_splashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
-        #endif
-    }
-
-    // Load the scene
-    scene            = load_scene("Room 3.json");
-
-    instance->scenes = scene;
-    cube_shader      = load_shader("G10/shaders/G10 solid color.json");
-    cube             = load_part("G10/cube.json");
-
-    // Server?
-    /*
-    {
-
-        GXServer_t* server = load_server_as_json("G10/G10 server.json");
-        instance->server = server;
-        connect(server, "172.29.159.42", 8877);
-
-        GXCommand_t* _join_command = connect_command("Jake");
-        GXCommand_t* _no_op_command = no_op_command();
-        GXCommand_t* _chat_command = chat_command(CHAT_ALL, "Hello, World!\n");
-        //GXCommand_t *_displace_orient_command = displace_orient_command();
-
-        enqueue_command(server, _join_command);
-        enqueue_command(server, _no_op_command);
-        enqueue_command(server, _chat_command);
-
-        flush_commands(server);
-    }
-    */
 
     // Set up some binds
     {
         // Find the quit bind and the mouse locking bind
         GXBind_t *quit       = find_bind(instance->input, "QUIT"),
-                 *lock_mouse = find_bind(instance->input, "TOGGLE LOCK MOUSE");
+                 *lock_mouse = find_bind(instance->input, "TOGGLE LOCK MOUSE"),
+                 *fullscreen = find_bind(instance->input, "TOGGLE FULLSCREEN");
+
+        scene = instance->scenes;
 
         // If quit is fired, exit the game loop
         register_bind_callback(quit, &g_exit_game_loop);
 
-        // Toggle mouse
+        // Toggle mouse locking
         register_bind_callback(lock_mouse, &g_toggle_mouse_lock);
+
+        // Toggle fullscreen
+        register_bind_callback(fullscreen, &g_toggle_full_screen);
 
         // Set up the camera controller from the primary camera.
         // NOTE: Requires the following binds: FORWARD, BACKWARD, STRAFE LEFT, STRAFE RIGHT, UP, DOWN, LEFT, and RIGHT. 
         camera_controller = camera_controller_from_camera(instance, scene->cameras);
         
-    }
-
-    // Splash screen animation
-    {
-        for (int i = 0; i > -15; i--)
-        {
-            move_front(i, i);
-            render_textures();
-            SDL_Delay(100);
-        }
-    }
-
-    // Destroy the splash screen
-    {
-        #ifdef NDEBUG
-            destroy_splashscreen();
-        #endif
     }
 
     instance->running = true;
@@ -188,52 +114,26 @@ int main ( int argc, const char *argv[] )
         // Compute delta time
         g_delta(instance);
 
-        // Clear the screen
-        g_clear();
-
         // Debug only FPS readout
         {
             #ifndef NDEBUG
-                //printf("FPS: %.1f\r", (float)instance->delta_time * (float)1000.f); // Uses CR instead of CR LF so as to provide a quasi realtime FPS readout
+                printf("FPS: %.1f\r", (float)instance->delta_time * (float)1000.f); // Uses CR instead of CR LF so as to provide a quasi realtime FPS readout
             #endif
         }
 
         // Process input
         process_input(instance);
 
-        // Process networking actions
-        if (instance->server)
-        {
+        // Clear the screen
+        g_clear();
 
-            // Create a displace orient command 
-            //GXCommand_t* _displace_orient_command = displace_orient_command(camera_controller);
-
-            // Add the position packet
-            //enqueue_command(server, _displace_orient_command);
-
-            // 
-            //flush_commands(server);
-        }
-
-        // Compute physics
+        // Compute physics and draw the scene
         if (instance->scenes)
         {
             update_controlee_camera(camera_controller, instance->delta_time);
             compute_physics(scene, instance->delta_time);
-        }
 
-        // Draw the scene
-        if (instance->scenes)
-        {
             draw_scene(instance->scenes);
-            draw_lights(instance->scenes, cube, cube_shader);
-        }
-
-        // Draw bounding volumes on the scene
-        {
-            #ifndef NDEBUG
-                draw_scene_bv(instance->scenes, cube, cube_shader, 32);
-            #endif
         }
 
         // Swap the window 
@@ -242,8 +142,6 @@ int main ( int argc, const char *argv[] )
 
     // G10 Unloading
     {
-        destroy_part(cube);
-        destroy_shader(cube_shader);
         g_exit(instance);
     }
 

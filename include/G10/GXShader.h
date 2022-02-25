@@ -30,6 +30,7 @@ struct GXShader_s
     char              *name;
     unsigned int       shader_program_id;
     size_t             requested_data_count;
+    size_t             users;
     GXUniform_t       *requested_data;
 };
 
@@ -53,8 +54,8 @@ GXShader_t        *load_shader_as_json  ( char       *token );                  
 GXUniform_t       *load_uniform_as_json ( char       *token );                                                                    // ✅ Load a uniform as a JSON token.
 
 // Shader processing
-int                load_compile_shader  ( GXShader_t *shader    , const char  *vertexPath      , const char  *fragmentPath      ); // ✅ Loads a glsl vertex and glsl fragment shader from path and return a pointer to GXShader_t
-int                compile_from_text    ( GXShader_t *shader    , char        *vertexShaderText, char        *fragmentShaderText); // ✅ Compiles a shader from shader text
+int                load_compile_shader  ( GXShader_t *shader    , char        *vertex_path       , char        *fragment_path);        // ✅ Loads a glsl vertex and glsl fragment shader from path and return a pointer to GXShader_t
+int                compile_from_text    ( GXShader_t *shader    , char        *vertex_shader_text, char        *fragment_shader_text); // ✅ Compiles a shader from shader text
 
 // Shader manipulation
 int                use_shader           ( GXShader_t *shader );                                                                   // ✅ Uses a shader program

@@ -45,6 +45,14 @@ GXCamera_t *create_camera                  ( )
 
 GXCamera_t *load_camera                    ( const char  *path )
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(path == (void *)0)
+                goto no_path;
+        #endif
+    }
+
     // Initialized data
     GXCamera_t *ret      = 0;
     FILE       *f        = fopen(path, "rb");
@@ -63,21 +71,42 @@ GXCamera_t *load_camera                    ( const char  *path )
     free(data);
 
     return ret;    
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Camera] Null pointer provided for \"path\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 GXCamera_t *load_camera_as_json              ( char        *token )
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(token==(void*)0)
+                goto no_token;
+        #endif
+    }
+
     // Initialized data
     GXCamera_t*  ret        = create_camera();
     size_t       len        = strlen(token);
-    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+    size_t       token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the camera object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Copy relevent data for a camera object
-    for (size_t l = 0; l < tokenCount; l++)
+    for (size_t l = 0; l < token_count; l++)
     {
         // Parse out the camera name
         if (strcmp("name", tokens[l].key) == 0)
@@ -174,22 +203,64 @@ GXCamera_t *load_camera_as_json              ( char        *token )
             g_print_error("[G10] [Camera] Out of memory in call to function \"%s\"\n",__FUNCSIG__);
             return 0;
         #endif
+
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Camera] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
 }
 
 void        computeProjectionMatrix       ( GXCamera_t* camera )
 {
+    // Argument check
+    {
+        if (camera == (void*)0)
+            goto no_camera;
+    }
+
     // Compute and set the projection matrix for the camera
     camera->projection = perspective(to_radians(camera->fov), camera->aspect_ratio, camera->near_clip, camera->far_clip);
+
+    return;
+
+    // Argument errors
+    {
+        no_camera:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Camera] Null pointer provided for \"camera\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return;
+    }
 }
 
 
 
 int         destroy_camera                 ( GXCamera_t* camera )
 {
-    free(camera->name);
+    
+    // Argument check
+    {
+        if(camera == (void*)0)
+            goto no_camera;
+    }
 
+    free(camera->name);
+    
     free(camera);
 
     return 0;
+
+    // Argument errors
+    {
+        no_camera:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Camera] Null pointer provided for \"camera\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }

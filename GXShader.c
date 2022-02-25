@@ -5,10 +5,12 @@ GXShader_t  *create_shader        ( void )
     GXShader_t* ret = calloc(1, sizeof(GXShader_t));
     
     // Check the memory
-    #ifndef NDEBUG
-        if (ret == 0)
-            goto noMem;
-    #endif
+    {
+        #ifndef NDEBUG
+            if (ret == 0)
+                goto noMem;
+        #endif
+    }
 
     return ret;
 
@@ -24,18 +26,20 @@ GXShader_t  *create_shader        ( void )
 
 GXShader_t  *load_shader          ( const char   path[])
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        if (path == (void*)0)
+            goto no_path;
+    }
+
     // Uninitialized data
     size_t       i;
     char        *data;
     GXShader_t  *ret;
     size_t       len,
-                 rootTokenCount;
+                 rootToken_count;
     JSONToken_t *tokens;
-
-    // Initialized data
-    FILE        *f = fopen(path, "rb");
-
 
     // Load the file
     i    = g_load_file(path, 0, false);
@@ -45,32 +49,37 @@ GXShader_t  *load_shader          ( const char   path[])
     ret = load_shader_as_json(data);
 
     free(data);
-
-    #ifndef NDEBUG
-        if(ret == (void*)0)
-            goto badFile;
-    #endif
     
     return ret;
 
     // Error handling
     {
-    badFile:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Shader] Unable to parse \"%s\"\n",path);
-        #endif
-        return 0;
+
+        // Argument errors
+        {
+            no_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"path\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
 }
 
 GXShader_t  *load_shader_as_json  ( char        *token)
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        if(token == (void *)0)
+            goto no_token;
+    }
+
     // Uninitialized data
     int                i;
     char              *data;
     size_t             len,
-                       rootTokenCount;
+                       rootToken_count;
     JSONToken_t       *tokens;
 
     // Initialized data
@@ -85,18 +94,44 @@ GXShader_t  *load_shader_as_json  ( char        *token)
     // Preparse JSON
     {
         len            = strlen(token),
-        rootTokenCount = parse_json(token, len, 0, 0);
-        tokens         = calloc(rootTokenCount, sizeof(JSONToken_t));
+        rootToken_count = parse_json(token, len, 0, 0);
+        tokens         = calloc(rootToken_count, sizeof(JSONToken_t));
     }
 
     // Parse JSON Values
-    parse_json(token, len, rootTokenCount, tokens);
+    parse_json(token, len, rootToken_count, tokens);
 
     // Find and load the shaders and token
-    for (size_t j = 0; j < rootTokenCount; j++)
+    for (size_t j = 0; j < rootToken_count; j++)
     {
+
+        // Copy out the name of the shader
+        if (strcmp("name", tokens[j].key) == 0)
+        {
+            GXShader_t* p_ret = g_find_shader(g_get_active_instance(), tokens[j].value.n_where);
+
+            if (p_ret)
+            {
+                destroy_shader(ret);
+                ret = p_ret;
+                #ifndef NDEBUG
+                    g_print_log("[G10] [Shader] Shader \"%s\" loaded from cache\n", p_ret->name);
+                #endif
+                goto exit_cache;
+            }
+
+
+            char* s_name = tokens[j].value.n_where;
+            size_t l = strlen(s_name);
+            ret->name = calloc(l + 1, sizeof(u8));
+
+            strncpy(ret->name, s_name, l);
+
+            continue;
+        }
+
         // Point to the vertex shader
-        if (strcmp("vertex shader path", tokens[j].key) == 0)
+        else if (strcmp("vertex shader path", tokens[j].key) == 0)
         {
             vertexPath = tokens[j].value.n_where;
             continue;
@@ -109,17 +144,7 @@ GXShader_t  *load_shader_as_json  ( char        *token)
             continue;
         }
 
-        // Copy out the name of the shader
-        else if (strcmp("name", tokens[j].key) == 0)
-        {
-            char *s_name =  tokens[j].value.n_where;
-            size_t l = strlen(s_name);
-            ret->name = calloc(l + 1, sizeof(u8));
 
-            strncpy(ret->name, s_name, l);
-            
-            continue;
-        }
 
         // Copy out requested data
         else if (strcmp("uniforms", tokens[j].key) == 0)
@@ -138,8 +163,14 @@ GXShader_t  *load_shader_as_json  ( char        *token)
     {
         load_compile_shader(ret, vertexPath, fragmentPath);
         ret->requested_data_count = requestedDataCount;
-        ret->requested_data      = requestedData;
+        ret->requested_data       = requestedData;
     }
+
+    // Cache the shader
+    g_cache_shader(g_get_active_instance(), ret);
+
+    exit_cache:
+        ret->users++;
 
     // Free subcontents
     free(tokens);
@@ -147,18 +178,36 @@ GXShader_t  *load_shader_as_json  ( char        *token)
     // Set the shader
     return ret;
 
-    // TODO: Error handling
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"token\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+
+
+    }
 
 }
 
 GXUniform_t *load_uniform_as_json ( char        *token )
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        if (token == (void*)0)
+            goto no_token;
+    }
+
     // Uninitialized data
     int                i;
     char              *data;
     size_t             len,
-                       rootTokenCount;
+                       rootToken_count;
     JSONToken_t       *tokens;
 
     // Initialized data
@@ -170,15 +219,15 @@ GXUniform_t *load_uniform_as_json ( char        *token )
     // Preparse JSON
     {
         len            = strlen(token),
-        rootTokenCount = parse_json(token, len, 0, 0);
-        tokens         = calloc(rootTokenCount, sizeof(JSONToken_t));
+        rootToken_count = parse_json(token, len, 0, 0);
+        tokens         = calloc(rootToken_count, sizeof(JSONToken_t));
     }
 
     // Parse JSON Values
-    parse_json(token, len, rootTokenCount, tokens);
+    parse_json(token, len, rootToken_count, tokens);
 
     // Find and load the shaders and token
-    for (size_t j = 0; j < rootTokenCount; j++)
+    for (size_t j = 0; j < rootToken_count; j++)
     {
         if (strcmp(tokens[j].key, "name") == 0)
         {
@@ -223,12 +272,23 @@ GXUniform_t *load_uniform_as_json ( char        *token )
 
     // Error handling
     {
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
 
-        unknownUniformType:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Shader] Unknown uniform type ");
-        #endif
-        return 0;
+        // Uniform errors
+        {
+            unknownUniformType:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Unknown uniform type ");
+            #endif
+            return 0;
+        }
     }
 }
 
@@ -284,86 +344,84 @@ int          appendUniform        ( GXUniform_t *list,         GXUniform_t   *un
     }
 }
 
-int     load_compile_shader  ( GXShader_t* shader, const char   vertexPath[], const char     fragmentPath[])
+int     load_compile_shader  ( GXShader_t* shader, char *vertex_path, char *fragment_path)
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if (shader == (void*)0)
+                goto no_shader;
+            if (vertex_path == (void*)0)
+                goto no_vertex_path;
+            if (fragment_path == (void*)0)
+                goto no_fragment_path;
+        #endif
+    }
+
     // Uninitialized data
-    char       * vfdata,                            // Vertex shader text
-               * ffdata;                            // Fragment shader text
-    size_t       vfi,                               // Vertex shader text index
-                 ffi;                               // Fragment shader text index
+    char        *vfdata,                            // Vertex shader text
+                *ffdata;                            // Fragment shader text
+    size_t       vfi = 0,                           // Vertex shader text index
+                 ffi = 0;                           // Fragment shader text index
     unsigned int vShader,                           // OpenGL vertex shader
                  fShader;                           // OpenGL fragment shader
     int          status;                            // Checks for compilation issues
 
-    // Initialized data
-    FILE* vf        = fopen(vertexPath, "rb");      // Vertex shader source code FILE
-    FILE* ff        = fopen(fragmentPath, "rb");    // Fragment shader source code FILE
-    
-    GXShader_t* ret = shader;                       // The return 
-
-    // TODO: Skip to error handling
-    #ifndef NDEBUG
-        if (ret == 0)
-            return (void*)0;
-    #endif
-
     // Load the files
-    {
-        // TODO: Use g_load_file
-        // Check files
-        if (vf == NULL)
-        {
-            g_print_error("[G10] [Shader] Failed to load file %s\n", vertexPath);
-            return (void*)0;
-        }
+    vfi = g_load_file(vertex_path, 0, false);
+    vfdata = calloc(vfi, sizeof(u8));
+    g_load_file(vertex_path, vfdata, false);
 
-        if (ff == NULL)
-        {
-            g_print_error("[G10] [Shader] Failed to load file %s\n", fragmentPath);
-            return (void*)0;
-        }
-
-        // Find file size and prep for read
-        fseek(vf, 0, SEEK_END);
-        fseek(ff, 0, SEEK_END);
-
-        vfi = ftell(vf);
-        ffi = ftell(ff);
-
-        fseek(vf, 0, SEEK_SET);
-        fseek(ff, 0, SEEK_SET);
-
-        // Allocate data and read file into memory
-        vfdata = calloc(vfi+1,sizeof(char));
-        ffdata = calloc(ffi+1, sizeof(char));
-
-        fread(vfdata, 1, vfi, vf);
-        fread(ffdata, 1, ffi, ff);
-
-        // The file is no longer needed
-        fclose(vf);
-        fclose(ff);
-
-        vfdata[vfi] = '\0';
-        ffdata[ffi] = '\0';
-    }
+    ffi = g_load_file(fragment_path, 0, false);
+    ffdata = calloc(ffi, sizeof(u8));
+    g_load_file(fragment_path, ffdata, false);
 
     // Compile shaders
-    compile_from_text(ret, vfdata, ffdata);
+    compile_from_text(shader, vfdata, ffdata);
 
     // The shader text is no longer needed
     free(vfdata);
     free(ffdata);
 
-
     return 0;
-    // TODO: Error handling
+
+    // Error handling
+    {
+        // Argument errors
+        {
+            no_shader:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"shader\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+
+            no_vertex_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"vertex_path\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+            
+            no_fragment_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"fragment_path\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
-int          compile_from_text    ( GXShader_t  *shader,       char          *vertexShaderText, char         *fragmentShaderText )
+int          compile_from_text    ( GXShader_t  *shader,       char          *vertex_shader_text, char         *fragment_shader_text)
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        if(shader == (void *)0)
+            goto no_shader;
+        if (vertex_shader_text == (void*)0)
+            goto no_vertex_shader_text;
+        if (fragment_shader_text == (void*)0)
+            goto no_fragment_shader_text;
+    }
 
     // Uninitialized data
     unsigned int vShader, // OpenGL vertex shader
@@ -376,8 +434,8 @@ int          compile_from_text    ( GXShader_t  *shader,       char          *ve
     vShader = glCreateShader(GL_VERTEX_SHADER);
     fShader = glCreateShader(GL_FRAGMENT_SHADER);
 
-    glShaderSource(vShader, 1, &vertexShaderText, NULL);
-    glShaderSource(fShader, 1, &fragmentShaderText, NULL);
+    glShaderSource(vShader, 1, &vertex_shader_text, NULL);
+    glShaderSource(fShader, 1, &fragment_shader_text, NULL);
 
     glCompileShader(vShader);
     glCompileShader(fShader);
@@ -441,8 +499,28 @@ int          compile_from_text    ( GXShader_t  *shader,       char          *ve
     glDeleteShader(fShader);
 
     return 0;
-    // TODO: Error handling
 
+    // Error handling
+    {
+        // Argument errors
+        {
+        no_shader:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"shader\" in call to \"%s\"\n",__FUNCSIG__);
+            #endif  
+            return 0;
+        no_vertex_shader_text:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"vertex_shader_text\" in call to \"%s\"\n",__FUNCSIG__);
+            #endif  
+            return 0;
+        no_fragment_shader_text:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"fragment_shader_text\" in call to \"%s\"\n",__FUNCSIG__);
+            #endif  
+            return 0;
+        }
+    }
 }
 
 int          use_shader           ( GXShader_t  *shader )
@@ -510,9 +588,7 @@ void         set_shader_transform ( GXShader_t  *shader,       GXTransform_t *tr
     GXUniform_t* i = shader->requested_data;
 
     // Update the model matrix
-    
-    
-    transform->model_matrix = mul_mat4_mat4(mul_mat4_mat4(scale_mat4(transform->scale), translation_mat4(transform->location)), rotation_mat4_from_quaternion(transform->rotation));
+    make_model_matrix(&transform->model_matrix, transform);
 
     for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {
@@ -688,7 +764,7 @@ void         set_shader_ibl       ( GXShader_t  *shader,       GXSkybox_t    *sk
         if (strcmp(i->key, "irradiance cubemap") == 0)
             set_shader_texture(shader, i->value, skybox->irradiance_cubemap);
         if (strcmp(i->key, "prefilter cubemap") == 0)
-            set_shader_texture(shader, i->value, skybox->prefilter_cubemap);
+            set_shader_texture(shader, i->value, skybox->environment_cubemap);
         if (strcmp(i->key, "BRDF LUT") == 0)
             set_shader_texture(shader, i->value, skybox->lut);
 
@@ -761,7 +837,7 @@ void         set_shader_rig       ( GXShader_t  *shader,        GXRig_t       *r
 
     // Error handling
     {
-    noShaderRigSupport:
+        noShaderRigSupport:
         #ifndef NDEBUG
             g_print_error( "[G10] [Shader] Shader \"%s\" does not support bones\n", shader->name );
         #endif
@@ -799,10 +875,13 @@ int          destroy_uniform      ( GXUniform_t *uniform )
 
 int          destroy_shader       ( GXShader_t  *shader )
 {
+
     // Argument check
     {
         if (shader == (void*)0)
             goto noShader;
+        if (shader->users > 1)
+            goto in_use;
     }
 
     // Deallocate associated data
@@ -824,10 +903,23 @@ int          destroy_shader       ( GXShader_t  *shader )
     free(shader);
 
     return 0;
+
     // Error handling
     {
-        noShader:
+
+        // Argument errors
+        {
+            noShader:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Shader] Null pointer provided for \"shader\" in call to function \"%s\"\n",__FUNCSIG__);
+            #endif 
             return 0;
+        }
+
+        in_use:
+            shader->users--;
+            return 0;
+
     }
 }
 

@@ -32,5 +32,8 @@ GXMaterial_t *get_material          ( GXMaterial_t *materials, const char name[]
 // Appenders
 int           append_material       ( GXMaterial_t *head     , GXMaterial_t *material ); // ✅ Appends a material to the end of a list of materials
 
+// Removers 
+GXMaterial_t *remove_material       ( GXMaterial_t *head, char *name );
+
 // Destructors
 int           destroy_material       ( GXMaterial_t *material );                          // ✅ Destroys a material

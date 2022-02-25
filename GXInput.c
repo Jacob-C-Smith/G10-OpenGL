@@ -400,19 +400,48 @@ GXBind_t* create_bind(void)
 {
     GXBind_t* ret = calloc(1, sizeof(GXBind_t));
 
-    // TODO: Check memory
+    // Check memory
+    {
+        #ifndef NDEBUG
+            if(ret==(void*)0)
+                goto no_memory;
+        #endif
+    }
     
     return ret;
+
+    // Error handling
+    {
+        no_memory:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Bind] Unable to allocate memory in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 GXInput_t* create_input(void)
 {
     GXInput_t *ret = calloc(1, sizeof(GXInput_t));
 
-    // TODO: Check memory
-
+    // Check memory
+    {
+        #ifndef NDEBUG
+            if(ret==(void*)0)
+                goto no_memory;
+        #endif
+    }
+    
     return ret;
-    // TODO: Error handling
+
+    // Error handling
+    {
+        no_memory:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Bind] Unable to allocate memory in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 GXInput_t* load_input(const char path[])
@@ -457,7 +486,15 @@ GXInput_t* load_input(const char path[])
 
 GXInput_t* load_input_as_json(char* token)
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+        if (token == (void*)0)
+            goto no_token;
+        #endif
+    }
+
     GXInput_t    *ret = create_input();
     size_t token_len = strlen(token),
            token_count = parse_json(token, token_len, 0, 0);
@@ -489,12 +526,26 @@ GXInput_t* load_input_as_json(char* token)
     free(tokens);
 
     return ret;
-    // TODO: Error handling
+
+    // Error handling
+    {
+        no_token:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Input] Null pointer provided for \"token\" in call to function \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 GXBind_t* load_bind_as_json(char* token)
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        if (token == (void*)0)
+            goto no_token;
+    }
+
     GXBind_t* ret = create_bind();
     size_t    len = strlen(token),
               token_count = parse_json(token, len, 0, 0);
@@ -535,12 +586,24 @@ GXBind_t* load_bind_as_json(char* token)
     free(tokens);
 
     return ret;
-    // TODO: Error handling
+
+    // Error handling
+    {
+
+        // Argument handling
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Bind] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 int register_bind_callback(GXBind_t* bind, void* function_pointer)
 {
-    // TODO: Argument check
+    // Argument check
     {
         if (bind == (void*)0)
             goto noBind;
@@ -569,7 +632,8 @@ int register_bind_callback(GXBind_t* bind, void* function_pointer)
     bind->callbacks[bind->callback_count++] = function_pointer;
 
     return 0;
-    // TODO: Error handling
+
+    // Error handling
     {
         noBind:
         #ifndef NDEBUG
@@ -595,11 +659,13 @@ int unregister_bind_callback(GXBind_t* bind, void* function_pointer)
 
 SDL_Scancode find_key(const char* name)
 {
-    // TODO: Argument check
+    // Argument check
     {
         if (name == 0)
             goto noName;
     }
+
+
     for (size_t i = 0; i < 98; i++)
         if (strcmp(name, keys[i].name) == 0)
             return keys[i].code;
@@ -607,7 +673,7 @@ SDL_Scancode find_key(const char* name)
     //g_print_warning("[G10] [Input] Unidentified key name \"%s\" passed to funciton \"%s\"\n", name, __FUNCSIG__);
     return (SDL_Scancode)0;
 
-    // TODO: Error handling
+    // Error handling
     {
         noName:
         g_print_error("[G10] [Input] No name provided to function \"%s\"\n", __FUNCSIG__);
@@ -617,7 +683,6 @@ SDL_Scancode find_key(const char* name)
 
 int print_all_keys(void)
 {
-    // TODO: Argument check
     for (size_t i = 0; i < 98; i++)
         printf("\"%s\"\n", keys[i].name);
 
@@ -626,7 +691,15 @@ int print_all_keys(void)
 
 int print_all_binds(GXInput_t* inputs)
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if (inputs == (void*)0)
+                goto no_inputs;
+        #endif
+    }
+
     GXBind_t *i = 0;
     
     while (i->next)
@@ -643,7 +716,18 @@ int print_all_binds(GXInput_t* inputs)
 
     }
     return 0;
-    // TODO: Error handling
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_inputs:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"inputs\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif 
+            return 0;
+        }
+    }
 }
 
 int process_input(GXInstance_t* instance)
@@ -786,7 +870,15 @@ int process_input(GXInstance_t* instance)
 
 int fire_bind ( GXBind_t* bind, callback_parameter_t input, GXInstance_t* instance )
 {
-    // TODO: Argument check
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(bind==(void*)0)
+                goto no_bind;
+        #endif
+    }
+
     for (size_t i = 0; i < bind->callback_count; i++)
     {
         void (*function)(input, instance) = bind->callbacks[i];
@@ -794,12 +886,29 @@ int fire_bind ( GXBind_t* bind, callback_parameter_t input, GXInstance_t* instan
     }
 
     return 0;
-    // TODO: Error handling
+    
+    // Error handling
+    {
+        no_bind:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Bind] Null pointer provided for \"bind\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 int append_bind(GXInput_t* input, GXBind_t* bind)
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(input == (void*)0)
+                goto no_input;
+            if (bind == (void*)0)
+                goto no_bind;
+        #endif
+    }
+
     GXBind_t *i = input->binds;
 
     if (i == 0)
@@ -814,12 +923,39 @@ int append_bind(GXInput_t* input, GXBind_t* bind)
     i->next = bind;
 
     return 0;
-    // TODO: Error handling
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_input:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"input\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            no_bind:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"input\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 GXBind_t *find_bind(GXInput_t* input, char* name)
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(input == (void*)0)
+                goto no_input;
+            if (name == (void*)0)
+                goto no_name;
+        #endif
+    }
+
     GXBind_t *i = input->binds;
 
     while (i)
@@ -830,15 +966,59 @@ GXBind_t *find_bind(GXInput_t* input, char* name)
     }
 
     return i;
-    // TODO: Error handling
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_input:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"input\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            no_name:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"name\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 int remove_bind(GXInput_t* input, GXBind_t* bind)
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(input == (void*)0)
+                goto no_input;
+            if (bind == (void*)0)
+                goto no_bind;
+        #endif
+    }
 
+    // TODO
     return 0;
-    // TODO: Error handling
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_input:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"input\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+            no_bind:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Input] Null pointer provided for \"bind\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 int destroy_bind(GXBind_t* bind)
@@ -879,10 +1059,15 @@ int destroy_bind(GXBind_t* bind)
 
 int destroy_input(GXInput_t* input)
 {
+
     // Argument check
-    if (input == (void*)0)
-        goto noInput;
-    
+    {
+        #ifndef NDEBUG
+        if (input == (void*)0)
+            goto noInput;
+        #endif
+    }
+
     // Free the input name
     free(input->name);
 
@@ -903,6 +1088,9 @@ int destroy_input(GXInput_t* input)
     // Error handling
     {
         noInput:
-            return 0;
+        #ifndef NDEBUG
+            g_print_error("[G10] [Input] Null poiner provided for \"input\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
     }
 }

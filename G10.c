@@ -2,7 +2,7 @@
 
 static GXInstance_t *active_instance = 0;
 
-GXInstance_t *g_init              ( const char       *path )
+GXInstance_t *g_init                ( const char          *path )
 {
     // Argument Check
     {
@@ -13,30 +13,35 @@ GXInstance_t *g_init              ( const char       *path )
     }
 
     // Initialized data
-    GXInstance_t *ret            = calloc(1, sizeof(GXInstance_t));
-    size_t        i              = g_load_file(path, 0, false),
-                  token_count    = 0;
-    JSONToken_t  *tokens         = 0;
-    char         *token_text     = calloc(i, sizeof(u8)),
-                 *window_title   = "G10";
-    i32           window_width   = 640,
-                  window_height  = 480;
-    bool          fullscreen     = false;
-    size_t        token_text_len = 0;
+    GXInstance_t *ret                  = calloc(1, sizeof(GXInstance_t));
+    size_t        i                    = g_load_file(path, 0, false),
+                  token_count          = 0;
+    JSONToken_t  *tokens               = 0;
+    char         *token_text           = calloc(i, sizeof(u8)),
+                 *window_title         = "G10",
+                 *initial_scene        = 0;
+    i32           window_width         = 1280,
+                  window_height        = 720;
+    bool          fullscreen           = false;
+    size_t        token_text_len       = 0,
+                  part_cache_count     = 32,
+                  material_cache_count = 32,
+                  shader_cache_count   = 8;
     
     // Load the file
     g_load_file(path, token_text, false);
 
     token_text_len = strlen(token_text);
 
-    // Parse the JSON
+    // Preparse the JSON
     token_count = parse_json(token_text, token_text_len, 0, 0);
     tokens      = calloc(token_count, sizeof(JSONToken_t));
     parse_json(token_text, token_text_len, token_count, tokens);
 
+    // Parse the JSON
     for (i = 0; i < token_count; i++)
     {
-        if (strcmp(tokens[i].key, "name")          == 0)
+        if (strcmp(tokens[i].key, "name")                 == 0)
         { 
             if (tokens[i].type == JSONstring)
             {
@@ -48,19 +53,19 @@ GXInstance_t *g_init              ( const char       *path )
             }
             continue;
         }
-        if (strcmp(tokens[i].key, "window width")  == 0)
+        if (strcmp(tokens[i].key, "window width")         == 0)
         { 
             if (tokens[i].type == JSONprimative)
                 window_width = atoi(tokens[i].value.n_where);
             continue;
         }
-        if (strcmp(tokens[i].key, "window height") == 0)
+        if (strcmp(tokens[i].key, "window height")        == 0)
         { 
             if (tokens[i].type == JSONprimative)
                 window_height = atoi(tokens[i].value.n_where);
             continue;
         }
-        if (strcmp(tokens[i].key, "window title")  == 0)
+        if (strcmp(tokens[i].key, "window title")         == 0)
         { 
             if (tokens[i].type == JSONstring)
             {
@@ -72,19 +77,43 @@ GXInstance_t *g_init              ( const char       *path )
             }
             continue;
         }
-        if (strcmp(tokens[i].key, "fullscreen")    == 0)
+        if (strcmp(tokens[i].key, "fullscreen")           == 0)
         {
             if (tokens[i].type == JSONprimative)
                 fullscreen = (bool)tokens[i].value.n_where;
             continue;
-       }
-        if (strcmp(tokens[i].key, "input")         == 0)
+        }
+        if (strcmp(tokens[i].key, "input")                == 0)
         {
             if (tokens[i].type == JSONstring)
                 ret->input = load_input(tokens[i].value.n_where);
             else
                 ret->input = load_input_as_json(tokens[i].value.n_where);
 
+            continue;
+        }
+        if (strcmp(tokens[i].key, "initial scene")        == 0)
+        {
+            size_t initial_scene_len = 0;
+            initial_scene_len = strlen(tokens[i].value.n_where);
+            initial_scene = calloc(initial_scene_len + 1, sizeof(char));
+
+            strncpy(initial_scene, tokens[i].value.n_where, initial_scene_len);
+            continue;
+        }
+        if (strcmp(tokens[i].key, "cache part count")     == 0)
+        {
+            part_cache_count = atoi(tokens[i].value.n_where);
+            continue;
+        }
+        if (strcmp(tokens[i].key, "cache material count") == 0)
+        {
+            material_cache_count = atoi(tokens[i].value.n_where);
+            continue;
+        }
+        if (strcmp(tokens[i].key, "cache shader count")   == 0)
+        {
+            shader_cache_count = atoi(tokens[i].value.n_where);
             continue;
         }
     }
@@ -124,17 +153,14 @@ GXInstance_t *g_init              ( const char       *path )
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
         // Create the OpenGL context
-        ret->glContext = SDL_GL_CreateContext(ret->window);
+        ret->gl_context = SDL_GL_CreateContext(ret->window);
 
         // Check the window
         if (!ret->window)
             goto noWindow;
 
-        // Display the window
-        SDL_ShowWindow(ret->window);
-
         // Check the OpenGL context
-        if (!ret->glContext)
+        if (!ret->gl_context)
             goto noSDLGLContext;
 
         // Check the glad loader
@@ -142,7 +168,7 @@ GXInstance_t *g_init              ( const char       *path )
             goto gladFailed;
 
         #ifndef NDEBUG
-            if (ret->glContext == (void*)0)
+            if (ret->gl_context == (void*)0)
                 goto nullGLContext;
         #endif
 
@@ -171,7 +197,6 @@ GXInstance_t *g_init              ( const char       *path )
             glEnable(GL_DEPTH_TEST);
             glDepthFunc(GL_LEQUAL);
             glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-            glEnable(GL_MULTISAMPLE);
             glLineWidth(2);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -210,22 +235,40 @@ GXInstance_t *g_init              ( const char       *path )
         }
     }
 
-    free(window_title);
+    //free(window_title);
 
-    ret->delta_time = 0.01f;
+    ret->delta_time            = 0.01f;
+    
+    ret->cached_parts          = calloc(part_cache_count    , sizeof(void*));
+    ret->cached_materials      = calloc(material_cache_count, sizeof(void*));
+    ret->cached_shaders        = calloc(shader_cache_count  , sizeof(void*));
 
-    ret->cached_entities       = calloc(128, sizeof(void*));
-    ret->cached_parts          = calloc(128, sizeof(void*));
-    ret->cached_materials      = calloc(128, sizeof(void*));
-    ret->cached_textures       = calloc(128, sizeof(void*));
-
-    ret->cached_entity_names   = calloc(128, sizeof(void*));
-    ret->cached_part_names     = calloc(128, sizeof(void*));
-    ret->cached_material_names = calloc(128, sizeof(void*));
-    ret->cached_texture_names  = calloc(128, sizeof(void*));
-
-
+    ret->cached_part_names     = calloc(part_cache_count    , sizeof(void*));
+    ret->cached_material_names = calloc(material_cache_count, sizeof(void*));
+    ret->cached_shader_names   = calloc(shader_cache_count  , sizeof(void*));
+    
     active_instance = ret;
+
+    // Create a splash screen
+    create_splashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
+
+    ret->scenes                = (initial_scene) ? load_scene(initial_scene) : 0;
+
+    // Splash screen animation
+    {
+        for (int i = 0; i > -15; i--)
+        {
+            move_front(i, i);
+            render_textures();
+            SDL_Delay(100);
+        }
+    }
+
+    // Destroy the splash screen
+    destroy_splashscreen();
+
+    // Display the window
+    SDL_ShowWindow(ret->window);
 
     return ret;
 
@@ -289,7 +332,7 @@ GXInstance_t *g_init              ( const char       *path )
     }
 }
 
-size_t        g_load_file         ( const char       *path,   void          *buffer   , bool binaryMode )
+size_t        g_load_file           ( const char          *path,   void          *buffer   , bool binaryMode )
 {
     // Argument checking 
     {
@@ -337,8 +380,9 @@ size_t        g_load_file         ( const char       *path,   void          *buf
     }
 }
 
-int           g_print_error       ( const char *const format, ... ) 
+int           g_print_error         ( const char *const    format, ... ) 
 {
+
     // Argument check
     {
         if (format == (void*)0)
@@ -371,8 +415,9 @@ int           g_print_error       ( const char *const format, ... )
     }
 }
 
-int           g_print_warning     ( const char *const format, ... ) 
+int           g_print_warning       ( const char *const    format, ... ) 
 {
+
     // Argument check
     {
         if (format == (void*)0)
@@ -392,6 +437,7 @@ int           g_print_warning     ( const char *const format, ... )
     va_end(aList);
 
     return 0;
+
     // Error handling
     {
         no_format:
@@ -403,7 +449,7 @@ int           g_print_warning     ( const char *const format, ... )
 
 }
 
-int           g_print_log         ( const char *const format, ... ) 
+int           g_print_log           ( const char *const    format, ... ) 
 {
     // Argument check
     {
@@ -436,12 +482,12 @@ int           g_print_log         ( const char *const format, ... )
 
 }
 
-int           g_clear             ( void )
+int           g_clear               ( void )
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-int           g_swap              ( GXInstance_t     *instance )
+int           g_swap                ( GXInstance_t        *instance )
 {
 
     // Argument checking
@@ -475,8 +521,17 @@ int           g_swap              ( GXInstance_t     *instance )
 
 }
 
-int           g_window_resize     ( GXInstance_t     *instance )
+int           g_window_resize       ( GXInstance_t        *instance )
 {
+
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(instance==(void*)0)
+                goto no_instance;
+        #endif
+    }
+
     // Uninitialized data
     int w,
         h;
@@ -486,24 +541,99 @@ int           g_window_resize     ( GXInstance_t     *instance )
 
     // Notify OpenGL of the change
     glViewport(0, 0, w, h);
+
+    return 0;
+
+    // Error handling
+    {
+        no_instance:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif 
+        return 0;
+    }
 }
 
-int           g_exit_game_loop    ( callback_parameter_t  c, GXInstance_t* i )
+int           g_delta               ( GXInstance_t        *instance )
 {
-    if(c.input_state == KEYBOARD)
-        if(c.inputs.key.depressed == true)
-            i->running = false;
+    // Argument checking
+    {
+        if (instance == (void*)0)
+            goto noInstance;
+    }
+
+    // Calculate delta time
+    instance->ticks       = SDL_GetTicks();
+    instance->d           = instance->ticks - instance->lastTime;
+    instance->lastTime    = instance->ticks;
+    instance->delta_time   = (float)1 / instance->d;
+
+    return 0;
+    
+    // Error handling
+    {
+        noInstance:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
+
+}
+ 
+void          g_toggle_mouse_lock   ( callback_parameter_t state, GXInstance_t *instance )
+{
+
+    if (state.inputs.key.depressed)
+    {
+        SDL_SetRelativeMouseMode(!SDL_GetRelativeMouseMode());
+    }
+
+    #ifndef NDEBUG
+        g_print_log("[G10] Toggling mouse locking\n");
+    #endif
+    SDL_Delay(100);
+}
+ 
+void          g_toggle_full_screen  ( callback_parameter_t state, GXInstance_t *instance )
+{
+    static bool fullscreen = false;
+    if (state.inputs.key.depressed)
+    {
+        fullscreen = (fullscreen) ? false : true;
+        SDL_SetWindowFullscreen(instance->window, fullscreen);
+    }
+    #ifndef NDEBUG
+        g_print_log("[G10] Toggling fullscreen\n");
+    #endif
+    SDL_Delay(100);
+}
+
+int           g_exit_game_loop      ( callback_parameter_t state, GXInstance_t *instance )
+{
+
+    if(state.input_state == KEYBOARD)
+        if(state.inputs.key.depressed == true)
+            instance->running = false;
 
     return 0;
 }
 
-GXInstance_t* g_get_active_instance(void)
+GXInstance_t *g_get_active_instance ( void )
 {
     return active_instance;
 }
 
-int g_cache_material(GXInstance_t* instance, GXMaterial_t* material)
+int           g_cache_material      ( GXInstance_t        *instance, GXMaterial_t *material )
 {
+    // Argument check
+    {
+        if (instance == (void*)0)
+            goto no_instance;
+        if (material == (void*)0)
+            goto no_material;
+    }
+
     if (instance->cached_material_count >= 128)
         return 0;
 
@@ -521,10 +651,36 @@ int g_cache_material(GXInstance_t* instance, GXMaterial_t* material)
     }
 
     return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+            no_material:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"material\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
-int g_cache_part ( GXInstance_t *instance, GXPart_t *part )
+int           g_cache_part          ( GXInstance_t        *instance, GXPart_t     *part )
 {
+    // Argument check
+    {
+        if (instance == (void*)0)
+            goto no_instance;
+        if (part == (void*)0)
+            goto no_part;
+    }
+
     if (instance->cached_part_count >= 128)
         return 0;
 
@@ -542,10 +698,76 @@ int g_cache_part ( GXInstance_t *instance, GXPart_t *part )
     }
 
     return 0;
+    
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            no_part:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"part\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
+int           g_cache_shader        ( GXInstance_t        *instance, GXShader_t   *shader )
+{
+    // Argument check
+    {
+        if (instance == (void*)0)
+            goto no_instance;
+        if (shader == (void*)0)
+            goto no_shader;
+    }
 
-GXMaterial_t* g_find_material(GXInstance_t* instance, char* name)
+    if (instance->cached_shader_count >= 128)
+        return 0;
+
+    instance->cached_shader_count++;
+
+    for (size_t i = 0; i < instance->cached_shader_count; i++)
+    {
+        if (instance->cached_shaders[i])
+            continue;
+
+        instance->cached_shaders[i] = shader,
+            instance->cached_shader_names[i] = shader->name;
+
+        break;
+    }
+
+    return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+            no_shader:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"shader\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
+}
+
+GXMaterial_t *g_find_material       ( GXInstance_t        *instance, char         *name )
 {
 
     // Argument check
@@ -582,8 +804,8 @@ GXMaterial_t* g_find_material(GXInstance_t* instance, char* name)
         }
     }
 }
-
-GXPart_t* g_find_part(GXInstance_t* instance, char* name)
+ 
+GXPart_t     *g_find_part           ( GXInstance_t        *instance, char         *name )
 {
     // Argument check
     {
@@ -620,40 +842,51 @@ GXPart_t* g_find_part(GXInstance_t* instance, char* name)
     }
 }
 
-int           g_delta             ( GXInstance_t     *instance )
+GXShader_t   *g_find_shader         ( GXInstance_t        *instance, char         *name )
 {
-    // Argument checking
+    // Argument check
     {
         if (instance == (void*)0)
-            goto noInstance;
+            goto no_instance;
+        if (name == (void*)0)
+            goto no_name;
     }
 
-    // Calculate delta time
-    instance->ticks       = SDL_GetTicks();
-    instance->d           = instance->ticks - instance->lastTime;
-    instance->lastTime    = instance->ticks;
-    instance->delta_time   = (float)1 / instance->d;
+    // Search the cache for shaders
+    for (size_t i = 0; i < instance->cached_shader_count; i++)
+        if (strcmp(instance->cached_shader_names[i], name) == 0)
+            return instance->cached_shaders[i];
 
     return 0;
-    
+
     // Error handling
     {
-        noInstance:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return 0;
+
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__ );
+            #endif
+            return 0;
+
+            no_name:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"name\" in call to function \"%s\"\n", __FUNCSIG__ );
+            #endif
+            return 0;
+        }
+    }
+}
+
+int           g_exit                ( GXInstance_t        *instance )
+{
+    // Argument check
+    {
+        if (instance == (void*)0)
+            goto no_instance;
     }
 
-}
-
-void          g_toggle_mouse_lock ( void )
-{
-    SDL_SetRelativeMouseMode(!SDL_GetRelativeMouseMode());
-}
-
-int           g_exit              ( GXInstance_t     *instance )
-{
     //if(instance->server)
 
     // G10 Deinitialization
@@ -684,7 +917,7 @@ int           g_exit              ( GXInstance_t     *instance )
     // SDL Deinitialization
     {
         SDL_DestroyWindow(instance->window);
-        SDL_GL_DeleteContext(instance->glContext);
+        SDL_GL_DeleteContext(instance->gl_context);
         SDLNet_Quit();
         IMG_Quit();
         SDL_Quit();
@@ -693,4 +926,17 @@ int           g_exit              ( GXInstance_t     *instance )
     free(instance);
     
     return 0;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_instance:
+                #ifndef NDEBUG
+                    g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+        }
+    }
 }

@@ -29,7 +29,7 @@ struct GXTransform_s
 GXTransform_t *create_transform            ( void ); // ✅ Creates a transform from location, rotation, and scale
 
 // Constructors
-GXTransform_t *load_transform              ( const char     path[] );
+GXTransform_t *load_transform              ( char          *path );
 GXTransform_t *load_transform_as_json      ( char          *token );
 GXTransform_t *transform_from_loc_quat_sca ( vec3           location , quaternion     rotation, vec3  scale );
 

@@ -13,7 +13,7 @@
 struct GXBV_s
 {
     vec3          *location,
-                  *scale;
+                  *dimensions;
     GXEntity_t    *entity;
     struct GXBV_s *left,
                   *right;
@@ -34,7 +34,7 @@ GXBV_t *find_closest_bv       ( GXBV_t     *bvh   , GXBV_t      *bv );
 GXBV_t *find_parent_bv        ( GXBV_t     *bvh   , GXBV_t      *bv );
 
 // Tree resizing
-int     resise_bv             ( GXBV_t     *bv );
+int     resize_bv             ( GXBV_t     *bv );
 
 // Debugging
 int     print_bv              ( FILE       *f     , GXBV_t     *bv       , size_t      d );

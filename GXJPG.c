@@ -2,6 +2,12 @@
 
 GXTexture_t* load_jpg_image ( const char path[] )
 {
+    // Argument check
+    {
+        if (path == (void*)0)
+            goto no_path;
+    }
+
     // Uninitialized data
     SDL_Surface* image;
     size_t       allocateSize;
@@ -63,9 +69,21 @@ GXTexture_t* load_jpg_image ( const char path[] )
 
     return ret;
 
-    invalidFile:
-    #ifndef NDEBUG
-        g_print_error("[G10] Failed to load file %s\n", path);
-    #endif
-    return 0;
+    // Error handling
+    {
+        invalidFile:
+        #ifndef NDEBUG
+            g_print_error("[G10] Failed to load file %s\n", path);
+        #endif
+        return 0;
+
+        // Argument errors
+        {
+            no_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [JPG] Null pointer provided for \"path\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }

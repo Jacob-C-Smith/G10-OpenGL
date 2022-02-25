@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include <G10/GXtypedef.h>
+#include <G10/G10.h>
 #include <G10/GXLinear.h>
 #include <G10/GXTransform.h>
 
@@ -51,7 +52,7 @@ extern void            calculate_derivatives_of_rotation     ( void          *en
 
 // Force computation
 extern void            compute_all_forces                    ( void          *entity );
-extern void            compute_frictional_force              ( void          *entity,    float mu, vec3 *normalForce );
+extern void            compute_frictional_force              ( void          *entity,    float mu, vec3 *normal_force );
 extern void            compute_tension_force                 ( void          *entity );
 extern void            compute_normal_force                  ( void          *entity,    float incline );
 extern void            compute_air_resitance_force           ( void          *entity,    float density );

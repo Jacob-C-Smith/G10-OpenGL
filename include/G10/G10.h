@@ -15,6 +15,7 @@
 #include <JSON/JSON.h>
 
 #include <G10/GXtypedef.h>
+#include <G10/GXSplashscreen.h>
 #include <G10/GXScene.h>
 #include <G10/GXInput.h>
 #include <G10/GXTexture.h>
@@ -31,7 +32,7 @@ struct GXInstance_s
 
 	// SDL data
 	SDL_Window    *window;
-	SDL_GLContext  glContext;
+	SDL_GLContext  gl_context;
 	SDL_Event      event;
 
 	// G10 data
@@ -41,25 +42,22 @@ struct GXInstance_s
 	GXScene_t     *scenes;
 
 	// Server 
-	GXServer_t   *server;
+	GXServer_t    *server;
 
 	// Cached assets
-	GXTexture_t  **cached_textures;
 	GXPart_t     **cached_parts;
 	GXMaterial_t **cached_materials;
-	GXEntity_t   **cached_entities;
+	GXShader_t   **cached_shaders;
 
-	// Names of cached assets
-	char         **cached_texture_names,
-		         **cached_part_names,
+		// Names of cached assets
+	char	     **cached_part_names,
 		         **cached_material_names,
-		         **cached_entity_names;
+		         **cached_shader_names;
 
 	// Length of cached asset lists
-	size_t         cached_texture_count,
-		           cached_part_count,
+	size_t	       cached_part_count,
 		           cached_material_count,
-				   cached_entity_count;
+		           cached_shader_count;
 
 	// Delta time
 	u32            d, 
@@ -69,31 +67,37 @@ struct GXInstance_s
 
 };
 
-GXInstance_t *g_init                ( const char           *path );                                      // ✅ g_init initializes SDL and OpenGL
+// Global initializers
+GXInstance_t *g_init                ( const char          *path );                                              // ✅ g_init initializes SDL and OpenGL
  
-size_t        g_load_file           ( const char           *path    , void   *buffer, bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
+// File operations
+size_t        g_load_file           ( const char          *path    , void         *buffer  , bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
 
-int           g_print_error         ( const char *const     format  , ... );                             // ✅ printf, but in red
-int           g_print_warning       ( const char *const     format  , ... );                             // ✅ printf, but in yellow
-int           g_print_log           ( const char *const     format  , ... );                             // ✅ printf, but in blue
+// Debug functions
+int           g_print_error         ( const char *const    format  , ... );                                     // ✅ printf, but in red
+int           g_print_warning       ( const char *const    format  , ... );                                     // ✅ printf, but in yellow
+int           g_print_log           ( const char *const    format  , ... );                                     // ✅ printf, but in blue
 
-int           g_clear               ( void );                                                        // ✅ g_clear clears the color and depth buffers
-int           g_swap                ( GXInstance_t         *instance );
-int           g_window_resize       ( GXInstance_t         *instance );
-int           g_exit_game_loop      ( callback_parameter_t  c       , GXInstance_t* i );
+// Window operations
+int           g_clear               ( void );                                                                   // ✅ Clears the color and depth buffers
+int           g_swap                ( GXInstance_t        *instance );                                          // ✅ Swap buffers
+int           g_window_resize       ( GXInstance_t        *instance );                                          // ✅ Responds to window resizes
+int           g_delta               ( GXInstance_t        *instance );                                          // ✅ Calculates delta time
+void          g_toggle_mouse_lock   ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Toggle mouse locking
+void          g_toggle_full_screen  ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Toggle full screen
+int           g_exit_game_loop      ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Called for exit
 
-GXInstance_t *g_get_active_instance ( void );
+// Getters
+GXInstance_t *g_get_active_instance ( void );                                                                   // ✅ Returns a pointer to the active instance
 
-int           g_cache_texture       ( GXInstance_t         *instance, GXMaterial_t *material );
-int           g_cache_material      ( GXInstance_t         *instance, GXMaterial_t *material );
-int           g_cache_part          ( GXInstance_t         *instance, GXPart_t     *part );
-int           g_cache_entity        ( GXInstance_t         *instance, GXMaterial_t *material );
+// Cache operations
+int           g_cache_material      ( GXInstance_t        *instance, GXMaterial_t *material );                  // ✅ Caches a material for later use
+int           g_cache_part          ( GXInstance_t        *instance, GXPart_t     *part );                      // ✅ Caches a part for later use
+int           g_cache_shader        ( GXInstance_t        *instance, GXShader_t   *shader );                    // ✅ Caches a shader for later use
 
-GXMaterial_t *g_find_material       ( GXInstance_t         *instance, char *name );
-GXPart_t     *g_find_part           ( GXInstance_t         *instance, char *name );
+GXMaterial_t *g_find_material       ( GXInstance_t        *instance, char         *name );                      // ✅ Searches the cache for a specified material
+GXPart_t     *g_find_part           ( GXInstance_t        *instance, char         *name );                      // ✅ Searches the cache for a specified part
+GXShader_t   *g_find_shader         ( GXInstance_t        *instance, char         *name );                      // ✅ Searches the cache for a specified shader
 
-int           g_delta               ( GXInstance_t         *instance );
-
-void          g_toggle_mouse_lock   ( void );
-
-int           g_exit                ( GXInstance_t         *instance );                                  // ✅ g_exit deinitializes SDL and OpenGL
+// Destructors
+int           g_exit                ( GXInstance_t        *instance );                                          // ✅ Deinitializes SDL and OpenGL

@@ -12,10 +12,12 @@ GXTexture_t *create_texture                ( )
 	GXTexture_t* ret = calloc(1,sizeof(GXTexture_t));
 
     // Check the memory
-    #ifndef NDEBUG
-        if (ret == 0)
-            goto noMem;
-    #endif
+	{
+		#ifndef NDEBUG
+		    if (ret == 0)
+	            goto noMem;
+		#endif
+	}
 
 	ret->texture_unit_index = -1; // Textures start out not being mapped
 
@@ -35,6 +37,7 @@ GXTexture_t *create_texture                ( )
 
 GXTexture_t *load_texture                  ( const char   path[] )
 {
+
 	// Argument check
 	{
 		if (path == (void*)0)
@@ -80,13 +83,17 @@ GXTexture_t *load_texture                  ( const char   path[] )
 
 	return ret;
 
-	// TODO: Error handling
+	// Error handling
 	{
-		noPath:
-			#ifndef NDEBUG
-				g_print_error("[G10] [Texture] Null pointer provided for \"path\" in call to %s\n", __FUNCSIG__);
-			#endif	
-		return 0;
+
+		// Argument errors
+		{
+			noPath:
+				#ifndef NDEBUG
+					g_print_error("[G10] [Texture] Null pointer provided for \"path\" in call to %s\n", __FUNCSIG__);
+				#endif	
+			return 0;
+		}
 	}
 
 }
@@ -131,10 +138,10 @@ unsigned int bind_texture_to_unit     ( GXTexture_t *image )
 
 				// Activate and bind the texture
 				glActiveTexture(GL_TEXTURE0 + i);
-				glBindTexture((image->cubemap) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, image->texture_id);
+				glBindTexture((image->cubemap == true) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, image->texture_id);
 
 				// Remove next texture 
-				remove_texture_from_texture_unit(i + 1);
+				remove_texture_from_texture_unit((i + 32) % activeTextures->active_texture_count);
 
 				return i;
 			}
@@ -165,8 +172,10 @@ unsigned int remove_texture_from_texture_unit ( unsigned int       index )
 int          unload_texture                ( GXTexture_t *image )
 {
 	// Argument check
-	if (image == (void*)0)
-		goto noImage;
+	{
+		if (image == (void*)0)
+			goto no_image;
+	}
 
 	// Delete OpenGL buffers
 	glDeleteTextures(1, &image->texture_id);
@@ -176,10 +185,18 @@ int          unload_texture                ( GXTexture_t *image )
 	free(image);
 
 	return 0;
+
 	// Error handling
 	{
-		noImage:
-			g_print_error("[G10] [Texture] Null pointer provided for \"image\" in call to \"%s\"\n", __FUNCSIG__);
+
+		// Argument errors
+		{
+			no_image:
+			#ifndef NDEBUG
+				g_print_error("[G10] [Texture] Null pointer provided for \"image\" in call to \"%s\"\n", __FUNCSIG__);
+			#endif
+			return 0;
+		}
 	}
 
 }

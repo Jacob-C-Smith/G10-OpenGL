@@ -5,15 +5,36 @@ GXLight_t *create_light     ( )
     // Initialized data
     GXLight_t* ret = calloc(1,sizeof(GXLight_t));
 
-    if (ret == (void*)0)
-        return ret;
+    // Check memory
+    {
+        #ifndef NDEBUG
+        if (ret == (void*)0)
+            goto no_mem;
+        #endif 
+    }
 
     // Return
     return ret;
+
+    // Error handling
+    {
+        no_mem:
+        #ifndef NDEBUG
+            g_print_error("[G10] [Light] Unable to allocate memory in call to function \"%s\"\n",__FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
 
 GXLight_t *load_light       ( const char path[] )
 {
+
+    // Argument check
+    {
+        if (path == (void*)0)
+            goto no_path;
+    }
+
     // Uninitialized data
     u8*        data;
     GXLight_t* ret;
@@ -36,21 +57,41 @@ GXLight_t *load_light       ( const char path[] )
     free(data);
 
     return ret;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_path:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Light] Null pointer provided \"path\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+    }
 }
 
 GXLight_t *load_light_as_json ( char      *token )
 {
+
+    // Argument check
+    {
+        if (token == (void*)0)
+            goto no_token;
+    }
+
     // Initialized data
     GXLight_t*   ret        = create_light();
     size_t       len        = strlen(token);
-    size_t       tokenCount = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(tokenCount, sizeof(JSONToken_t));
+    size_t       token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
 
     // Parse the camera object
-    parse_json(token, len, tokenCount, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Iterate through key / value pairs to find relevent information
-    for (size_t l = 0; l < tokenCount; l++)
+    for (size_t l = 0; l < token_count; l++)
     {
         // Parse out the light name
         if (strcmp("name", tokens[l].key) == 0)
@@ -81,6 +122,19 @@ GXLight_t *load_light_as_json ( char      *token )
     ret->next   = 0;
 
     return ret;
+
+    // Error handling
+    {
+
+        // Argument errors
+        {
+            no_token:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Light] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif 
+            return 0;
+        }
+    }
 }
 
 int        destroy_light    ( GXLight_t *light )

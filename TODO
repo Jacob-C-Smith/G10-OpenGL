@@ -41,7 +41,7 @@
  - ❌ Add support for tesselation control shaders and tesselation evaluation shaders
  - ❌ Handle multiple albedo images in one material?
  - ✅ Process lights out of a scene file
- - ✅ Dynamically assign lights
+ - ❌ Dynamically assign lights
  - ❌ Phong lighting model
  - ❌ Implement a method that periodically changes lights based distance to the camera controller 
  - ❌ Dynamic reflections
