@@ -19,7 +19,7 @@ struct GXPart_s
     char            *name;
 
     // Material
-    const char      *material;
+    char            *material;
 
     // Local transform
     GXTransform_t   *transform;    

@@ -33,7 +33,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
          * 
          * Pass 1.
          *     On pass 1, the function counts all the elements in the header. It will also print
-         *     any comments it en_counters. After this pass, the elements are allocated for
+         *     any comments it n_counters. After this pass, the elements are allocated for
          * 
          * Pass 2.
          *     On pass 2, the elements are populated and the properties are counted up and 
@@ -97,7 +97,6 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
                    k                  = 0,
                    vertexGroupCount   = 0,
                    vertexAttribOffset = 0;
-    FILE          *f                  = fopen(path, "rb");
     GXPLYfile_t   *plyFile            = calloc(1, sizeof(GXPLYfile_t));
 
     // Load the file
@@ -155,10 +154,12 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
                 if (*(u32*)cData == GXPLY_HElement)
                 {
                     // TODO: Dynamically determine size. 
+                    char *l = strchr(cData+8, ' ');
+                    size_t n_len = l-(cData+8);
+                    plyFile->elements[j].name = calloc(n_len+1, sizeof(u8));
+                    strncpy(plyFile->elements[j].name, cData+8, n_len);
 
-                    plyFile->elements[j].name = calloc(65, sizeof(u8));
-                    sscanf(cData, "element %s %d\n", plyFile->elements[j].name, &plyFile->elements[j].n_count);
-
+                    plyFile->elements[j].n_count = atoi(cData + 8 + n_len+1);
 
                     i = 0;
                     while (cData[++i] != '\n'); // Skip to the end of the line
@@ -295,6 +296,17 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
                         tflags |= GXPLY_Y;
                     else if (*plyFile->elements[a].properties[b].name == 'z')
                         tflags |= GXPLY_Z;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "tx", 2) == 0)
+                    {
+                        plyFile->flags <<= 8;
+                        plyFile->flags |= (GXPLY_Tangent);
+                        tflags |= GXPLY_TX;
+                        vertexGroupCount++;
+                    }
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "ty", 2) == 0)
+                        tflags |= GXPLY_TY;
+                    else if (strncmp(plyFile->elements[a].properties[b].name, "tz", 2) == 0)
+                        tflags |= GXPLY_TZ;
                     else if (*plyFile->elements[a].properties[b].name == 's')
                     {
                         plyFile->flags <<= 8;
@@ -315,10 +327,11 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
                         tflags |= GXPLY_NY;
                     else if (strncmp(plyFile->elements[a].properties[b].name, "nz", 2) == 0)
                         tflags |= GXPLY_NZ;
+        
                     else if (strncmp(plyFile->elements[a].properties[b].name, "bx", 2) == 0)
                     {
                         plyFile->flags <<= 8;
-                        plyFile->flags |= (GXPLY_Texture);
+                        plyFile->flags |= (GXPLY_Bitangent);
                         tflags |= (GXPLY_BX);
                         vertexGroupCount++;
                     }
@@ -389,8 +402,14 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
                    tflags & GXPLY_NZ ))
                 goto missingVerts;
 
+            if (plyFile->flags & GXPLY_Tangent &&
+                !(tflags & GXPLY_TX &&
+                  tflags & GXPLY_TY &&
+                  tflags & GXPLY_TZ))
+                goto missingVerts;
+
             if (plyFile->flags & GXPLY_Bitangent &&
-                !(tflags & GXPLY_BX &&
+                  !(tflags & GXPLY_BX &&
                     tflags & GXPLY_BY &&
                     tflags & GXPLY_BZ))
                 goto missingVerts;
@@ -484,6 +503,7 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
         {
         case GXPLY_Geometric:
         case GXPLY_Normal:
+        case GXPLY_Tangent:
         case GXPLY_Bitangent:
         case GXPLY_Color:
             glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, plyFile->elements[0].s_stride, vertexAttribOffset * sizeof(float));

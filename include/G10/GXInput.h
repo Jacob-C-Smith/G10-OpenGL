@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <SDL2/SDL.h>
 
@@ -64,6 +65,7 @@ GXInput_t   *create_input             ( void );
 // Constructors
 GXInput_t   *load_input               ( const char path[] );
 GXInput_t   *load_input_as_json       ( char      *token );
+GXInput_t   *load_input_as_json_n     ( char         *token   , size_t len );
 GXBind_t    *load_bind_as_json        ( char      *token );
 
 // Callback registration

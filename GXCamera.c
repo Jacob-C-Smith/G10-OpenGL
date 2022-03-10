@@ -112,7 +112,7 @@ GXCamera_t *load_camera_as_json              ( char        *token )
         if (strcmp("name", tokens[l].key) == 0)
         {
             size_t len = strlen(tokens[l].value.n_where);
-            ret->name  = calloc(len+1, sizeof(u8));
+            ret->name  = calloc(len+1, sizeof(char));
 
             // Check allocated memory
             {
@@ -236,6 +236,14 @@ void        computeProjectionMatrix       ( GXCamera_t* camera )
         #endif
         return;
     }
+}
+
+int look_at_entity(GXCamera_t* camera, GXEntity_t* entity)
+{
+    camera->view = look_at(camera->where, entity->transform->location, (vec3) { 0.f, 0.f, 1.f });
+    
+
+    return 0;
 }
 
 

@@ -143,6 +143,14 @@ typedef struct GXPose_s GXPose_t;
 struct GXBone_s;
 typedef struct GXBone_s GXBone_t;
 
+// Particle system
+struct GXParticleSystem_s;
+typedef struct GXParticleSystem_s GXParticleSystem_t;
+
+// Particle
+struct GXParticle_s;
+typedef struct GXParticle_s GXParticle_t;
+
 // Server
 struct GXServer_s;
 typedef struct GXServer_s GXServer_t;

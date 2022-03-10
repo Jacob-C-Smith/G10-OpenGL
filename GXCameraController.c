@@ -79,7 +79,16 @@ void                  camera_controller_right        ( callback_parameter_t stat
 
 GXCameraController_t *camera_controller_from_camera  ( GXInstance_t* instance, GXCamera_t *camera )
 {
-    // TODO: Argument check
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if ( instance == (void *)0 )
+                goto no_instance;
+            if (camera == (void *)0 )
+                goto no_camera;
+        #endif
+    }
+
     GXCameraController_t *ret = create_camera_controller();;
     u8 errors = 0;
     ret->camera = camera;
@@ -149,8 +158,23 @@ GXCameraController_t *camera_controller_from_camera  ( GXInstance_t* instance, G
 
     return ret;
     
-    // TODO: Error handling
+    // Error handling
     {
+
+        // Argument error
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Camera Controller] Null pointer provided for \"instance\" in call to \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+            no_camera:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Camera Controller] Null pointer provided for \"camera\" in call to \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        }
+
         // Missing bind for camera controller
         {
             missing_binds:

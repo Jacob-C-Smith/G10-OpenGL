@@ -18,6 +18,7 @@
 #include <G10/GXSplashscreen.h>
 #include <G10/GXScene.h>
 #include <G10/GXInput.h>
+#include <G10/GXMaterial.h>
 #include <G10/GXTexture.h>
 
 #undef main

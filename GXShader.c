@@ -37,8 +37,6 @@ GXShader_t  *load_shader          ( const char   path[])
     size_t       i;
     char        *data;
     GXShader_t  *ret;
-    size_t       len,
-                 rootToken_count;
     JSONToken_t *tokens;
 
     // Load the file
@@ -78,9 +76,6 @@ GXShader_t  *load_shader_as_json  ( char        *token)
     // Uninitialized data
     int                i;
     char              *data;
-    size_t             len,
-                       rootToken_count;
-    JSONToken_t       *tokens;
 
     // Initialized data
     GXShader_t        *ret                = create_shader();
@@ -89,20 +84,18 @@ GXShader_t  *load_shader_as_json  ( char        *token)
                       *shaderName         = 0;
     GXUniform_t       *requestedData      = 0;
     size_t             requestedDataCount = 0, 
-                       requestedDataFlags = 0;
+                       requestedDataFlags = 0,
+                       len                = strlen(token),
+                       token_count        = parse_json(token, len, 0, 0);
+    JSONToken_t       *tokens             = calloc(token_count, sizeof(JSONToken_t));;
 
-    // Preparse JSON
-    {
-        len            = strlen(token),
-        rootToken_count = parse_json(token, len, 0, 0);
-        tokens         = calloc(rootToken_count, sizeof(JSONToken_t));
-    }
+                       
 
     // Parse JSON Values
-    parse_json(token, len, rootToken_count, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Find and load the shaders and token
-    for (size_t j = 0; j < rootToken_count; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
 
         // Copy out the name of the shader
@@ -207,7 +200,7 @@ GXUniform_t *load_uniform_as_json ( char        *token )
     int                i;
     char              *data;
     size_t             len,
-                       rootToken_count;
+                       token_count;
     JSONToken_t       *tokens;
 
     // Initialized data
@@ -218,16 +211,16 @@ GXUniform_t *load_uniform_as_json ( char        *token )
                        
     // Preparse JSON
     {
-        len            = strlen(token),
-        rootToken_count = parse_json(token, len, 0, 0);
-        tokens         = calloc(rootToken_count, sizeof(JSONToken_t));
+        len             = strlen(token),
+        token_count = parse_json(token, len, 0, 0);
+        tokens          = calloc(token_count, sizeof(JSONToken_t));
     }
 
     // Parse JSON Values
-    parse_json(token, len, rootToken_count, tokens);
+    parse_json(token, len, token_count, tokens);
 
     // Find and load the shaders and token
-    for (size_t j = 0; j < rootToken_count; j++)
+    for (size_t j = 0; j < token_count; j++)
     {
         if (strcmp(tokens[j].key, "name") == 0)
         {
@@ -746,7 +739,11 @@ void         set_shader_material  ( GXShader_t  *shader,       GXMaterial_t  *ma
             set_shader_texture(shader, i->value, material->ao);
             goto ex;
         }
-
+        if (strcmp(i->key, "height") == 0)
+        {
+            set_shader_texture(shader, i->value, material->height);
+            goto ex;
+        }
         ex:
         i = i->next;
         continue;

@@ -179,7 +179,7 @@ int            rotate_about_quaternion ( GXTransform_t *transform, quaternion ax
 {
     // Argument check
     {
-        if(transform==(void*)0)
+        if ( transform == (void *) 0 )
             goto no_transform;
     }
 
@@ -200,6 +200,7 @@ int            rotate_about_quaternion ( GXTransform_t *transform, quaternion ax
     transform->rotation = (quaternion){ cosHalf, sinHalf * newIJK.x, sinHalf * newIJK.y, sinHalf * newIJK.z };
 
     return 0;
+
     // Error handling
     {
         no_transform:

@@ -18,7 +18,7 @@
 #include <G10/GXNetworking.h>
 #include <G10/GXInput.h>
 #include <G10/GXCameraController.h>
-
+#include <G10/GXParticleSystem.h>
 
 // G10 arch
 #ifdef _M_X64
@@ -43,12 +43,15 @@ int main ( int argc, const char *argv[] )
 
     // Parse command line arguments
     {
+
         // Iterate through arguments
         for (size_t i = 1; i < argc; i++)
         {
+
             // Help 
             if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
             {
+
                 // Initialize SDL
                 if (SDL_Init(SDL_INIT_EVERYTHING))
                 {
@@ -82,6 +85,7 @@ int main ( int argc, const char *argv[] )
 
     // Set up some binds
     {
+
         // Find the quit bind and the mouse locking bind
         GXBind_t *quit       = find_bind(instance->input, "QUIT"),
                  *lock_mouse = find_bind(instance->input, "TOGGLE LOCK MOUSE"),
@@ -102,6 +106,14 @@ int main ( int argc, const char *argv[] )
         // NOTE: Requires the following binds: FORWARD, BACKWARD, STRAFE LEFT, STRAFE RIGHT, UP, DOWN, LEFT, and RIGHT. 
         camera_controller = camera_controller_from_camera(instance, scene->cameras);
         
+    }
+
+    // Particle system programming
+    {
+        GXParticleSystem_t *particle_system = create_particle_system();
+        GXParticle_t       *particle        = create_particle();
+        
+        append_entity(instance->scenes, load_entity("G10/tbn quad entity.json"));
     }
 
     instance->running = true;

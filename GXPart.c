@@ -409,13 +409,6 @@ int       destroy_part    ( GXPart_t  *part )
     glDeleteBuffers(1, &part->vertex_buffer);
     glDeleteBuffers(1, &part->element_buffer);
 
-    // Zero set OpenGL buffers
-    part->vertex_array       = 0;
-    part->vertex_buffer      = 0;
-    part->element_buffer     = 0;
-    part->elements_in_buffer = 0;
-
-
     // Free the part name and material string
     free(part->name);
     free(part->material);

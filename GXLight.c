@@ -49,10 +49,6 @@ GXLight_t *load_light       ( const char path[] )
 
     ret = load_light_as_json(data);
 
-    #ifndef NDEBUG
-        g_print_log("[G10] [Light] Loading \"%s\".\n", (char*)path);
-    #endif	
-
     // Finish up
     free(data);
 
@@ -99,7 +95,7 @@ GXLight_t *load_light_as_json ( char      *token )
             size_t len = strlen(tokens[l].value.n_where);
             ret->name = calloc(len + 1, sizeof(u8));
 
-            strncpy(ret->name, (const char*)tokens[l].value.n_where,len);
+            strncpy(ret->name, (const char*)tokens[l].value.n_where, len);
             continue;
         }
 
@@ -119,7 +115,6 @@ GXLight_t *load_light_as_json ( char      *token )
     }
 
     free(tokens);
-    ret->next   = 0;
 
     return ret;
 

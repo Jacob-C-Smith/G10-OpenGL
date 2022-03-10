@@ -17,6 +17,8 @@ GXBV_t* create_bv ( void )
 
 	// Error handling
 	{
+
+		// Standard l
 		noMem:
 			#ifndef NDEBUG
 				g_print_error("[G10] [BVH] Out of memory\n");

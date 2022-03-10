@@ -70,11 +70,14 @@ GXTexture_t *load_bmp_image ( const char path[] )
 
     // Error handling
     {
-        // No path supplied
-        noPath:
-            #ifndef NDEBUG
-                g_print_error("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
-            #endif
-            return 0;
+
+        // Argument error
+        {
+            noPath:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [BMP] No path supplied to \"%s\"\n",__FUNCSIG__);
+                #endif
+                return 0;
+        }
     }
 }

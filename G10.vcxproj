@@ -225,6 +225,7 @@
     <ClCompile Include="GXCamera.c" />
     <ClCompile Include="GXCameraController.c" />
     <ClCompile Include="GXCollider.c" />
+    <ClCompile Include="GXCollision.c" />
     <ClCompile Include="GXEntity.c" />
     <ClCompile Include="GXFlycam.c" />
     <ClCompile Include="GXGJK.c" />
@@ -235,6 +236,7 @@
     <ClCompile Include="GXMaterial.c" />
     <ClCompile Include="GXPart.c" />
     <ClCompile Include="GXNetworking.c" />
+    <ClCompile Include="GXParticleSystem.c" />
     <ClCompile Include="GXPhysics.c" />
     <ClCompile Include="GXPLY.c" />
     <ClCompile Include="GXPNG.c" />
@@ -247,7 +249,6 @@
     <ClCompile Include="GXSplashscreen.c" />
     <ClCompile Include="GXTexture.c" />
     <ClCompile Include="GXTransform.c" />
-    <ClCompile Include="include\G10\GXCollision.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -271,6 +272,7 @@
     <ClInclude Include="include\G10\GXMaterial.h" />
     <ClInclude Include="include\G10\GXPart.h" />
     <ClInclude Include="include\G10\GXNetworking.h" />
+    <ClInclude Include="include\G10\GXParticleSystem.h" />
     <ClInclude Include="include\G10\GXPhysics.h" />
     <ClInclude Include="include\G10\GXPLY.h" />
     <ClInclude Include="include\G10\GXPNG.h" />
@@ -301,6 +303,7 @@
   <ItemGroup>
     <Text Include="acknowledgements.txt" />
     <Text Include="benchmarks.txt" />
+    <Text Include="error checking requirement.txt" />
     <Text Include="how to build.txt" />
   </ItemGroup>
   <ItemGroup>

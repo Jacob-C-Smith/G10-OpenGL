@@ -52,11 +52,16 @@ extern void            calculate_derivatives_of_rotation     ( void          *en
 
 // Force computation
 extern void            compute_all_forces                    ( void          *entity );
+
+// Contact forces
 extern void            compute_frictional_force              ( void          *entity,    float mu, vec3 *normal_force );
 extern void            compute_tension_force                 ( void          *entity );
 extern void            compute_normal_force                  ( void          *entity,    float incline );
-extern void            compute_air_resitance_force           ( void          *entity,    float density );
 extern void            compute_applied_force                 ( void          *entity );
+
+//
+extern void            compute_air_resitance_force           ( void          *entity,    float density );
+extern void            compute_gravitational_force           ( void          *entity,    float density );
 
 // Physics
 static inline vec3     apply_force                           ( GXRigidbody_t *rigidbody ) {

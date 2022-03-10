@@ -4,11 +4,12 @@ static GXInstance_t *active_instance = 0;
 
 GXInstance_t *g_init                ( const char          *path )
 {
+
     // Argument Check
     {
         #ifndef NDEBUG
             if (path == (void*)0)
-                goto nullPath;
+                goto no_path;
         #endif
     }
 
@@ -90,6 +91,14 @@ GXInstance_t *g_init                ( const char          *path )
             else
                 ret->input = load_input_as_json(tokens[i].value.n_where);
 
+            // Warnings
+            {
+                #ifndef NDEBUG
+                    if(ret->input == (void *)0)
+                        g_print_warning("[G10] Unable to parse \"input\" token in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+            }
+
             continue;
         }
         if (strcmp(tokens[i].key, "initial scene")        == 0)
@@ -169,7 +178,7 @@ GXInstance_t *g_init                ( const char          *path )
 
         #ifndef NDEBUG
             if (ret->gl_context == (void*)0)
-                goto nullGLContext;
+                goto noSDLGLContext;
         #endif
 
         // Enable VSync
@@ -227,12 +236,6 @@ GXInstance_t *g_init                ( const char          *path )
             // Set the clear color to black
             glClearColor(1.f, 1.f, 1.f, 1.0f);
         }
-
-        // Load a missing texture texture
-        {
-            extern GXTexture_t* missingTexture;
-            missingTexture = load_texture("G10/missing texture.png");
-        }
     }
 
     //free(window_title);
@@ -248,6 +251,17 @@ GXInstance_t *g_init                ( const char          *path )
     ret->cached_shader_names   = calloc(shader_cache_count  , sizeof(void*));
     
     active_instance = ret;
+
+    // Load a missing texture texture
+    {
+        extern GXTexture_t* missingTexture;
+        missingTexture = load_texture("G10/textures/missing albedo.png");
+    }
+
+    // Load a missing material
+    {
+        g_cache_material(ret, load_material("G10/materials/missing material.json"));
+    }
 
     // Create a splash screen
     create_splashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
@@ -274,61 +288,64 @@ GXInstance_t *g_init                ( const char          *path )
 
     // Error handling
     {
-        // The provided window double pointer was null
-        nullPath:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null pointer provided to %s.\n", __FUNCSIG__);
-        #endif
-        return 0;
+        
+        // Argument errors
+        {
+            no_path:
+                #ifndef NDEBUG
+                    g_print_error("[G10] Null pointer provided for \"path\" in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+        }
 
-        // The provided OpenGL context pointer was null
-        nullGLContext:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null pointer provided to %s.\n", __FUNCSIG__);
-        #endif
-        return 0;
+        // SDL Errors
+        {
 
-        // SDL failed to initialize
-        noSDL:
-        #ifndef NDEBUG
-            g_print_error("[SDL2] Failed to initialize SDL\n");
-        #endif
-        return 0;
+            // SDL failed to initialize
+            noSDL:
+            #ifndef NDEBUG
+                g_print_error("[SDL2] Failed to initialize SDL\n");
+            #endif
+            return 0;
 
-        // SDL Image failed to initialize
-        noSDLImage:
-        #ifndef NDEBUG
-            g_print_error("[SDL Image] Failed to initialize SDL Image\n");
-        #endif
-        return 0;
+            // SDL Image failed to initialize
+            noSDLImage:
+            #ifndef NDEBUG
+                g_print_error("[SDL Image] Failed to initialize SDL Image\n");
+            #endif
+            return 0;
 
-        // SDL Networking failed to initialize
-        noSDLNetwork:
-        #ifndef NDEBUG
-            g_print_error("[SDL Networking] Failed to initialize SDL Networking\n");
-        #endif
-        return 0;
+            // SDL Networking failed to initialize
+            noSDLNetwork:
+            #ifndef NDEBUG
+                g_print_error("[SDL Networking] Failed to initialize SDL Networking\n");
+            #endif
+            return 0;
 
-        // The SDL window failed to initialize
-        noWindow:
-        #ifndef NDEBUG
-            g_print_error("[SDL2] Failed to create a window\nSDL Says: %s\n", SDL_GetError());
-        #endif
-        return 0;
+            // The SDL window failed to initialize
+            noWindow:
+            #ifndef NDEBUG
+                g_print_error("[SDL2] Failed to create a window\nSDL Says: %s\n", SDL_GetError());
+            #endif
+            return 0;
+        
+            // The OpenGL context failed to initialize
+            noSDLGLContext:
+            #ifndef NDEBUG
+                g_print_error("[SDL2] Failed to create an OpenGL Context\nSDL Says: %s", SDL_GetError());
+            #endif
+            return 0;
+        }
 
-        // The OpenGL context failed to initialize
-        noSDLGLContext:
-        #ifndef NDEBUG
-            g_print_error("[SDL2] Failed to create an OpenGL Context\nSDL Says: %s", SDL_GetError());
-        #endif
-        return 0;
-
-        // The OpenGL loader failed
-        gladFailed:
-        #ifndef NDEBUG
-            g_print_error("[GLAD] Failed to load OpenGL\n");
-        #endif 
-        return 0;
+        // OpenGL loader errors
+        {
+            
+            gladFailed:
+            #ifndef NDEBUG
+                g_print_error("[GLAD] Failed to load OpenGL\n");
+            #endif 
+            return 0;
+        }
     }
 }
 
@@ -366,17 +383,23 @@ size_t        g_load_file           ( const char          *path,   void         
 
     // Error handling
     {
-        noPath:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null path provided to funciton \"%s\\n",__FUNCSIG__);
-        #endif
-        return 0;
-        
-        invalidFile:
-        #ifndef NDEBUG
-            g_print_error("[G10] Failed to load file \"%s\"\n",path);
-        #endif
-        return 0;
+        // Argument errors
+        {
+            noPath:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null path provided to funciton \"%s\\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
+
+        // File errors
+        {
+            invalidFile:
+            #ifndef NDEBUG
+                g_print_error("[G10] Failed to load file \"%s\"\n[Standard library] %s\n",path, strerror(errno));
+            #endif
+            return 0;
+        }
     }
 }
 
@@ -407,11 +430,17 @@ int           g_print_error         ( const char *const    format, ... )
     
     // Error handling
     {
-        no_format:
-            #ifndef NDEBUG
-                g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
-            #endif
-            return 0;
+
+        // Argument errors
+        {
+            no_format:
+                #ifndef NDEBUG
+                    g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+        }
+
+
     }
 }
 
@@ -440,11 +469,15 @@ int           g_print_warning       ( const char *const    format, ... )
 
     // Error handling
     {
-        no_format:
-            #ifndef NDEBUG
-                g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
-            #endif
-            return 0;
+
+        // Argument check
+        {
+            no_format:
+                #ifndef NDEBUG
+                    g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+        }
     }
 
 }
@@ -471,13 +504,18 @@ int           g_print_log           ( const char *const    format, ... )
     va_end(aList);
 
     return 0;
+
     // Error handling
     {
-        no_format:
-            #ifndef NDEBUG
-                g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
-            #endif
-            return 0;
+
+        // Argument errors
+        {
+            no_format:
+                #ifndef NDEBUG
+                    g_print_error("[G10] Null pointer provided for \"format\" in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+        }
     }
 
 }
@@ -505,19 +543,22 @@ int           g_swap                ( GXInstance_t        *instance )
     
     // Error handling
     {
-        noInstance:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n"__FUNCSIG__);
-        #endif
-        return 0;
 
-        noWindow:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null pointer for \"window\" in instance in call to function \"%s\"\n",__FUNCSIG__);
-        #endif
-        return 0;
+        // Argument errors
+        {
+            noInstance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n"__FUNCSIG__);
+            #endif
+            return 0;
+
+            noWindow:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer for \"window\" in instance in call to function \"%s\"\n",__FUNCSIG__);
+            #endif
+            return 0;
+        }
     }
-
 
 }
 
@@ -546,11 +587,15 @@ int           g_window_resize       ( GXInstance_t        *instance )
 
     // Error handling
     {
-        no_instance:
-        #ifndef NDEBUG
-            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
-        #endif 
-        return 0;
+        
+        // Argument errors
+        {
+            no_instance:
+            #ifndef NDEBUG
+                g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif 
+            return 0;
+        }
     }
 }
 
@@ -572,6 +617,8 @@ int           g_delta               ( GXInstance_t        *instance )
     
     // Error handling
     {
+
+        // Argument errors
         noInstance:
         #ifndef NDEBUG
             g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);

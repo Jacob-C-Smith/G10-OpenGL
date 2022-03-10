@@ -2,28 +2,36 @@
 
 GXScene_t  *create_scene     ( void )
 {
+
+    // Initialized data
     GXScene_t* ret = calloc(1,sizeof(GXScene_t));
 
     // Check the memory
-    #ifndef NDEBUG
-        if (ret == 0)
-            goto noMem;
-    #endif
-
+    {
+        #ifndef NDEBUG
+            if (ret == 0)
+                goto noMem;
+        #endif
+    }
     return ret;
 
     // Error handling
     {
+
+        // Standard library errors
+        {
         noMem:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Scene] Out of memory.\n");
-        #endif
-        return 0;
+            #ifndef NDEBUG
+                g_print_error("[G10] [Scene] Out of memory.\n");
+            #endif
+            return 0;
+        }
     }
 }
 
 GXScene_t  *load_scene       ( const char path[] )
 {
+
     // Argument checking
     {
         #ifndef NDEBUG

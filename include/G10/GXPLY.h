@@ -59,6 +59,12 @@
 #define GXPLY_NY                  0x000040
 #define GXPLY_NZ                  0x000080
 
+// Tangent
+#define GXPLY_TX                  0x0800000
+#define GXPLY_TY                  0x1000000
+#define GXPLY_TZ                  0x2000000
+
+
 // Bitangent
 #define GXPLY_BX                  0x000100
 #define GXPLY_BY                  0x000200

@@ -4,29 +4,39 @@ GXCollider_t *create_collider     ( )
 {
 	GXCollider_t* ret = calloc(1, sizeof(GXCollider_t));
 
-	#ifndef NDEBUG
-		if (ret == (void*)0)
-			goto outOfMem;
-	#endif
+    // Check memory
+    {
+	    #ifndef NDEBUG
+		    if (ret == (void*)0)
+		    	goto outOfMem;
+	    #endif
+    }
 
 	return ret;
 
 	// Error handling
 	{
-		outOfMem:
-		#ifndef NDEBUG
-			g_print_error("[G10] [Collider] Out of memory!\n");
-		#endif
-		return 0;
+
+        // Standard library errors
+        {
+		    outOfMem:
+		    #ifndef NDEBUG
+		    	g_print_error("[G10] [Collider] Out of memory!\n");
+	    	#endif
+    		return 0;
+        }
 	}
 }
 
 GXCollider_t *load_collider       ( const char   *path ) 
 {
+    
     // Argument check
     {
-        if ( path == (void*)0 )
-            goto noPath;
+        #ifndef NDEBUG
+            if ( path == (void*)0 )
+                goto noPath;
+        #endif
     }
 
 	// Uninitialized data
@@ -61,17 +71,21 @@ GXCollider_t *load_collider       ( const char   *path )
 
     // Error handling
     {
-        noPath:
-            #ifndef NDEBUG
-                g_print_error("[G10] [Collider] No path provided to function \"%s\"\n", __FUNCSIG__);
-            #endif
-            return 0;
 
-        badFile:
-            #ifndef NDEBUG
-                g_print_error("[G10] [Collider] There was an error parsing file \"%s\"\n", path);
-            #endif
-            return 0;
+        // Argument errors
+        {
+            noPath:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Collider] No path provided to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+
+            badFile:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Collider] There was an error parsing file \"%s\"\n", path);
+                #endif
+                return 0;
+        }
     }
 }
 
@@ -153,13 +167,7 @@ GXCollider_t *load_collider_as_json ( char         *token )
 
     // Error handling
     {
-        // Unable to deduce the collider shape
-        invalidShape:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Collider] Failed to determine collider type\n");
-        #endif
-        return 0;
-
+        
         // Argument errors
         {
             no_token:
@@ -168,6 +176,17 @@ GXCollider_t *load_collider_as_json ( char         *token )
             #endif
             return 0;
         }
+
+        // Data errors
+        {
+            invalidShape:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Collider] Failed to determine collider type\n");
+            #endif
+            return 0;
+        }
+
+        
     }
 }
 

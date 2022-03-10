@@ -396,8 +396,10 @@ const kn_t keys[] = {
     }
 };
 
-GXBind_t* create_bind(void)
+GXBind_t    *create_bind               ( void )
 {
+
+    // Initialized data
     GXBind_t* ret = calloc(1, sizeof(GXBind_t));
 
     // Check memory
@@ -420,8 +422,10 @@ GXBind_t* create_bind(void)
     }
 }
 
-GXInput_t* create_input(void)
+GXInput_t   *create_input              ( void )
 {
+
+    // Initialized data
     GXInput_t *ret = calloc(1, sizeof(GXInput_t));
 
     // Check memory
@@ -443,13 +447,14 @@ GXInput_t* create_input(void)
         return 0;
     }
 }
-
-GXInput_t* load_input(const char path[])
+ 
+GXInput_t   *load_input                ( const char    path[] )
 {
+
     // Argument check
     {
         #ifndef NDEBUG
-            if(path==0)
+            if ( path == (void*)0 )
                 goto noPath;
         #endif
     }
@@ -460,84 +465,228 @@ GXInput_t* load_input(const char path[])
 
     // Initialized data
     GXInput_t    *ret          = 0;
-    FILE         *f            = fopen(path, "rb");  
 
     // Load up the file
-    i = g_load_file(path, 0, false);
-    data = calloc(i, sizeof(u8));
-    g_load_file(path, data, false);
+    {
+        i    = g_load_file(path, 0, false);
+        data = calloc(i + 1, sizeof(u8));
+        g_load_file(path, data, false);
+    }
 
-    ret = load_input_as_json(data);
+    // Construct the input
+    ret = load_input_as_json_n(data, i);
 
     free(data);
+
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if(ret == (void*)0)
+                goto no_ret;
+        #endif
+    }
 
     // Return the input
     return ret;
 
     // Error handling
     {
-        noPath:
+
+        // Debug only branches
         #ifndef NDEBUG
-            g_print_log("[G10] [Input] No path provided to function \"%s\"\n", __FUNCSIG__);
+
+            // Argument errors
+            {
+                noPath:
+                    g_print_log("[G10] [Input] No path provided to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            }
+
+            // G10 errors
+            {
+                no_ret:
+                    g_print_error("[G10] [Input] Failed to parse file \"%s\" in call to function \"%s\"\n", path, __FUNCSIG__);
+                return 0;
+            }
         #endif
-        return 0;
     }
 }
 
-GXInput_t* load_input_as_json(char* token)
+GXInput_t   *load_input_as_json        ( char         *token ) 
 {
 
     // Argument check
     {
         #ifndef NDEBUG
-        if (token == (void*)0)
-            goto no_token;
+            if (token == (void*)0)
+                goto no_token;
         #endif
     }
 
-    GXInput_t    *ret = create_input();
-    size_t token_len = strlen(token),
-           token_count = parse_json(token, token_len, 0, 0);
-    JSONToken_t *tokens = calloc(token_count, sizeof(JSONToken_t));
+    // Initialized data
+    size_t     len = strlen(token);
+    GXInput_t* ret = load_input_as_json_n(token, len);
 
-    parse_json(token, token_len, token_count, tokens);
-
-    for (size_t i = 0; i < token_count; i++)
+    // Error checking
     {
-        if (strcmp(tokens[i].key, "name") == 0)
-        {
-            char* name = tokens[i].value.n_where;
-            size_t len = strlen(name);
-
-            ret->name = calloc(len+1, sizeof(char));
-            
-            strncpy(ret->name, name, len);
-
-        }
-        else if (strcmp(tokens[i].key, "binds") == 0)
-        {
-            for (size_t j = 0; tokens[i].value.a_where[j]; j++)
-            {
-                append_bind(ret, load_bind_as_json(tokens[i].value.a_where[j]));
-            }
-        }
+        if ( ret == (void*)0 )
+            goto no_ret;
     }
-
-    free(tokens);
 
     return ret;
 
     // Error handling
     {
-        no_token:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Input] Null pointer provided for \"token\" in call to function \"%s\"\n",__FUNCSIG__);
-        #endif
-        return 0;
+
+        // Debug only branches
+        {
+            #ifndef NDEBUG
+
+                // Argument errors
+                {
+                    no_token:
+                            g_print_error("[G10] [Input] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+                        return 0;
+                }
+
+                // G10 errors
+                {
+                    no_ret:
+                            g_print_error("[G10] [Input] Failed to parse \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+                        return 0;
+                }
+            #endif
+        }
     }
 }
 
-GXBind_t* load_bind_as_json(char* token)
+GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
+{
+    
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if (token == (void*)0)
+                goto no_token;
+        #endif
+    }
+
+    // Initialized data
+    GXInput_t   *ret         = create_input();
+    size_t       token_len   = len,
+                 token_count = parse_json(token, token_len, 0, 0),
+                 name_len    = 0;
+    JSONToken_t *tokens      = calloc(token_count, sizeof(JSONToken_t));
+
+    // JSON results
+    char        *name        = 0;
+    char       **bind_tokens = 0;
+
+    // Parse JSON
+    parse_json(token, token_len, token_count, tokens);
+
+    // Extract data from tokens
+    for (size_t i = 0; i < token_count; i++)
+    {
+
+        // Parse name
+        if (strcmp(tokens[i].key, "name") == 0)
+            name = tokens[i].value.n_where;
+
+        // Parse binds array
+        else if (strcmp(tokens[i].key, "binds") == 0)
+            bind_tokens = tokens[i].value.a_where;
+
+
+    }
+
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if (name == (void*)0)
+                goto no_name;
+        #endif
+    }
+    
+    // Construct Input
+    {
+
+        // Set name
+        {
+            name_len = strlen(name);
+
+            ret->name = calloc(len + 1, sizeof(char));
+
+            // Error checking
+            {
+                #ifndef NDEBUG
+                    if(ret->name == (void*)0)
+                        goto no_name_mem;
+                #endif
+            }
+
+            strncpy(ret->name, name, len);
+            free(tokens);
+        }
+
+        // Set binds
+        {
+
+            // Iterate through JSON array
+            for (size_t j = 0; bind_tokens[j]; j++)
+
+                // Parse and append each bind from the array
+                append_bind(ret, load_bind_as_json(bind_tokens[j]));
+        }
+    }
+
+    // Warnings
+    {
+        #ifndef NDEBUG
+            if (bind_tokens == (void*)0)
+                g_print_error("[G10] [Input] No binds in input set \"%s\"\n", ret->name);
+        #endif
+    }
+
+    return ret;
+
+    // Error handling
+    {
+
+        // Debug only branches
+        {
+            #ifndef NDEBUG
+            
+                // Argument errors
+                {
+                    no_token:
+                        g_print_error("[G10] [Input] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+                        return (void *)0;
+                }
+
+                // Parsing errors
+                {
+                    no_name:
+                        g_print_error("[G10] [Input] No \"name\" token provided in call to function \"%s\"\n", __FUNCSIG__);
+                        return (void *)0;
+                }
+
+                // Standard library errors
+                {
+                    no_name_mem:
+                        g_print_error("[Standard library] Failed to allocate memory for \"name\" in call to function \"%s\"", __FUNCSIG__);
+                        return (void *)0;
+                }
+
+            #endif
+        }
+
+
+    }
+
+}
+
+GXBind_t    *load_bind_as_json         ( char         *token )
 {
 
     // Argument check
@@ -554,6 +703,8 @@ GXBind_t* load_bind_as_json(char* token)
 
     for (size_t i = 0; i < token_count; i++)
     {
+
+        // Parse name
         if (strcmp(tokens[i].key, "name")==0)
         {
             char *name = tokens[i].value.n_where;
@@ -561,6 +712,8 @@ GXBind_t* load_bind_as_json(char* token)
             ret->name = calloc(len + 1, sizeof(char));
             strncpy(ret->name, name, len);
         }
+        
+        // Parse keys
         else if (strcmp(tokens[i].key, "keys")==0)
         {
             size_t key_count = 0;
@@ -601,7 +754,7 @@ GXBind_t* load_bind_as_json(char* token)
     }
 }
 
-int register_bind_callback(GXBind_t* bind, void* function_pointer)
+int          register_bind_callback    ( GXBind_t     *bind    , void                *function_pointer )
 {
     // Argument check
     {
@@ -649,7 +802,7 @@ int register_bind_callback(GXBind_t* bind, void* function_pointer)
     }
 }
 
-int unregister_bind_callback(GXBind_t* bind, void* function_pointer)
+int          unregister_bind_callback  ( GXBind_t     *bind    , void                *function_pointer )
 {
     // TODO: Argument check
     // TODO
@@ -657,14 +810,13 @@ int unregister_bind_callback(GXBind_t* bind, void* function_pointer)
     // TODO: Error handling
 }
 
-SDL_Scancode find_key(const char* name)
+SDL_Scancode find_key                  ( const char   *name )
 {
     // Argument check
     {
         if (name == 0)
             goto noName;
     }
-
 
     for (size_t i = 0; i < 98; i++)
         if (strcmp(name, keys[i].name) == 0)
@@ -681,7 +833,7 @@ SDL_Scancode find_key(const char* name)
     }
 }
 
-int print_all_keys(void)
+int          print_all_keys            ( void )
 {
     for (size_t i = 0; i < 98; i++)
         printf("\"%s\"\n", keys[i].name);
@@ -689,7 +841,7 @@ int print_all_keys(void)
     return 0;
 }
 
-int print_all_binds(GXInput_t* inputs)
+int          print_all_binds           ( GXInput_t    *inputs )
 {
 
     // Argument check
@@ -715,7 +867,9 @@ int print_all_binds(GXInput_t* inputs)
             printf("\t%p\n",i->callbacks[j]);
 
     }
+
     return 0;
+
     // Error handling
     {
 
@@ -730,8 +884,9 @@ int print_all_binds(GXInput_t* inputs)
     }
 }
 
-int process_input(GXInstance_t* instance)
+int          process_input             ( GXInstance_t *instance )
 {
+
     // Argument check
     {
         #ifndef NDEBUG
@@ -742,9 +897,9 @@ int process_input(GXInstance_t* instance)
         #endif  
     }
 
+    // TODO: Reimplement for other libraries?
 
     // Poll for events 
-    
     while (SDL_PollEvent(&instance->event)) {
         switch (instance->event.type)
         {
@@ -850,6 +1005,7 @@ int process_input(GXInstance_t* instance)
 
     // Error handling
     {
+
         // Argument errors
         {
             noInstance:
@@ -867,8 +1023,8 @@ int process_input(GXInstance_t* instance)
 
     }
 }
-
-int fire_bind ( GXBind_t* bind, callback_parameter_t input, GXInstance_t* instance )
+ 
+int          fire_bind                 ( GXBind_t     *bind    , callback_parameter_t input, GXInstance_t* instance )
 {
 
     // Argument check
@@ -897,7 +1053,7 @@ int fire_bind ( GXBind_t* bind, callback_parameter_t input, GXInstance_t* instan
     }
 }
 
-int append_bind(GXInput_t* input, GXBind_t* bind)
+int          append_bind               ( GXInput_t    *input   , GXBind_t            *bind )
 {
     // Argument check
     {
@@ -944,7 +1100,7 @@ int append_bind(GXInput_t* input, GXBind_t* bind)
     }
 }
 
-GXBind_t *find_bind(GXInput_t* input, char* name)
+GXBind_t    *find_bind                 ( GXInput_t    *input   , char                *name )
 {
     // Argument check
     {
@@ -987,7 +1143,7 @@ GXBind_t *find_bind(GXInput_t* input, char* name)
     }
 }
 
-int remove_bind(GXInput_t* input, GXBind_t* bind)
+int          remove_bind               ( GXInput_t    *input   , GXBind_t            *bind )
 {
     // Argument check
     {
@@ -1020,8 +1176,8 @@ int remove_bind(GXInput_t* input, GXBind_t* bind)
         }
     }
 }
-
-int destroy_bind(GXBind_t* bind)
+ 
+int          destroy_bind              ( GXBind_t     *bind )
 {
     // Argument check
     {
@@ -1057,7 +1213,7 @@ int destroy_bind(GXBind_t* bind)
     }
 }
 
-int destroy_input(GXInput_t* input)
+int          destroy_input             ( GXInput_t    *input )
 {
 
     // Argument check

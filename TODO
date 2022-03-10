@@ -77,5 +77,6 @@
  - ❌ Export this whole project into a DLL file so that other developers can use it.
  - ✅ Binds
  - ✅ Callbacks
+ - ❌ Refactor load_XYZ and load_XYZ_as_json with a load_XYZ_as_json_n function that takes a length. This will save many strlen calls
  
  Other TODOs can be found littered throughout the source code. Most are debug mode checks.
