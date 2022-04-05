@@ -81,7 +81,7 @@ GXTexture_t *load_png_image ( const char path[] )
 
         noPath:
         #ifndef NDEBUG
-            g_print_error("[G10] [Texture] [PNG] No path provided\n");
+            g_print_error("[G10] [Texture] [PNG] No path provided in call to funciton \"%s\"\n", __FUNCSIG__);
         #endif
         return 0;
     }

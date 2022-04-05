@@ -16,6 +16,13 @@ enum JSONValueType_e
     JSONprimative = 3  // Any other value
 };
 
+static const char *token_types[4] = {
+    "object", 
+    "array",
+    "string",
+    "primative"
+};
+
 // Unions and structs
 
 // This union is used to differentiate pointers form double pointers, 

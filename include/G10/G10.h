@@ -74,7 +74,7 @@ GXInstance_t *g_init                ( const char          *path );              
 // File operations
 size_t        g_load_file           ( const char          *path    , void         *buffer  , bool binaryMode ); // ✅ Loads a file and reads it into buffer. If buffer is null, function will return size of file, else returns bytes written.
 
-// Debug functions
+// Debug loggins
 int           g_print_error         ( const char *const    format  , ... );                                     // ✅ printf, but in red
 int           g_print_warning       ( const char *const    format  , ... );                                     // ✅ printf, but in yellow
 int           g_print_log           ( const char *const    format  , ... );                                     // ✅ printf, but in blue
@@ -83,7 +83,9 @@ int           g_print_log           ( const char *const    format  , ... );     
 int           g_clear               ( void );                                                                   // ✅ Clears the color and depth buffers
 int           g_swap                ( GXInstance_t        *instance );                                          // ✅ Swap buffers
 int           g_window_resize       ( GXInstance_t        *instance );                                          // ✅ Responds to window resizes
+
 int           g_delta               ( GXInstance_t        *instance );                                          // ✅ Calculates delta time
+
 void          g_toggle_mouse_lock   ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Toggle mouse locking
 void          g_toggle_full_screen  ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Toggle full screen
 int           g_exit_game_loop      ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Called for exit

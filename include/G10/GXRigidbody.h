@@ -20,22 +20,22 @@ enum rigidbodyType_e {
 typedef enum rigidbodyType_e rigidbodyType_t;
 
 struct GXRigidbody_s
-{
-    bool                  active;              // Active applies displacement and rotational forces.
+{ 
+    bool                  active;               // Apply displacement and rotational forces?
+     
+    float                 mass;                 // The mass of the entity.
+    float                 radius;               // Radius of the object
 
-    float                 mass;                // The mass of the entity.
-    float                 radius;              // Radius of the object
-
-    vec3                  acceleration;        // The acceleration of the entity.
-    vec3                  velocity;            // The velocity of the entity.
+    vec3                  acceleration;         // The acceleration of the entity.
+    vec3                  velocity;             // The velocity of the entity.
     
     quaternion            angular_acceleration; // The angular acceleration of the entity.
     quaternion            angular_velocity;     // The angular velocity of the entity.
     
-    vec3                 *forces;              // A list of displacement forces acting on the entity.
+    vec3                 *forces;               // A list of displacement forces acting on the entity.
     size_t                forces_count;         // The number of forces acting on the entity.
 
-    vec3                 *torque;              // A list of angular forces acting on the entity.
+    vec3                 *torques;              // A list of angular forces acting on the entity.
     size_t                torque_count;         // The number of angular forces acting on the entity.
 
 };

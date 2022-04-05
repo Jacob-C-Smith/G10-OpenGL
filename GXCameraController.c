@@ -55,25 +55,25 @@ void                  camera_controller_strafe_right ( callback_parameter_t stat
 void                  camera_controller_up           ( callback_parameter_t state, GXInstance_t* instance ) 
 {
     if (state.input_state == MOUSE)
-        v_ang -= 0.0024;
+        v_ang -= 0.0024f;
 
 }
 void                  camera_controller_down         ( callback_parameter_t state, GXInstance_t* instance )
 {
     if (state.input_state == MOUSE)
-        v_ang += 0.0024;
+        v_ang += 0.0024f;
 
 }
 void                  camera_controller_left         ( callback_parameter_t state, GXInstance_t* instance )
 {
     if (state.input_state == MOUSE)
-        h_ang -= 0.0024;
+        h_ang -= 0.0024f;
 
 }
 void                  camera_controller_right        ( callback_parameter_t state, GXInstance_t* instance )
 {
     if (state.input_state == MOUSE)
-        h_ang += 0.0024;
+        h_ang += 0.0024f;
 
 }
 
@@ -140,7 +140,7 @@ GXCameraController_t *camera_controller_from_camera  ( GXInstance_t* instance, G
         #endif
     }
 
-    ret->spdlim = 0.025;
+    ret->spdlim = 0.25;
 
     // Assign displacement callbacks
     register_bind_callback(forward     , &camera_controller_forward);
@@ -228,16 +228,16 @@ int                   update_controlee_camera        ( GXCameraController_t *cam
     l_orient = camera_controller->orientation;
 
     // Clamp vertical angle 
-    if (v_ang > (float)M_PI_2 - 0.0001f)
-        v_ang = (float)M_PI_2 - 0.0001f;
-    if (v_ang < (float)-M_PI_2 + 0.0001f)
-        v_ang = (float)-M_PI_2 + 0.0001f;
+    if (v_ang > (float)M_PI_2 - 0.00025f)
+        v_ang = (float)M_PI_2 - 0.00025f;
+    if (v_ang < (float)-M_PI_2 + 0.00025f)
+        v_ang = (float)-M_PI_2 + 0.00025f;
 
     // Clamp horizontal angle
-    if (h_ang > (float)M_PI - 0.0001f)
-        h_ang = (float)-M_PI + 0.0001f;
-    if (h_ang < (float)-M_PI + 0.0001f)
-        h_ang = (float)M_PI - 0.0001f;
+    if (h_ang > (float)M_PI - 0.00025f)
+        h_ang = (float)-M_PI + 0.00025f;
+    if (h_ang < (float)-M_PI + 0.00025f)
+        h_ang = (float)M_PI - 0.00025f;
 
     camera_controller->orientation = (vec2){ x_orient, y_orient };
     camera_controller->v_ang = v_ang;
@@ -251,17 +251,16 @@ int                   update_controlee_camera        ( GXCameraController_t *cam
     float sl = camera_controller->spdlim;
 
     // Turn orientation into movement
-    camera->where.x += sl * (float)l_orient.x * camera->view.a + -(float)l_orient.y * sl * camera->view.c,
-    camera->where.y += sl * (float)l_orient.x * camera->view.e + -(float)l_orient.y * sl * camera->view.g;
-
+    camera->location.x += sl * (float)l_orient.x * camera->view.a + -(float)l_orient.y * sl * camera->view.c,
+    camera->location.y += sl * (float)l_orient.x * camera->view.e + -(float)l_orient.y * sl * camera->view.g;
+    camera->location.z += sl * (float)l_orient.x * camera->view.i + -(float)l_orient.y * sl * camera->view.k;
 
     // Define and populate target where vector
     vec3 tw;
-    add_vec3(&tw, camera->target, camera->where);
-
+    add_vec3(&tw, camera->target, camera->location);
 
     // look at
-    camera->view = look_at(camera->where, tw, camera->up);
+    camera->view = look_at(camera->location, tw, camera->up);
 
     return 0;
 

@@ -8,8 +8,10 @@ GXCollision_t* create_collision(void)
 
     // Check memory
     {
-        if (ret == (void*)0)
-            goto no_mem;
+        #ifndef NDEBUG
+            if (ret == (void*)0)
+                goto no_mem;
+        #endif
     }
 
 	return ret;
@@ -169,6 +171,7 @@ int            destroy_collision(GXCollision_t* collision)
 
     free(collision);
 
+    return 0;
     // Error handling
     {
         

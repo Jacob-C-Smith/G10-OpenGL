@@ -16,6 +16,7 @@
 #include <G10/GXRigidbody.h>
 #include <G10/GXCollider.h>
 #include <G10/GXRig.h>
+#include <G10/GXParticleSystem.h>
 
 struct GXEntity_s
 {

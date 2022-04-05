@@ -246,8 +246,8 @@ GXUniform_t *load_uniform_as_json ( char        *token )
         {
 
             // Allocate for the string and copy it 
-            char   *uniformName = tokens[j].value.n_where;
-            size_t  len         = strlen(uniformName);
+            uniformName = tokens[j].value.n_where;
+            size_t  len = strlen(uniformName);
             ret->value = calloc(len + 1, sizeof(char));
 
             strncpy(ret->value, uniformName, len);
@@ -600,7 +600,7 @@ void         set_shader_camera    ( GXShader_t  *shader,       GXCamera_t    *ca
     for (size_t j = 0; j < shader->requested_data_count && i; j++)
     {
         if (strcmp(i->key,"camera position") == 0)
-            set_shader_vec3(shader, i->value, camera->where);
+            set_shader_vec3(shader, i->value, camera->location);
         if (strcmp(i->key, "view") == 0) 
             set_shader_mat4(shader, i->value, &camera->view);
         if (strcmp(i->key, "projection") == 0)
@@ -770,43 +770,43 @@ void         set_shader_ibl       ( GXShader_t  *shader,       GXSkybox_t    *sk
     // TODO: Error handling
 }
 
-void         set_shader_bone      ( GXShader_t  *shader,       const char    *uniformName,       GXBone_t* bone)
+void         set_shader_bone      ( GXShader_t  *shader,       GXBone_t* bone)
 {
-    // TODO: Argument check
-    // Initialized data
-    GXUniform_t *i              = shader->requested_data;
-    GXBone_t    *lBone          = bone;
+    //// TODO: Argument check
+    //// Initialized data
+    //GXUniform_t *i              = shader->requested_data;
+    //GXBone_t    *lBone          = bone;
 
-    size_t       uniformNameLen = strlen(uniformName);
-    size_t       index          = bone->index;
-    char        *p              = calloc(uniformNameLen+20,sizeof(u8)),
-                *ret            = p;
-    
-    // Iterate through all bones
-    while (lBone)
-    {
-        // Construct the uniform name and index
-        sprintf(p, "%s[%d]", uniformName, index);
+    //size_t       uniformNameLen = strlen(uniformName);
+    //size_t       index          = bone->index;
+    //char        *p              = calloc(uniformNameLen+20,sizeof(u8)),
+    //            *ret            = p;
+    //
+    //// Iterate through all bones
+    //while (lBone)
+    //{
+    //    // Construct the uniform name and index
+    //    sprintf(p, "%s[%d]", uniformName, index);
 
-        set_shader_int(shader, ret, index);
-        
-        memset(ret, ' ', uniformNameLen + 20);
+    //    set_shader_int(shader, ret, index);
+    //    
+    //    memset(ret, ' ', uniformNameLen + 20);
 
-        if (lBone->children)
-            set_shader_bone(shader, uniformName,  lBone->children);
+    //    if (lBone->children)
+    //        set_shader_bone(shader, uniformName,  lBone->children);
 
-        lBone = lBone->next;
-    }
+    //    lBone = lBone->next;
+    //}
 
-    free(ret);
-    // TODO: Error handling
+    //free(ret);
+    //// TODO: Error handling
 }
 
 void         set_shader_rig       ( GXShader_t  *shader,        GXRig_t       *rig ) 
 {
     // TODO: Argument check
     // Initialized data
-    const char  *bonesUniformName = (void*)0;
+    char  *bonesUniformName = (void*)0;
 
     GXUniform_t *i                = shader->requested_data;
 

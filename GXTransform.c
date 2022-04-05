@@ -7,12 +7,13 @@ GXTransform_t *create_transform       ( void )
     GXTransform_t* ret = calloc(1,sizeof(GXTransform_t));
 
     // Check if memory was allocated
-    #ifndef NDEBUG
-    if (ret == 0)
-        goto no_mem;
-    #endif
-
-    // Return 
+    {
+        #ifndef NDEBUG
+        if (ret == 0)
+            goto no_mem;
+        #endif
+    }
+    
     return ret;
 
     // Error handling
@@ -92,6 +93,7 @@ GXTransform_t *load_transform_as_json   ( char          *token )
     // Find and assign location, rotation, and scale vectors
     for (size_t k = 0; k < token_count; k++)
         if (strcmp("location", tokens[k].key) == 0)
+
             location = (vec3){ (float)atof(tokens[k].value.a_where[0]), (float)atof(tokens[k].value.a_where[1]), (float)atof(tokens[k].value.a_where[2]) };
         else if (strcmp("rotation", tokens[k].key) == 0)
             q        = make_quaternion_from_euler_angle((vec3) { (float)atof(tokens[k].value.a_where[0]), (float)atof(tokens[k].value.a_where[1]), (float)atof(tokens[k].value.a_where[2]) });
@@ -150,8 +152,12 @@ void make_model_matrix(mat4 *r, GXTransform_t* transform)
     mat4 sca = scale_mat4(transform->scale),
          rot = rotation_mat4_from_quaternion(transform->rotation),
          tra = translation_mat4(transform->location),
-         tr  = mul_mat4_mat4(tra, sca);
-        *r   = mul_mat4_mat4(rot, tr);
+         M   = mul_mat4_mat4(sca, mul_mat4_mat4(rot, tra));
+
+    r->a = M.a, r->b = M.b, r->c = M.c, r->d = M.d,
+    r->e = M.e, r->f = M.f, r->g = M.g, r->h = M.h,
+    r->i = M.i, r->j = M.j, r->k = M.k, r->l = M.l,
+    r->m = M.m, r->n = M.n, r->o = M.o, r->p = M.p;
 
     return;
 
@@ -214,6 +220,7 @@ int            rotate_about_quaternion ( GXTransform_t *transform, quaternion ax
 
 int            destroy_transform      ( GXTransform_t *transform )
 {
+
     // Argument check
     {
         if (transform == (void*)0)

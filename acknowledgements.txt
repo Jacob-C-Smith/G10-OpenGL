@@ -1,4 +1,4 @@
-G10 uses glad, SDL2, SDL2 Image, and SDL2 Net.
+G10 uses glad, SDL2, SDL2 Image, and SDL2 Net, SDL Mixer.
 
 ---------------------------------------------------------------------------------------------------
 

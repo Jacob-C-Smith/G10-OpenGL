@@ -18,7 +18,6 @@
 #include <G10/GXNetworking.h>
 #include <G10/GXInput.h>
 #include <G10/GXCameraController.h>
-#include <G10/GXParticleSystem.h>
 
 // G10 arch
 #ifdef _M_X64
@@ -78,7 +77,7 @@ int main ( int argc, const char *argv[] )
     {
         #ifndef NDEBUG
             instance = g_init(initial_instance ? initial_instance : "G10/Debug instance.json");
-        #else 
+        #else          
             instance = g_init(initial_instance ? initial_instance : "G10/Release instance.json");
         #endif
     }
@@ -86,7 +85,7 @@ int main ( int argc, const char *argv[] )
     // Set up some binds
     {
 
-        // Find the quit bind and the mouse locking bind
+        // Find QUIT, TOGGLE LOCK MOUSE, and TOGGLE FULLSCREEN
         GXBind_t *quit       = find_bind(instance->input, "QUIT"),
                  *lock_mouse = find_bind(instance->input, "TOGGLE LOCK MOUSE"),
                  *fullscreen = find_bind(instance->input, "TOGGLE FULLSCREEN");
@@ -113,9 +112,10 @@ int main ( int argc, const char *argv[] )
         GXParticleSystem_t *particle_system = create_particle_system();
         GXParticle_t       *particle        = create_particle();
         
-        append_entity(instance->scenes, load_entity("G10/tbn quad entity.json"));
     }
 
+    GXPart_t   *c = load_part("G10/cube.json");
+    GXShader_t *s = load_shader("G10/shaders/G10 solid color.json");
     instance->running = true;
 
     g_window_resize(instance);
@@ -129,7 +129,7 @@ int main ( int argc, const char *argv[] )
         // Debug only FPS readout
         {
             #ifndef NDEBUG
-                printf("FPS: %.1f\r", (float)instance->delta_time * (float)1000.f); // Uses CR instead of CR LF so as to provide a quasi realtime FPS readout
+                //printf("FPS: %.1f\r", (float)instance->delta_time * (float)1000.f); // Uses CR instead of CR LF so as to provide a quasi realtime FPS readout
             #endif
         }
 
@@ -144,7 +144,7 @@ int main ( int argc, const char *argv[] )
         {
             update_controlee_camera(camera_controller, instance->delta_time);
             compute_physics(scene, instance->delta_time);
-
+            
             draw_scene(instance->scenes);
         }
 

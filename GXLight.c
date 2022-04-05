@@ -8,8 +8,8 @@ GXLight_t *create_light     ( )
     // Check memory
     {
         #ifndef NDEBUG
-        if (ret == (void*)0)
-            goto no_mem;
+            if (ret == (void*)0)
+                goto no_mem;
         #endif 
     }
 
@@ -78,40 +78,100 @@ GXLight_t *load_light_as_json ( char      *token )
     }
 
     // Initialized data
-    GXLight_t*   ret        = create_light();
-    size_t       len        = strlen(token);
-    size_t       token_count = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
+    GXLight_t    *ret         = create_light();
+    size_t        len         = strlen(token);
+    size_t        token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t  *tokens      = calloc(token_count, sizeof(JSONToken_t));
+
+    char         *name        = 0,
+                **color       = 0, 
+                **location    = 0; 
+
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if(tokens == (void *)0)
+                goto no_mem;
+        #endif
+    }
 
     // Parse the camera object
     parse_json(token, len, token_count, tokens);
 
     // Iterate through key / value pairs to find relevent information
-    for (size_t l = 0; l < token_count; l++)
+    for (size_t i = 0; i < token_count; i++)
     {
-        // Parse out the light name
-        if (strcmp("name", tokens[l].key) == 0)
-        {
-            size_t len = strlen(tokens[l].value.n_where);
-            ret->name = calloc(len + 1, sizeof(u8));
 
-            strncpy(ret->name, (const char*)tokens[l].value.n_where, len);
+        // Parse out the light name
+        if (strcmp("name", tokens[i].key) == 0)
+        {
+
+            // Type check
+            if (tokens[i].type == JSONstring)
+                name = tokens[i].value.n_where;
+            else
+                goto name_type_error;
+
             continue;
         }
 
         // Parse out light color
-        if (strcmp("color", tokens[l].key) == 0)
+        if (strcmp("color", tokens[i].key) == 0)
         {
-            ret->color = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
+
+            // Type check
+            if (tokens[i].type == JSONarray)
+                color = tokens[i].value.a_where;
+            else
+                goto color_type_error;
+
             continue;
         }
 
         // Parse out light position
-        if (strcmp("location", tokens[l].key) == 0)
+        if (strcmp("location", tokens[i].key) == 0)
         {
-            ret->location = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
+
+            // Type check
+            if (tokens[i].type == JSONarray)
+                location = tokens[i].value.a_where;
+            else
+                goto location_type_error;
+
             continue;
         }
+    }
+
+    // Construct the light
+    {
+
+        // Set and copy the name
+        {
+            size_t name_len = strlen(name);
+            ret->name = calloc(name_len + 1, sizeof(u8));
+
+            // Error checking
+            {
+                #ifndef NDEBUG
+                    if(ret->name == (void *)0)
+                        goto no_mem;
+                #endif
+            }
+
+            strncpy(ret->name, (const char*)name, name_len);
+        }
+
+        // Set the color
+        {
+            ret->color = (vec3){ (float)atof(color[0]), (float)atof(color[1]), (float)atof(color[2]) };
+        }
+
+
+        // Set the location
+        {
+            ret->location = (vec3){ (float)atof(location[0]), (float)atof(location[1]), (float)atof(location[2]) };
+        }
+
     }
 
     free(tokens);
@@ -120,6 +180,16 @@ GXLight_t *load_light_as_json ( char      *token )
 
     // Error handling
     {
+
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Failed to allocate memory in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+        }
 
         // Argument errors
         {

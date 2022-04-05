@@ -101,10 +101,15 @@ GXCollider_t *load_collider_as_json ( char         *token )
     }
 
 	// Initialized data
-    GXCollider_t *ret        = create_collider();
-    size_t        len        = strlen(token),
-                  token_count = parse_json(token, len, 0, (void*)0);
-    JSONToken_t  *tokens     = calloc(token_count, sizeof(JSONToken_t));
+    GXCollider_t *ret              = create_collider();
+    size_t        len              = strlen(token),
+                  token_count      = parse_json(token, len, 0, (void*)0),
+                  i                = 0;
+    JSONToken_t  *tokens           = calloc(token_count, sizeof(JSONToken_t));
+
+    char         *type             = 0,
+                **dimensions       = 0,
+                 *convex_hull_path = 0;
 
     // Parse the collider object
     parse_json(token, len, token_count, tokens);
@@ -112,51 +117,98 @@ GXCollider_t *load_collider_as_json ( char         *token )
     // Search through values and pull out relevent information
     for (size_t j = 0; j < token_count; j++)
     {
-        // Set type
-        if (strcmp("type", tokens[j].key) == 0)
+
+        // Parse the type
+        if ( strcmp("type"            , tokens[j].key) == 0 )
         {
-            ret->type = 0;
+            if (tokens[j].type == JSONstring)
+                type = tokens[j].value.n_where;
+            else
+                goto type_type_error;
 
-            if      ( strcmp("plane"      , tokens[j].value.n_where) == 0)
-                ret->type = quad;
-            else if ( strcmp("box"        , tokens[j].value.n_where) == 0)
-                ret-> type = box;
-            else if ( strcmp("sphere"     , tokens[j].value.n_where) == 0)
-                ret-> type = sphere;
-            else if ( strcmp("capsule"    , tokens[j].value.n_where) == 0)
-                ret->type = capsule;
-            else if ( strcmp("cylinder"   , tokens[j].value.n_where) == 0 )
-                ret->type = cylinder;
-            else if ( strcmp("cone"       , tokens[j].value.n_where) == 0 )
-                ret->type = cone;
-            else if ( strcmp("convex hull", tokens[j].value.n_where) == 0)
-                ret->type = convexhull;
-
-            if (ret->type == invalid)
-                goto invalidShape;
             continue;
         }
-        if (strcmp("dimensions", tokens[j].key) == 0)
+
+        // Parse the dimensions
+        if ( strcmp("dimensions"      , tokens[j].key) == 0 )
         { 
-            ret->bv           = create_bv();
-            if(ret->bv->entity)
+            if(tokens[j].type == JSONarray)
+                dimensions = tokens[j].value.a_where;
+            else
+                goto dimensions_type_error;
+            
+            continue;
+        }
+
+        // Parse the convex hull path
+        if ( strcmp("convex hull path", tokens[j].key) == 0 )
+        {
+            if (tokens[j].type == JSONstring)
+                convex_hull_path = tokens[j].value.n_where;
+            else
+                goto convex_hull_path_type_error;
+
+            continue;
+        }
+
+        loop:
+    }
+
+    // Construct the collider
+    {
+
+        // Set the type
+        {
+            if (type)
             {
-                if(ret->bv->entity->transform)
-                    ret->bv->dimensions = &ret->bv->entity->transform->scale;
+                if      ( strcmp("plane"      , type) == 0 )
+                    ret->type = quad;
+                else if ( strcmp("box"        , type) == 0 )
+                    ret-> type = box;
+                else if ( strcmp("sphere"     , type) == 0 )
+                    ret-> type = sphere;
+                else if ( strcmp("capsule"    , type) == 0 )
+                    ret->type = capsule;
+                else if ( strcmp("cylinder"   , type) == 0 )
+                    ret->type = cylinder;
+                else if ( strcmp("cone"       , type) == 0 )
+                    ret->type = cone;
+                else if ( strcmp("convex hull", type) == 0 )
+                    ret->type = convexhull;
             }
             else
-            {
-                ret->bv->dimensions = calloc(1, sizeof(vec3));
-            }
-            ret->bv->dimensions->x = (float)atof(tokens[j].value.a_where[0]),
-            ret->bv->dimensions->y = (float)atof(tokens[j].value.a_where[1]),
-            ret->bv->dimensions->z = (float)atof(tokens[j].value.a_where[2]);
-            
-
+                goto no_type;
         }
-        if (strcmp("convex hull path",tokens[j].key) == 0)
+
+        // Set the dimensions
         {
-            ret->convex_hull = load_ply_geometric_points(tokens[j].value.n_where, ret->convex_hull_count);
+            if (dimensions)
+            {
+                
+                ret->bv           = create_bv();
+                if(ret->bv->entity)
+                {
+                    if(ret->bv->entity->transform)
+                        ret->bv->dimensions = &ret->bv->entity->transform->scale;
+                }
+                else
+                {
+                    ret->bv->dimensions = calloc(1, sizeof(vec3));
+                }
+        
+                ret->bv->dimensions->x = (float)atof(dimensions[0]) / 2.f,
+                ret->bv->dimensions->y = (float)atof(dimensions[1]) / 2.f,
+                ret->bv->dimensions->z = (float)atof(dimensions[2]) / 2.f;
+            
+            }
+            else
+                goto no_dimensions;
+        }
+
+        // Load and set the convex hull
+        {
+            if (convex_hull_path)
+                ret->convex_hull = load_ply_geometric_points(convex_hull_path, ret->convex_hull_count);
         }
     }
 
@@ -186,7 +238,6 @@ GXCollider_t *load_collider_as_json ( char         *token )
             return 0;
         }
 
-        
     }
 }
 

@@ -9,23 +9,30 @@ GXServer_t *create_server     ( )
 	{
 		#ifndef NDEBUG
 			if (ret == 0)
-				goto noMem;
+				goto no_mem;
 		#endif
 	}
+
     return ret;
 
     // Error handling
     {
-        noMem:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Server] Out of memory.\n");
-        #endif
-        return 0;
+
+		// Standard library errors
+		{
+	        no_mem:
+		    #ifndef NDEBUG
+			    g_print_error("[Standard library] Failed to allocate memory in call to funciton \"%s\".\n", __FUNCSIG__);
+			#endif
+			return 0;
+		}
     }
 }
 
 GXServer_t *load_server       ( const char  path[] )
 {
+	// TODO: Argument check
+
 	// Initialized data
     GXServer_t *ret      = 0;
     FILE       *f        = fopen(path, "rb");
@@ -44,11 +51,15 @@ GXServer_t *load_server       ( const char  path[] )
     free(data);
 
     return ret;   
+
+	// TODO: Error handling
 }
 
 GXServer_t *load_server_as_json ( char       *token )
 {
-	 // Initialized data
+	// TODO: Argument check
+
+	// Initialized data
 	GXServer_t  *ret        = create_server();
 	size_t       len        = strlen(token);
     size_t       token_count = parse_json(token, len, 0, (void*)0);
@@ -204,17 +215,6 @@ GXCommand_t* displace_orient_command(GXCameraController_t* camera_controller)
 	ret->type = COMMAND_DISPLACE_ROTATE;
 	ret->len  = 2+sizeof(struct displace_rotate_s);
 
-	// Allocate for a displace rotate struct
-	struct displace_rotate_s *l = calloc(1, sizeof(struct displace_rotate_s));
-
-	// Set the position vector of the camera
-	l->x     = camera_controller->camera->where.x;
-	l->y     = camera_controller->camera->where.y;
-	l->z     = camera_controller->camera->where.z;
-
-	// Set the vertical and horizontal angle of the camera
-	l->v_ang = camera_controller->v_ang;
-	l->h_ang = camera_controller->h_ang;
 
 	// Set the command pointer to the right place
 	ret->command.displace_rotate = l;

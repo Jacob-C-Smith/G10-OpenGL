@@ -132,7 +132,7 @@ GXTexture_t *load_hdr           ( const char path[] )
     if (strncmp(cData, "#?RADIANCE",10) != 0)
         goto badFormat;
 
-    cData = 1+strchr(cData-1, '\n');
+    while (*++cData != '\n');
 
     // Parse the HDR header
     while ((w == 0 && h == 0 && format == 0))

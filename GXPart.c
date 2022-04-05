@@ -80,10 +80,22 @@ GXPart_t *load_part_as_json ( char      *token )
     }
 
     // Initialized data
-    GXPart_t    *ret        = create_part();
-    size_t       len        = strlen(token),
+    GXPart_t    *ret         = create_part();
+    size_t       len         = strlen(token),
                  token_count = parse_json(token, len, 0, (void*)0);
-    JSONToken_t *tokens     = calloc(token_count, sizeof(JSONToken_t));
+    JSONToken_t *tokens      = calloc(token_count, sizeof(JSONToken_t));
+
+    char        *name        = 0,
+                *path        = 0,
+                *material    = 0;
+
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if(tokens == (void *)0)
+                goto no_mem;
+        #endif
+    }
 
     // Parse the part object
     parse_json(token, len, token_count, tokens);
@@ -91,17 +103,60 @@ GXPart_t *load_part_as_json ( char      *token )
     // Search through values and pull out relevent information
     for (size_t j = 0; j < token_count; j++)
     {
+
         // Handle comments
         if (strcmp("name", tokens[j].key) == 0)
         {
-            GXPart_t *p_ret = g_find_part(g_get_active_instance(),tokens[j].value.n_where);
-            if (p_ret)
-            {
-                destroy_part(ret);
-                ret = p_ret;
-                g_print_log("[G10] [Part] Part \"%s\" loaded from cache\n", tokens[j].value.n_where);
-                goto exit_cache;
-            }
+            if (tokens[j].type == JSONstring)
+                name = tokens[j].value.n_where;
+            else
+                goto name_type_error;
+
+            continue;
+        }
+
+        // Load from a path
+        else if (strcmp("path", tokens[j].key) == 0)
+        {
+            if (tokens[j].type == JSONstring)
+                path = tokens[j].value.n_where;
+            else
+                goto path_type_error;
+
+            continue;
+        }
+
+        // Set material
+        else if (strcmp("material", tokens[j].key) == 0)
+        {
+            if (tokens[j].type == JSONstring)
+                material = tokens[j].value.n_where;
+            else
+                goto material_type_error;
+
+            continue;
+        }
+    }
+
+    // Check the cache for the part
+    {
+        GXPart_t* p_ret = g_find_part(g_get_active_instance(), name);
+
+        if (p_ret)
+        {
+            destroy_part(ret);
+            ret = p_ret;
+            g_print_log("[G10] [Part] Part \"%s\" loaded from cache\n", name);
+
+            goto exit_cache;
+        }
+    }
+
+    // Construct the part
+    {
+
+        // Set and copy the part name
+        {
 
             // Initialized data
             char*  path    = tokens[j].value.n_where;
@@ -109,23 +164,24 @@ GXPart_t *load_part_as_json ( char      *token )
 
             // Copy the string
             ret->name = calloc(pathLen+1, sizeof(char));
+
+            // Error checking
+            {
+                if ( ret->name == (void *)0)
+                    goto no_mem;
+            }
+
             strncpy(ret->name, path, pathLen);
-
-            continue;
         }
 
-        // Load from a path
-        else if (strncmp("path", tokens[j].key,4) == 0)
-        {
-            load_ply(tokens[j].value.n_where, ret);
-        }
+        // Load the part
+        load_ply(path, ret);
 
-        // Set material
-        else if (strncmp("material", tokens[j].key,8) == 0)
+        // Set and copy the material name
         {
-            size_t len = strlen(tokens[j].value.n_where);
-            ret->material = calloc(1, len+1);
-            strncpy(ret->material, tokens[j].value.n_where, len);
+            size_t material_name_len = strlen(material);
+            ret->material = calloc(1, material_name_len + 1);
+            strncpy(ret->material, material, material_name_len);
         }
     }
 
@@ -150,6 +206,51 @@ GXPart_t *load_part_as_json ( char      *token )
             #endif
             return 0;
         }
+    }
+}
+
+GXPart_t* duplicate_part(GXPart_t* part)
+{
+    // Argument Check
+    {
+        #ifndef NDEBUG
+            if(part == (void *)0)
+                goto null_part;
+            if (part->users == -1)
+                goto dupe_dupe;
+        #endif
+    }
+
+    // Initialized data
+    GXPart_t *ret = create_part();
+
+    // Copy constant data
+    ret->vertex_groups  = part->vertex_groups;
+
+    ret->vertex_array   = part->vertex_array;
+    ret->vertex_buffer  = part->vertex_buffer;
+    ret->element_buffer = part->element_buffer;
+
+    // Set users to -1, as to indicate this is a duplicate
+    ret->users          = -1;
+
+    // Increment users
+    part->users++;
+
+    return ret;
+
+    // Error handling
+    {
+        null_part:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Part] Null pointer provided for \"part\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        dupe_dupe:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Part] Can not duplicate a duplicate. Please use the original part\n", __FUNCSIG__);
+            #endif
+            return 0;
     }
 }
 
@@ -397,10 +498,18 @@ int       destroy_part    ( GXPart_t  *part )
     // Argument check
     {
         #ifndef NDEBUG
+            
+            // Null pointer for part?
             if(part == 0)
                 goto nullPart;
+
+            // Part in use?
             if (part->users > 1)
                 goto in_use;
+
+            // Part is duplicate?
+            if (part->users == -1)
+                goto dupe;
         #endif
     }
 
@@ -409,7 +518,9 @@ int       destroy_part    ( GXPart_t  *part )
     glDeleteBuffers(1, &part->vertex_buffer);
     glDeleteBuffers(1, &part->element_buffer);
 
-    // Free the part name and material string
+    dupe:
+
+    // Free the part, name, and material
     free(part->name);
     free(part->material);
 

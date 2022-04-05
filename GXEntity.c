@@ -1,12 +1,5 @@
 #include <G10/GXEntity.h>
 
-const char *token_types[] = {
-    "object", 
-    "array",
-    "string",
-    "primative"
-};
-
 GXEntity_t *create_entity          ( )
 {
 
@@ -40,8 +33,10 @@ GXEntity_t *load_entity            ( const char  path[] )
 {
     // Argument check
     {
-        if(path == (void *)0)
-            goto no_path;
+        #ifndef NDEBUG
+            if(path == (void *)0)
+                goto no_path;
+        #endif
     }
 
     // Uninitialized data
@@ -120,7 +115,8 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 *shader_token          = 0,
                 *rigid_body_token      = 0,
                 *collider_token        = 0,
-                *rig_token             = 0;
+                *rig_token             = 0,
+                *particle_system_token = 0;
 
     // Parse the entity object
     parse_json(token, len, token_count, tokens);
@@ -149,7 +145,10 @@ GXEntity_t *load_entity_as_json      ( char       *token )
 
             // Type error
             else
-                goto comment_type_error;
+                #ifndef NDEBUG
+                    goto comment_type_error;
+                #endif
+            ;
 
         }
 
@@ -165,9 +164,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 continue;
             }
 
-            // Type error
+            // Type error check
+            #ifndef NDEBUG
             else
-                goto name_type_error;
+                    goto name_type_error;    
+            #endif
         }
 
         // Load and process a mesh
@@ -181,9 +182,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 continue;
             }
 
-            // Type error
-            else
-                goto parts_type_error;
+            // Type error check
+            #ifndef NDEBUG
+                else
+                    goto parts_type_error;
+            #endif
         }
 
         // Process a shader
@@ -198,9 +201,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 continue;
             }
 
-            // Type error
+            // Type error check
+            #ifndef NDEBUG
             else
                 goto shader_type_error;
+            #endif
         }
 
         // Process materials
@@ -214,10 +219,12 @@ GXEntity_t *load_entity_as_json      ( char       *token )
 
                 continue;
             }
-
-            // Type error
+            
+            // Type error check
+            #ifndef NDEBUG
             else
                 goto materials_type_error;
+            #endif
         }
 
         // Process a transform
@@ -232,9 +239,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 continue;
             }
 
-            // Type error
+            // Type error check
+            #ifndef NDEBUG
             else
                 goto transform_type_error;
+            #endif
         }
 
         // Process a rigidbody
@@ -249,9 +258,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 continue;
             }
 
-            // Type error
-            else
-                goto rigid_body_type_error;
+            // Type error check
+            #ifndef NDEBUG
+                else
+                    goto rigid_body_type_error;
+            #endif
         }
 
         // Process a collider
@@ -265,9 +276,11 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                 continue;
             }
 
-            // Type error
-            else
-                goto collider_type_error;
+            // Type error check
+            #ifndef NDEBUG
+                else
+                    goto collider_type_error;
+            #endif
         }
         
         // Process a rig
@@ -288,71 +301,95 @@ GXEntity_t *load_entity_as_json      ( char       *token )
         {
 
             // Inialized data
-            size_t len = strlen(name_token);
+            size_t name_len = strlen(name_token);
 
             // Allocate memory for the string
-            ret->name = calloc(len + 1, sizeof(char));
+            ret->name = calloc(name_len + 1, sizeof(u8));
+
+            // Error checking
+            {
+                #ifndef NDEBUG
+                    if(ret->name == (void *)0)
+                        goto no_mem;
+                #endif
+            }
 
             // Copy name string
-            strncpy(ret->name, name_token, len);
+            strncpy(ret->name, name_token, name_len);
                 
         }
 
-        // Set the parts
+        // Construct and set the parts
         {
+            if (parts_array_token)
+            {
+                // Parse the first part
+                ret->parts = (*(char*)parts_array_token[0] == '{') ? load_part_as_json(parts_array_token[0]) : load_part(parts_array_token[0]);
 
-            // Parse the first part
-            ret->parts = (*(char*)parts_array_token[0] == '{') ? load_part_as_json(parts_array_token[0]) : load_part(parts_array_token[0]);
-
-            // Parse subsequent parts
-            for (size_t k = 1; parts_array_token[k]; k++)
-                append_part(ret->parts, (*(char*)parts_array_token[k] == '{') ? load_part_as_json(parts_array_token[k]) : load_part(parts_array_token[k]));
-
+                // Parse subsequent parts
+                for (size_t k = 1; parts_array_token[k]; k++)
+                    append_part(ret->parts, (*(char*)parts_array_token[k] == '{') ? load_part_as_json(parts_array_token[k]) : load_part(parts_array_token[k]));
+            }
         }
 
-        // Set the shader
-        ret->shader = (*(char*)shader_token == '{') ? load_shader_as_json(shader_token) : load_shader(shader_token);
-
-        // Set the materials
-        if(materials_array_token )
+        // Construct and set the shader
         {
-            
-            // Parse the first material
-            ret->materials = (*(char*)materials_array_token[0] == '{') ? load_material_as_json(materials_array_token[0]) : load_material(materials_array_token[0]);
-
-            // Parse subsequent materials
-            for (size_t k = 1; materials_array_token[k]; k++)
-                append_material(ret->materials, (materials_array_token[k] == '{') ? load_material_as_json(materials_array_token[k]) : load_material(materials_array_token[k]));
+            if(shader_token)
+                ret->shader = (*(char*)shader_token == '{') ? load_shader_as_json(shader_token) : load_shader(shader_token);
         }
 
-        // Set the transform
-        if(transform_token)
-            ret->transform = (*(char*)transform_token == '{') ? load_transform_as_json(transform_token) : load_transform(transform_token);
-
-        // Set the rigid body
-        if(rigid_body_token)
-            ret->rigidbody = (*(char*)rigid_body_token == '{') ? load_rigidbody_as_json(rigid_body_token) : load_rigidbody(rigid_body_token);
-
-        // Set the collider
+        // Construct and set the materials
         {
-            if(collider_token)
+            if (materials_array_token)
+            {
+
+                // Parse the first material
+                ret->materials = (*(char*)materials_array_token[0] == '{') ? load_material_as_json(materials_array_token[0]) : load_material(materials_array_token[0]);
+
+                // Parse subsequent materials
+                for (size_t k = 1; materials_array_token[k]; k++)
+                    append_material(ret->materials, (materials_array_token[k] == '{') ? load_material_as_json(materials_array_token[k]) : load_material(materials_array_token[k]));
+            }
+        }
+
+        // Construct and set the transform
+        {
+            if (transform_token)
+                ret->transform = (*(char*)transform_token == '{') ? load_transform_as_json(transform_token) : load_transform(transform_token);
+        }
+
+        // Construct and set the rigid body
+        {
+            if (rigid_body_token)
+                ret->rigidbody = (*(char*)rigid_body_token == '{') ? load_rigidbody_as_json(rigid_body_token) : load_rigidbody(rigid_body_token);
+        }
+
+        // Construct and set the collider
+        {
+            if (collider_token)
                 ret->collider = (*(char*)collider_token == '{') ? load_collider_as_json(collider_token) : load_collider(collider_token);
-
+    
             if (ret->collider)
                 if (ret->collider->bv)
                 {
-                    ret->collider->bv->entity     = ret;
-                    ret->collider->bv->location   = &ret->transform->location;
-                    ret->collider->bv->dimensions = &ret->transform->scale;
+                    ret->collider->bv->entity = ret;
+                    ret->collider->bv->location = &ret->transform->location;
                 }
+        
         }
 
-        // Set the rig
+        // Construct and set the rig
         {
             // TODO: 
-            //ret->rig = (*(char*)tokens[j].value.a_where[0] == '{') ? load_rig_as_json((const char*)tokens[j].value.a_where[0]) : load_rig(tokens[j].value.a_where[0]);
+            if(rig_token)
+                ret->rig = (*(char*)rig_token == '{') ? load_rig_as_json((const char*)rig_token) : load_rig(rig_token);
         }
 
+        // Construct and set the particle system
+        {
+            if(particle_system_token)
+                ret->particle_system = (*(char*)particle_system_token == '{') ? load_particle_system_as_json((const char*)particle_system_token) : load_particle_system(rig_token);
+        }
     }
 
     // The tokens are no longer needed
@@ -390,6 +427,12 @@ GXEntity_t *load_entity_as_json      ( char       *token )
                         goto loop;
                     collider_type_error:
                         g_print_warning("[G10] [Entity] \"collider\" token is of type \"%s\", but needs to be of type \"%s\", in call to function \"%s\". Collider not constructed\n", token_types[tokens[j].type], token_types[JSONobject], __FUNCSIG__);
+                        goto loop;
+                    rig_type_error:
+                        g_print_warning("[G10] [Entity] \"rig\" token is of type \"%s\", but needs to be of type \"%s\", in call to function \"%s\". Rig not constructed\n", token_types[tokens[j].type], token_types[JSONobject], __FUNCSIG__);
+                        goto loop;
+                    particle_system_type_error:
+                        g_print_warning("[G10] [Entity] \"rigid body\" token is of type \"%s\", but needs to be of type \"%s\", in call to function \"%s\". Particle system not constructed\n", token_types[tokens[j].type], token_types[JSONobject], __FUNCSIG__);
                         goto loop;
                 }
 
@@ -431,17 +474,17 @@ int         integrate_displacement ( GXEntity_t *entity, float  delta_time)
     GXRigidbody_t* rigidbody  = entity->rigidbody;
     GXTransform_t* transform  = entity->transform;
 
-    rigidbody->acceleration.x =  (rigidbody->forces->x / rigidbody->mass) * delta_time,
-    rigidbody->acceleration.y =  (rigidbody->forces->y / rigidbody->mass) * delta_time,
-    rigidbody->acceleration.z =  (rigidbody->forces->z / rigidbody->mass) * delta_time;
+    rigidbody->acceleration.x = (float) (rigidbody->forces->x / rigidbody->mass),
+    rigidbody->acceleration.y = (float) (rigidbody->forces->y / rigidbody->mass),
+    rigidbody->acceleration.z = (float) (rigidbody->forces->z / rigidbody->mass);
 
-    rigidbody->velocity.x     += (float) 0.5 * (rigidbody->acceleration.x * fabsf(rigidbody->acceleration.x)),
-    rigidbody->velocity.y     += (float) 0.5 * (rigidbody->acceleration.y * fabsf(rigidbody->acceleration.y)),
-    rigidbody->velocity.z     += (float) 0.5 * (rigidbody->acceleration.z * fabsf(rigidbody->acceleration.z));
+    rigidbody->velocity.x     += (float) (rigidbody->acceleration.x ) * delta_time,
+    rigidbody->velocity.y     += (float) (rigidbody->acceleration.y ) * delta_time,
+    rigidbody->velocity.z     += (float) (rigidbody->acceleration.z ) * delta_time;
 
-    transform->location.x     += (float) 0.5 * (rigidbody->velocity.x * fabsf(rigidbody->velocity.x)),
-    transform->location.y     += (float) 0.5 * (rigidbody->velocity.y * fabsf(rigidbody->velocity.y)),
-    transform->location.z     += (float) 0.5 * (rigidbody->velocity.z * fabsf(rigidbody->velocity.z));
+    transform->location.x     += (float) ( rigidbody->velocity.x ) * delta_time,
+    transform->location.y     += (float) ( rigidbody->velocity.y ) * delta_time,
+    transform->location.z     += (float) ( rigidbody->velocity.z ) * delta_time;
 
     return 0;
 
@@ -569,7 +612,7 @@ int         destroy_entity(GXEntity_t* entity)
     }
 
     // Check to see if items are set before destroying them
-    if (entity->name != (void*)0)
+    if (entity->name)
         free(entity->name);
 
     // Destroy parts

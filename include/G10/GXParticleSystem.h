@@ -37,13 +37,14 @@ struct GXParticle_s
 // Functions //
 
 // Allocators
-GXParticleSystem_t *create_particle_system  ( void );
-GXParticle_t       *create_particle         ( void );
+GXParticleSystem_t *create_particle_system       ( void );
+GXParticle_t       *create_particle              ( void );
 
 // Constructors
-GXParticleSystem_t *particle_system_as_json ( const char          part[] );
-GXParticle_t       *particle_as_json        ( char               *token );
-GXParticle_t       *duplicate_particle      ( GXParticle_t       *particle );
+GXParticleSystem_t *load_particle_system         ( const char         *path );
+GXParticleSystem_t *load_particle_system_as_json ( char               *token );
+GXParticle_t       *load_particle_as_json        ( char               *token );
+GXParticle_t       *duplicate_particle           ( GXParticle_t       *particle );
 
 // Physics
 
@@ -52,5 +53,5 @@ GXParticle_t       *duplicate_particle      ( GXParticle_t       *particle );
 
 
 // Destructors
-void                destroy_particle_system ( GXParticleSystem_t *particle_system );
-void                destroy_particle        ( GXParticle_t       *particle );
+void                destroy_particle_system      ( GXParticleSystem_t *particle_system );
+void                destroy_particle             ( GXParticle_t       *particle );

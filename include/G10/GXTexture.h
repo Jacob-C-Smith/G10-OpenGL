@@ -47,9 +47,8 @@ GXTexture_t *create_texture                   ( void );               // ✅ Cre
 //       load_texture loads a PNG, JPG, Bitmap, or HDR file.
 //       load_texture_as_json loads a texture from a token, with
 //       special attributes (repeat uv, bits per pixel, etc)
-GXTexture_t *load_texture                     ( const char  path[] );  // ✅ Loads a texture from the disk
-GXTexture_t *load_texture_as_json             ( char       *token );   // ❌ Constructs a texture from a JSON token
-
+GXTexture_t *load_texture                     ( const char   path[] );  // ✅ Loads a texture from the disk
+GXTexture_t *load_texture_as_json             ( char        *token );   // ❌ Constructs a texture from a JSON token
 
 // Texture operations
 unsigned int bind_texture_to_unit             ( GXTexture_t *image ); // ✅ Binds a texture to a texture unit, returns texture unit

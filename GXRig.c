@@ -112,10 +112,13 @@ GXRig_t  *load_rig_as_json      ( char       *token )
     }
 
     // Initialized data
-    GXRig_t*     ret        = create_rig();
-    size_t       len        = strlen(token);
-    size_t       token_count = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
+    GXRig_t*      ret         = create_rig();
+    size_t        len         = strlen(token);
+    size_t        token_count = parse_json(token, len, 0, (void*)0);
+    JSONToken_t  *tokens      = calloc(token_count, sizeof(JSONToken_t));
+
+    char         *name        = 0,
+                **bones       = 0;
 
     // Parse the rig object
     parse_json(token, len, token_count, tokens);
@@ -124,7 +127,7 @@ GXRig_t  *load_rig_as_json      ( char       *token )
     for (size_t j = 0; j < token_count; j++)
     {
         // Handle comments
-        if (strcmp("comment", tokens[j].key) == 0)
+        if      ( strcmp("comment", tokens[j].key) == 0 )
         {
             // Print out comment
             #ifndef NDEBUG
@@ -134,30 +137,58 @@ GXRig_t  *load_rig_as_json      ( char       *token )
         }
 
         // Set name
-        else if (strcmp("name", tokens[j].key) == 0)
+        else if ( strcmp("name"   , tokens[j].key) == 0 )
         {
-            // Initialized data
-            char*  name    = tokens[j].value.n_where;
-            size_t nameLen = strlen(tokens[j].value.n_where);
+            if (tokens[j].type == JSONstring)
+                name = tokens[j].value.n_where;
+            else
+                goto name_type_error;
 
-            // Allocate for and copy the name
-            ret->name = calloc(nameLen+1, sizeof(char));
-            strncpy(ret->name, name, nameLen);
             continue;
         }
 
         // Set bones recursively
-        else if (strcmp("bones", tokens[j].key) == 0)
+        else if ( strcmp("bones"  , tokens[j].key) == 0 )
         {
-            // Inialized data
-            size_t len = strlen(tokens[j].value.n_where);
+            if (tokens[j].type == JSONobject)
+                bones = tokens[j].value.n_where;
+            else
+                goto bones_type_error;
 
-            ret->bones = load_bone_as_json(tokens[j].value.n_where);
-            
-            ret->name[len] = 0;
             continue;
         }
     }
+
+    // Construct rig
+    {
+
+        // Set name
+        {
+            size_t name_len = strlen(tokens[j].value.n_where);
+
+            ret->name = calloc(name_len + 1, sizeof(char));
+
+            // Error checking
+            {
+                #ifndef NDEBUG
+                    if(ret->name == (void *)0)
+                        goto no_mem;
+                #endif
+            }
+
+            strncpy(ret->name, name, name_len);
+        }
+
+        // Set bones
+        {
+            size_t bone_len = strlen(bones);
+
+            ret->bones = load_bone_as_json(bones);
+
+            ret->name[bone_len] = 0;
+        }
+    }
+
     free(tokens);
 
     return ret;
@@ -288,6 +319,15 @@ GXBone_t *load_bone_as_json ( char       *token)
     }
 
     ret->transformation   = calloc(1, sizeof(mat4));
+
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if(ret->transformation == (void *)0)
+                goto no_mem;
+        #endif
+    }
+
     *ret->transformation  =  identity_mat4();
 
     free(tokens);
@@ -305,12 +345,18 @@ GXBone_t *load_bone_as_json ( char       *token)
 
 GXBone_t *find_bone         ( GXBone_t   *bone, char *name, size_t searchDepth)
 {
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if(bone == (void *)0)
+                goto no_bone;
+            if (name == (void *)0)
+                goto no_name;
+        #endif
+    }
+
     // Create a pointer to the head of the list
     GXBone_t* i = bone;
-
-    // Sanity check
-    if (i == 0)
-        goto noBones;
 
     // Walk through all the bones 
     while (i)
@@ -332,11 +378,21 @@ GXBone_t *find_bone         ( GXBone_t   *bone, char *name, size_t searchDepth)
 
     // Error handling
     {
-        noBones:
+        // Argument errors
+        {
+            no_bone:
             #ifndef NDEBUG
-                g_print_error("[G10] [Rig] There are no bones in \"%s\".\n", bone->name);
+                g_print_error("[G10] [Rig] Null pointer provided for \"bone\" in call to function \"%s\".\n", __FUNCSIG__);
             #endif
             return 0;
+
+            no_name:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Rig] Null pointer provided for \"name\" in call to function \"%s\".\n", __FUNCSIG__);
+            #endif
+            return 0;
+
+        }
 
         noMatch:
             #ifndef NDEBUG

@@ -76,14 +76,29 @@ GXMaterial_t *load_material_as_json ( char         *token )
     JSONToken_t  *tokens;
 
     // Initialized data
-    GXMaterial_t* ret = create_material();
+    GXMaterial_t *ret = create_material();
+
+    char         *name   = 0, 
+                 *albedo = 0,
+                 *normal = 0,
+                 *metal  = 0,
+                 *rough  = 0,
+                 *ao     = 0,
+                 *height = 0;
 
     // Parse JSON Values
     {
         len = strlen(token), rootToken_count = parse_json(token, len, 0, 0);
         tokens = calloc(rootToken_count, sizeof(JSONToken_t));
-        if (tokens == (void*)0)
-            return 0;
+
+        // Error checking
+        {
+            #ifndef NDEBUG
+                if (tokens == (void*)0)
+                    return no_mem;
+            #endif
+        }
+
         parse_json(token, len, rootToken_count, tokens);
     }
 
@@ -92,8 +107,10 @@ GXMaterial_t *load_material_as_json ( char         *token )
     // Find and load the textures
     for (size_t k = 0; k < rootToken_count; k++)
     {
-        if (strncmp("name", tokens[k].key, 4) == 0)
+        if      ( strcmp("name"  , tokens[k].key) == 0)
         {
+            // TODO: FIX
+            name = tokens[k].value.n_where;
             GXMaterial_t *p_ret = g_find_material(g_get_active_instance(), tokens[k].value.n_where);
             
             if(p_ret)
@@ -115,38 +132,110 @@ GXMaterial_t *load_material_as_json ( char         *token )
 
             continue;
         }
-        if (strncmp("albedo", tokens[k].key, 6) == 0)
+        else if ( strcmp("albedo", tokens[k].key) == 0)
         {
-            ret->albedo = load_texture(tokens[k].value.n_where);
+            if (tokens[k].type == JSONstring)
+                albedo = tokens[k].value.n_where;
+            else
+                goto albedo_type_error;
+
             continue;
         }
-        else if (strncmp("normal", tokens[k].key, 6) == 0)
+        else if ( strcmp("normal", tokens[k].key) == 0)
         {
-            ret->normal = load_texture(tokens[k].value.n_where);
+            if (tokens[k].type == JSONstring)
+                normal = tokens[k].value.n_where;
+            else
+                goto normal_type_error;
+
             continue;
         }
-        else if (strncmp("metal", tokens[k].key, 5) == 0)
+        else if ( strcmp("metal" , tokens[k].key) == 0)
         {
-            ret->metal = load_texture(tokens[k].value.n_where);
+            if (tokens[k].type == JSONstring)
+                metal = tokens[k].value.n_where;
+            else
+                goto metal_type_error;
+
             continue;
         }
-        else if (strcmp("rough", tokens[k].key) == 0)
+        else if ( strcmp("rough" , tokens[k].key) == 0)
         {
-            ret->rough = load_texture(tokens[k].value.n_where);
+            
+            if (tokens[k].type == JSONstring)
+                rough = tokens[k].value.n_where;
+            else
+                goto rough_type_error;
+
             continue;
         }
-        else if (strcmp("ao", tokens[k].key) == 0)
+        else if ( strcmp("ao"    , tokens[k].key) == 0)
         {
-            ret->ao = load_texture(tokens[k].value.n_where);
+            
+            if (tokens[k].type == JSONstring)
+                ao = tokens[k].value.n_where;
+            else
+                goto ao_type_error;
+
             continue;
         }
-        else if (strncmp("height", tokens[k].key, 6) == 0)
+        else if ( strcmp("height", tokens[k].key) == 0)
         {
-            ret->height = load_texture(tokens[k].value.n_where);
+            
+            if (tokens[k].type == JSONstring)
+                height = tokens[k].value.n_where;
+            else
+                goto height_type_error;
+
             continue;
         }
     }
     
+    // Construct the material
+    {
+        // Set the name
+        {
+
+        }
+
+        // Load and set the albedo
+        {
+            if (albedo)
+                ret->albedo = load_texture(albedo);
+        }
+
+        // Load and set the normal
+        {
+            if (normal)
+                ret->normal = load_texture(normal);
+        }
+
+        // Load and set the metal
+        {
+            if (metal)
+                ret->metal = load_texture(metal);
+        }
+
+        // Load and set the rough
+        {
+            if (rough)
+                ret->rough = load_texture(rough);
+        }
+
+        // Load and set the ao
+        {
+            if (ao)
+                ret->ao = load_texture(ao);
+        }
+
+        // Load and set the height
+        {
+            if (height)
+                ret->height = load_texture(height);
+        }
+
+
+    }
 
     g_cache_material(g_get_active_instance(), ret);
     exit_cache:
@@ -168,6 +257,55 @@ GXMaterial_t *load_material_as_json ( char         *token )
             #endif 
             return 0;
         }
+    }
+}
+
+GXMaterial_t* duplicate_material(GXMaterial_t* material)
+{
+    // Argument Check
+    {
+        #ifndef NDEBUG
+            if(material == (void *)0)
+                goto null_material;
+            if (material->users == -1)
+                goto dupe_dupe;
+        #endif
+    }
+
+    // Initialized data
+    GXMaterial_t *ret = create_material();
+
+    // Copy constant data
+    ret->albedo = material->albedo;
+    ret->rough  = material->rough;
+    ret->metal  = material->metal;
+    ret->normal = material->normal;
+    ret->ao     = material->ao;
+
+    ret->name   = calloc(strlen(material->name)+10, sizeof(u8));
+
+    sprintf(ret->name, "%s (%d)", material->name, ret->users);
+
+    // Set users to -1, as to indicate this is a duplicate
+    ret->users          = -1;
+
+    // Increment users
+    ret->users++;
+
+    return ret;
+
+    // Error handling
+    {
+        null_material:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Null pointer provided for \"material\" in call to function \"%s\"\n", __FUNCSIG__);
+            #endif
+            return 0;
+        dupe_dupe:
+            #ifndef NDEBUG
+                g_print_error("[G10] [Material] Can not duplicate a duplicate. Please use the original material\n", __FUNCSIG__);
+            #endif
+            return 0;
     }
 }
 

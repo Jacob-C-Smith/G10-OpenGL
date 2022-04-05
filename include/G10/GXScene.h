@@ -19,6 +19,7 @@
 #include <G10/GXGJK.h>
 #include <G10/GXBVH.h>
 #include <G10/GXQuaternion.h>
+
 #include <G10/arch/x86_64/GXAVXmath.h>
 
 // Contains information about a scene
@@ -48,7 +49,7 @@ int            append_light       ( GXScene_t *scene, GXLight_t     *light  ); /
 int            append_collision   ( GXScene_t *scene, GXCollision_t *collision );
 
 // Drawing
-int            draw_scene         ( GXScene_t *scene );                     // ✅ Iterates through the scene, drawing all valid entities where the GXEdrawable flag == 1
+int            draw_scene         ( GXScene_t *scene );               
 int            draw_lights        ( GXScene_t *scene, GXPart_t      *light_part, GXShader_t* shader ); // Draws lights
 
 // Physics 

@@ -64,6 +64,12 @@
     <Filter Include="Header Files\G10\texture">
       <UniqueIdentifier>{530bad72-8b24-4ee1-85e2-b8487dd0a1c0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\G10\audio">
+      <UniqueIdentifier>{0fc9faae-6095-4fe1-85be-3147e912ce36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\G10\physics\Collision">
+      <UniqueIdentifier>{41bd2b64-f43a-4e97-97e8-94ca0af547ab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore">
@@ -176,6 +182,12 @@
     <ClCompile Include="GXCollision.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GXAudio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXQOI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\G10\GXtypedef.h">
@@ -216,9 +228,6 @@
     </ClInclude>
     <ClInclude Include="include\G10\GXRigidbody.h">
       <Filter>Header Files\G10\scene\entity</Filter>
-    </ClInclude>
-    <ClInclude Include="include\G10\GXCollider.h">
-      <Filter>Header Files\G10\physics</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXPart.h">
       <Filter>Header Files\G10\scene\entity</Filter>
@@ -274,17 +283,29 @@
     <ClInclude Include="include\G10\GXCameraController.h">
       <Filter>Header Files\G10\scene\camera</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\GXCollision.h">
-      <Filter>Header Files\G10\physics</Filter>
-    </ClInclude>
     <ClInclude Include="include\G10\GXTexture.h">
       <Filter>Header Files\G10\texture</Filter>
     </ClInclude>
-    <ClInclude Include="include\G10\GXGJK.h">
-      <Filter>Header Files\G10\physics</Filter>
-    </ClInclude>
     <ClInclude Include="include\G10\GXParticleSystem.h">
       <Filter>Header Files\G10\scene\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXAudio.h">
+      <Filter>Header Files\G10\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCollision.h">
+      <Filter>Header Files\G10\physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXEPA.h">
+      <Filter>Header Files\G10\physics\Collision</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCollider.h">
+      <Filter>Header Files\G10\scene\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXQOI.h">
+      <Filter>Header Files\G10\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXGJK.h">
+      <Filter>Header Files\G10\physics\Collision</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

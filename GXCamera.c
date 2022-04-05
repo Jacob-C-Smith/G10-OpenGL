@@ -1,6 +1,6 @@
 ﻿#include <G10/GXCamera.h>
 
-mat4        perspective                   ( float        fov, float       aspect,        float nearClip,  float farClip)
+mat4        perspective                    ( float        fov, float       aspect,        float nearClip,  float farClip)
 {
     /*
      * Compute perspective projection, where f = fov, a = aspect, n = near, and r = far
@@ -20,16 +20,18 @@ mat4        perspective                   ( float        fov, float       aspect
     };
 }
 
-GXCamera_t *create_camera                  ( )
+GXCamera_t *create_camera                  ( void )
 {
     // Allocate space for a camera struct
     GXCamera_t* ret = calloc(1,sizeof(GXCamera_t));
 
     // Check the memory
-    #ifndef NDEBUG
-        if (ret == 0)
-            goto noMem;
-    #endif
+    {
+        #ifndef NDEBUG
+            if (ret == 0)
+                goto noMem;
+        #endif
+    }
 
     return ret;
 
@@ -55,7 +57,6 @@ GXCamera_t *load_camera                    ( const char  *path )
 
     // Initialized data
     GXCamera_t *ret      = 0;
-    FILE       *f        = fopen(path, "rb");
     size_t      i        = 0;
     char       *data     = 0;
 
@@ -86,8 +87,9 @@ GXCamera_t *load_camera                    ( const char  *path )
     }
 }
 
-GXCamera_t *load_camera_as_json              ( char        *token )
+GXCamera_t *load_camera_as_json            ( char        *token )
 {
+
     // Argument check
     {
         #ifndef NDEBUG
@@ -97,100 +99,237 @@ GXCamera_t *load_camera_as_json              ( char        *token )
     }
 
     // Initialized data
-    GXCamera_t*  ret        = create_camera();
-    size_t       len        = strlen(token);
-    size_t       token_count = parse_json(token, len, 0, (void*)0);
-    JSONToken_t* tokens     = calloc(token_count, sizeof(JSONToken_t));
+    GXCamera_t   *ret          = create_camera();
+    size_t        len          = strlen(token),
+                  token_count  = parse_json(token, len, 0, (void*)0),
+                  i            = 0;
+    JSONToken_t  *tokens       = calloc(token_count, sizeof(JSONToken_t));
+
+    char         *name         = 0,
+                **location     = 0,
+                **target       = 0,
+                **up           = 0,
+                 *fov          = 0,
+                 *near         = 0,
+                 *far          = 0,
+                 *aspect_ratio = 0;
+                
 
     // Parse the camera object
     parse_json(token, len, token_count, tokens);
 
     // Copy relevent data for a camera object
-    for (size_t l = 0; l < token_count; l++)
+    for (i = 0; i < token_count; i++)
     {
+
         // Parse out the camera name
-        if (strcmp("name", tokens[l].key) == 0)
+        if      ( strcmp("name"        , tokens[i].key) == 0 )
         {
-            size_t len = strlen(tokens[l].value.n_where);
-            ret->name  = calloc(len+1, sizeof(char));
+            if (tokens[i].type == JSONstring)
+                name = tokens[i].value.n_where;
+            else
+                goto name_type_error;
 
-            // Check allocated memory
-            {
-                #ifndef NDEBUG
-                    if(ret->name == (void*)0)
-                        goto noMem;
-                #endif
-            }
-
-            strncpy(ret->name, tokens[l].value.n_where, len);
             continue;
         }
 
         // Parse out where the camera is
-        if (strcmp("where", tokens[l].key) == 0)
+        else if ( strcmp("where"       , tokens[i].key) == 0 )
         {
-            ret->where = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
+            if (tokens[i].type == JSONarray)
+                location = tokens[i].value.a_where;
+            else
+                goto location_type_error;
+
             continue;
         }
 
         // Parse out target
-        else if (strcmp("target", tokens[l].key) == 0)
+        else if ( strcmp("target"      , tokens[i].key) == 0 )
         {
-            ret->target = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
+            if (tokens[i].type == JSONarray)
+                target = tokens[i].value.a_where;
+            else
+                goto target_type_error;
+
             continue;
         }
 
         // Parse out up
-        else if (strcmp("up", tokens[l].key) == 0)
+        else if ( strcmp("up"          , tokens[i].key) == 0 )
         {
-            ret->up = (vec3){ (float)atof(tokens[l].value.a_where[0]), (float)atof(tokens[l].value.a_where[1]), (float)atof(tokens[l].value.a_where[2]) };
+            if (tokens[i].type == JSONarray)
+                up = tokens[i].value.a_where;
+            else
+                goto up_type_error;
+
             continue;
         }
 
         // Parse out FOV
-        else if (strcmp("fov", tokens[l].key) == 0)
+        else if ( strcmp("fov"         , tokens[i].key) == 0 )
         {
-            ret->fov = (float)atof(tokens[l].value.n_where);
+            if (tokens[i].type == JSONprimative)
+                fov = tokens[i].value.n_where;
+            else
+                goto fov_type_error;
+
             continue;
         }
 
         // Parse out near clipping plane
-        else if (strcmp("near", tokens[l].key) == 0)
+        else if ( strcmp("near"        , tokens[i].key) == 0 )
         {
-            ret->near_clip = (float)atof(tokens[l].value.n_where);
+            if (tokens[i].type == JSONprimative)
+                near = tokens[i].value.n_where;
+            else
+                goto near_type_error;
+
             continue;
         }
 
         // Parse out far clipping plane
-        else if (strcmp("far", tokens[l].key) == 0)
+        else if ( strcmp("far"         , tokens[i].key) == 0 )
         {
-            ret->far_clip = (float)atof(tokens[l].value.n_where);
+            if (tokens[i].type == JSONprimative)
+                far = tokens[i].value.n_where;
+            else
+                goto far_type_error;
+
             continue;
         }
 
         // Parse out aspect ratio
-        else if (strcmp("aspect ratio", tokens[l].key) == 0)
+        else if ( strcmp("aspect ratio", tokens[i].key) == 0 )
         {
-            ret->aspect_ratio = (float)atof(tokens[l].value.n_where);
+            if (tokens[i].type == JSONprimative)
+                aspect_ratio = tokens[i].value.n_where;
+            else
+                goto aspect_ratio_type_error;
+
             continue;
         }
+
+        loop:
     }
 
-    // If no aspect ratio is supplied, default to 16:9
-    if (ret->aspect_ratio == 0.f)
-        ret->aspect_ratio = 1.77777777f; // 16 / 9 = 1.777 
+    // Construct the camera
+    {
 
-    // Make sure that fov is inside of the maximium or minimum range.
-    if (ret->fov >= 89.99f)
-        ret->fov = 89.99f;
-    if (ret->fov <= 1.f)
-        ret->fov = 1.f;
+        // Set the name
+        {
 
-    // Calculate the first view and projection matrices
-    ret->view       = look_at(ret->where, ret->target, ret->up);
-    ret->projection = perspective(to_radians(ret->fov), ret->aspect_ratio, ret->near_clip, ret->far_clip);
+            if (name)
+            {
+                size_t name_len = strlen(name);
+                ret->name       = calloc(name_len + 1, sizeof(u8));
 
-    computeProjectionMatrix(ret);
+                // Check allocated memory
+                {
+                    #ifndef NDEBUG
+                        if (ret->name == (void*)0)
+                            goto no_mem;
+                    #endif
+                }
+
+                strncpy(ret->name, name, name_len);
+            }
+            else
+                goto no_name;
+        }
+
+        // Set the camera location
+        {
+
+            if (location)
+                ret->location = (vec3){ (float)atof(location[0]), (float)atof(location[1]), (float)atof(location[2]) };
+            else
+                goto no_location;
+        }
+
+        // Set the camera target
+        {
+
+            if (target)
+                ret->target = (vec3){ (float)atof(target[0]), (float)atof(target[1]), (float)atof(target[2]) };
+
+            else
+                goto no_target;
+        }
+
+        // Set the up directon
+        {
+
+            if (up)
+                ret->up = (vec3){ (float)atof(up[0]), (float)atof(up[1]), (float)atof(up[2]) };
+
+            // Assume up is < 0, 0, 1 > if no up vector is supplied
+            else
+                ret->up = (vec3){ 0.f, 0.f, 1.f };
+        }
+
+        // Set the camera fov
+        {
+
+            if (fov)
+            {
+
+                ret->fov = (float)atof(fov);
+
+                // Bounds check for the fov
+                {
+                    if (ret->fov >= 89.99f)
+                        ret->fov = 89.99f;
+                    if (ret->fov <= 1.f)
+                        ret->fov = 1.f;
+                }
+
+            }
+
+            // Assume 30 degree fov if no fov is supplied
+            else
+                ret->fov = 30.f;
+        }
+
+        // Set the near clipping plane
+        {
+
+            if (near)
+                ret->near_clip = (float)atof(near);
+
+            // Assume 0.1 unit clip if no near clip is supplied
+            else
+                ret->near_clip = 0.1f;
+        }
+        
+        // Set the far clipping plane
+        {
+
+            if (far)
+                ret->far_clip = (float)atof(far);
+
+            // Assume 1000.0 unit clip if no far clip is supplied
+            else
+                ret->far_clip = 1000.f;
+        }
+
+        // Set the aspect ratio
+        {
+
+            if (aspect_ratio)
+                ret->aspect_ratio = (float)atof(aspect_ratio);
+
+            // Assume 16:9 aspect ratio
+            else
+                ret->aspect_ratio = 1.777777777f;
+        }
+
+        // Calculate the first view and projection matrices
+        {
+            ret->view = look_at(ret->location, ret->target, ret->up);
+            ret->projection = perspective(to_radians(ret->fov), ret->aspect_ratio, ret->near_clip, ret->far_clip);
+        }
+    }
 
     free(tokens);
 
@@ -198,11 +337,15 @@ GXCamera_t *load_camera_as_json              ( char        *token )
 
     // Error handling
     {
-        #ifndef NDEBUG
-            noMem:
-            g_print_error("[G10] [Camera] Out of memory in call to function \"%s\"\n",__FUNCSIG__);
-            return 0;
-        #endif
+
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
 
         // Argument errors
         {
@@ -215,40 +358,14 @@ GXCamera_t *load_camera_as_json              ( char        *token )
     }
 }
 
-void        computeProjectionMatrix       ( GXCamera_t* camera )
+int         look_at_entity                 ( GXCamera_t *camera, GXEntity_t *entity)
 {
-    // Argument check
-    {
-        if (camera == (void*)0)
-            goto no_camera;
-    }
-
-    // Compute and set the projection matrix for the camera
-    camera->projection = perspective(to_radians(camera->fov), camera->aspect_ratio, camera->near_clip, camera->far_clip);
-
-    return;
-
-    // Argument errors
-    {
-        no_camera:
-        #ifndef NDEBUG
-            g_print_error("[G10] [Camera] Null pointer provided for \"camera\" in call to function \"%s\"\n", __FUNCSIG__);
-        #endif
-        return;
-    }
-}
-
-int look_at_entity(GXCamera_t* camera, GXEntity_t* entity)
-{
-    camera->view = look_at(camera->where, entity->transform->location, (vec3) { 0.f, 0.f, 1.f });
+    camera->view = look_at(camera->location, entity->transform->location, (vec3) { 0.f, 0.f, 1.f });
     
-
     return 0;
 }
 
-
-
-int         destroy_camera                 ( GXCamera_t* camera )
+int         destroy_camera                 ( GXCamera_t *camera )
 {
     
     // Argument check

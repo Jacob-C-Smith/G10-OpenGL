@@ -534,10 +534,10 @@ GXPart_t *load_ply ( const char path[], GXPart_t *part )
     // Destroy the PLY File
     {
         // Depopulate all elements
-        for (size_t i = 0; i < plyFile->n_elements; i++)
+        for (i = 0; i < plyFile->n_elements; i++)
         {
             // Depopulate all properties of an element
-            for (size_t j = 0; j < plyFile->elements[i].n_properties; j++)
+            for (j = 0; j < plyFile->elements[i].n_properties; j++)
             {
                // Free the name of the property
                free(plyFile->elements[i].properties[j].name);
@@ -967,7 +967,7 @@ vec3* load_ply_geometric_points(const char path[], size_t* count)
     for (size_t n = 0; n < plyFile->elements[0].n_count; n++)
     {
 
-        // TODO: Vectorize
+        // TODO: Vectorize?
         ret[n].x = vertexArray[n * 3 + 0],
         ret[n].y = vertexArray[n * 3 + 1],
         ret[n].z = vertexArray[n * 3 + 2];
@@ -979,10 +979,10 @@ vec3* load_ply_geometric_points(const char path[], size_t* count)
     // Destroy the PLY File
     {
         // Depopulate all elements
-        for (size_t i = 0; i < plyFile->n_elements; i++)
+        for (i = 0; i < plyFile->n_elements; i++)
         {
             // Depopulate all properties of an element
-            for (size_t j = 0; j < plyFile->elements[i].n_properties; j++)
+            for ( j = 0; j < plyFile->elements[i].n_properties; j++)
             {
                // Free the name of the property
                free(plyFile->elements[i].properties[j].name);

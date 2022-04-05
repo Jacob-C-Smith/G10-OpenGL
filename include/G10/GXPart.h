@@ -44,9 +44,10 @@ struct GXPart_s
 // Constructors
 GXPart_t    *create_part       ( void );                                   // ✅ Creates an empty part
 
-// Loaders
+// Constructors
 GXPart_t    *load_part         ( const char   path[] );                    // ✅ Loads a part from the disk
 GXPart_t    *load_part_as_json ( char        *token );                     // ✅ Loads a part from a JSON file
+GXPart_t    *duplicate_part    ( GXPart_t    *part );
 
 // Getters
 GXPart_t    *get_part          ( GXPart_t    *head, const char  name[] );  // ✅ Finds a part in a mesh

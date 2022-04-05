@@ -20,7 +20,7 @@ GXRigidbody_t *create_rigidbody           ( )
     ret->forces              = calloc(MAXFORCES, sizeof(vec3));
     ret->forces_count        =  1;
 
-    ret->torque              = calloc(MAXFORCES, sizeof(quaternion));
+    ret->torques             = calloc(MAXFORCES, sizeof(vec3));
 
     return ret;
 }

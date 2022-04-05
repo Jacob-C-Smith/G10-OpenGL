@@ -8,6 +8,5 @@
 #include <G10/GXtypedef.h>
 #include <G10/GXTexture.h>
 
-
 // Texture constructor
 GXTexture_t *load_hdr ( const char path[] );

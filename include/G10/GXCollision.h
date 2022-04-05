@@ -30,5 +30,7 @@ GXCollision_t *create_collision_from_entities ( GXEntity_t *a, GXEntity_t *b );
 
 int            update_collision               ( GXCollision_t *collision );
 
+int            resolve_collision              ( GXCollision_t *collision );
+
 // Destructors
 int            destroy_collision              ( GXCollision_t *collision );

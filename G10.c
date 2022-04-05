@@ -191,7 +191,7 @@ GXInstance_t *g_init                ( const char          *path )
         {
             const u8* vendor          = glGetString(GL_VENDOR);
             const u8* renderer        = glGetString(GL_RENDERER);
-            size_t    extensionsCount = 0;
+            GLint    extensionsCount = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &extensionsCount);
 
             // Log every extension
@@ -225,7 +225,7 @@ GXInstance_t *g_init                ( const char          *path )
                 glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &activeTextures->active_texture_count);
 
                 // Allocate the space for them
-                activeTextures->active_texture_block = calloc(activeTextures->active_texture_count, sizeof(GXTexture_t*));
+                activeTextures->active_texture_block = calloc(activeTextures->active_texture_count, sizeof(GXTexture_t *));
 
                 // Print the texture count if running in debug mode
                 #ifndef NDEBUG
@@ -238,48 +238,33 @@ GXInstance_t *g_init                ( const char          *path )
         }
     }
 
-    //free(window_title);
-
-    ret->delta_time            = 0.01f;
-    
-    ret->cached_parts          = calloc(part_cache_count    , sizeof(void*));
-    ret->cached_materials      = calloc(material_cache_count, sizeof(void*));
-    ret->cached_shaders        = calloc(shader_cache_count  , sizeof(void*));
-
-    ret->cached_part_names     = calloc(part_cache_count    , sizeof(void*));
-    ret->cached_material_names = calloc(material_cache_count, sizeof(void*));
-    ret->cached_shader_names   = calloc(shader_cache_count  , sizeof(void*));
-    
-    active_instance = ret;
-
-    // Load a missing texture texture
+    // G10 Instance Initialization
     {
-        extern GXTexture_t* missingTexture;
-        missingTexture = load_texture("G10/textures/missing albedo.png");
-    }
+        ret->delta_time = 0.01f;
 
-    // Load a missing material
-    {
-        g_cache_material(ret, load_material("G10/materials/missing material.json"));
-    }
+        ret->cached_parts          = calloc(part_cache_count, sizeof(void*));
+        ret->cached_materials      = calloc(material_cache_count, sizeof(void*));
+        ret->cached_shaders        = calloc(shader_cache_count, sizeof(void*));
 
-    // Create a splash screen
-    create_splashscreen("G10/splash/splash front.png", "G10/splash/splash back.png");
+        ret->cached_part_names     = calloc(part_cache_count, sizeof(void*));
+        ret->cached_material_names = calloc(material_cache_count, sizeof(void*));
+        ret->cached_shader_names   = calloc(shader_cache_count, sizeof(void*));
 
-    ret->scenes                = (initial_scene) ? load_scene(initial_scene) : 0;
+        active_instance = ret;
 
-    // Splash screen animation
-    {
-        for (int i = 0; i > -15; i--)
+        // Load a missing texture texture
         {
-            move_front(i, i);
-            render_textures();
-            SDL_Delay(100);
+            extern GXTexture_t* missingTexture;
+            missingTexture = load_texture("G10/textures/missing albedo.png");
         }
-    }
 
-    // Destroy the splash screen
-    destroy_splashscreen();
+        // Load a missing material
+        {
+            g_cache_material(ret, load_material("G10/materials/missing material.json"));
+        }
+
+        ret->scenes = (initial_scene) ? load_scene(initial_scene) : 0;
+    }
 
     // Display the window
     SDL_ShowWindow(ret->window);
@@ -523,6 +508,7 @@ int           g_print_log           ( const char *const    format, ... )
 int           g_clear               ( void )
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    return 0;
 }
 
 int           g_swap                ( GXInstance_t        *instance )
@@ -865,7 +851,7 @@ GXPart_t     *g_find_part           ( GXInstance_t        *instance, char       
     // Search the cache for parts
     for (size_t i = 0; i < instance->cached_part_count; i++)
         if (strcmp(instance->cached_part_names[i], name) == 0)
-            return instance->cached_parts[i];
+            return duplicate_part(instance->cached_parts[i]);
 
     return 0;
 

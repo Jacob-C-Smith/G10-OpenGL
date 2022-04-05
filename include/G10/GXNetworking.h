@@ -35,6 +35,8 @@ struct GXServer_s
                   output_rear;
 };
 
+
+// TODO: Refactor commands to use the same type punning system as G UI.
 enum GXCommands_e {
     COMMAND_NOOP            = 0x0000, // 0000 0000 0000 0000
     COMMAND_A               = 0x0033, // 0000 0000 0011 0011 

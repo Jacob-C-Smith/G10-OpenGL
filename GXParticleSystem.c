@@ -10,18 +10,24 @@ GXParticle_t       *create_particle         ( void )
 	return calloc(1, sizeof(GXParticle_t));
 }
 
-GXParticleSystem_t *particle_system_as_json ( void )
+GXParticleSystem_t* load_particle_system(const char* path)
+{
+
+	return 0;
+}
+
+GXParticleSystem_t *load_particle_system_as_json ( char               *token )
 {
 	return 0;
 }
 
-GXParticle_t       *particle_as_json        ( void )
+GXParticle_t* load_particle_as_json(char* token)
 {
 	return 0;
 }
 
 
-GXParticle_t       *duplicate_particle      ( GXParticle_t       *particle )
+GXParticle_t* duplicate_particle(GXParticle_t* particle)
 {
 	GXParticle_t* ret = create_particle();
 

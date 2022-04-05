@@ -10,7 +10,7 @@ GXScene_t  *create_scene     ( void )
     {
         #ifndef NDEBUG
             if (ret == 0)
-                goto noMem;
+                goto no_mem;
         #endif
     }
     return ret;
@@ -20,9 +20,9 @@ GXScene_t  *create_scene     ( void )
 
         // Standard library errors
         {
-        noMem:
+            no_mem:
             #ifndef NDEBUG
-                g_print_error("[G10] [Scene] Out of memory.\n");
+                g_print_error("[Standard Library] Failed to allocate memory in call to function \"%s\".\n", __FUNCSIG__);
             #endif
             return 0;
         }
@@ -45,7 +45,7 @@ GXScene_t  *load_scene       ( const char path[] )
     GXScene_t   *ret;
 
     // Initialized data
-    size_t       l   = 0;
+    size_t       l    = 0;
     char        *data = 0;
 
     // Load up the file
@@ -84,33 +84,50 @@ GXScene_t  *load_scene_as_json ( char*      token )
     JSONToken_t *tokens;
 
     // Initialized data
-    GXScene_t   *ret = create_scene();
-    size_t       l   = strlen(token);
+    GXScene_t   *ret           = create_scene();
+    size_t       l             = strlen(token),
+                 j             = 0;
+
+    char        *name          = 0,
+               **entities      = 0,
+               **cameras       = 0,
+               **lights        = 0,
+                *skybox        = 0;
 
     // Time the function if in debug mode
-    #ifndef NDEBUG
-        clock_t c = clock();
-    #endif
+    {
+        #ifndef NDEBUG
+            clock_t c = clock();
+        #endif
+    }
 
     // Preparse the scene
-    token_count       = parse_json(token, l, 0, (void*)0);
+    token_count      = parse_json(token, l, 0, (void*)0);
     tokens           = calloc(token_count, sizeof(JSONToken_t));
+
+    // Error check
+    {
+        #ifndef NDEBUG
+            if (tokens == (void*) 0)
+                goto no_mem;
+        #endif
+    }
 
     // Parse the scene
     parse_json(token, l, token_count, tokens);
 
-    // Find and exfiltrate pertinent information.
-    for (size_t j = 0; j < token_count; j++)
+    // Search through values and pull out relevent information
+    for (j = 0; j < token_count; j++)
     {
+
         // Copy out the name of the scene
         if (strcmp("name", tokens[j].key) == 0)
         {
-            // Initialized data.
-            size_t len = strlen(tokens[j].value.n_where);
-            ret->name  = calloc(len+1,sizeof(char));
+            if (tokens[j].type == JSONstring)
+                name = tokens[j].value.n_where;
+            else
+                goto name_type_error;
 
-            // Copy the string
-            strncpy(ret->name, tokens[j].value.n_where, len);
 
             continue;
         }
@@ -118,31 +135,89 @@ GXScene_t  *load_scene_as_json ( char*      token )
         // Create entities
         if (strcmp("entities", tokens[j].key) == 0)
         {
-            for (size_t k = 0; tokens[j].value.a_where[k]; k++)
-                append_entity(ret, (*(char*)tokens[j].value.a_where[k] == '{') ? load_entity_as_json(tokens[j].value.a_where[k]) : load_entity(tokens[j].value.a_where[k]));
+            if (tokens[j].type == JSONarray)
+                entities = tokens[j].value.a_where;
+            else
+                goto entities_type_error;
+
             continue;
         }
 
         // Create cameras
         else if (strcmp("cameras", tokens[j].key) == 0)
         {
-            for (size_t k = 0; tokens[j].value.a_where[k]; k++)
-                append_camera(ret, (*(char*)tokens[j].value.a_where[k] == '{') ? load_camera_as_json(tokens[j].value.a_where[k]) : load_camera(tokens[j].value.a_where[k]));
+            if (tokens[j].type == JSONarray)
+                cameras = tokens[j].value.a_where;
+            else
+                goto cameras_type_error;
+
             continue;
         }
 
         // Set up lights
         else if (strcmp("lights", tokens[j].key) == 0)
         {
-            for (size_t k = 0; tokens[j].value.a_where[k]; k++)
-                append_light(ret, (*(char*)tokens[j].value.a_where[k] == '{') ? load_light_as_json(tokens[j].value.a_where[k]) : load_light(tokens[j].value.a_where[k]));
+            if (tokens[j].type == JSONarray)
+                lights = tokens[j].value.a_where;
+            else
+                goto lights_type_error;
+
             continue;
         }
 
         else if (strcmp("skybox", tokens[j].key) == 0)
         {
-            ret->skybox = (*(char*)tokens[j].value.n_where == '{') ? load_skybox_as_json(tokens[j].value.n_where) : load_skybox(tokens[j].value.n_where);
+            if (tokens[j].type == JSONstring || tokens[j].type == JSONobject)
+                skybox = tokens[j].value.n_where;
+            else
+                goto skybox_type_error;
+
             continue;
+        }
+    }
+
+    // Construct the scene 
+    {
+
+        // Set the name
+        {
+            if (name)
+            {
+                // Inialized data
+                size_t len = strlen(name);
+
+                // Allocate memory for the string
+                ret->name = calloc(len + 1, sizeof(u8));
+
+                // Copy name string
+                strncpy(ret->name, name, len);
+            }
+        }
+
+        // Construct and set the entities
+        {
+            if(entities)
+                for (size_t k = 0; entities[k]; k++)
+                    append_entity(ret, (*(char*)entities[k] == '{') ? load_entity_as_json(entities[k]) : load_entity(entities[k]));
+        }
+
+        // Construct and set the cameras
+        {
+            if(cameras)
+                for (size_t k = 0; cameras[k]; k++)
+                    append_camera(ret, (*(char*)cameras[k] == '{')  ? load_camera_as_json(cameras[k])  : load_camera(cameras[k]));
+        }
+
+        // Construct and set the lights
+        {
+            if(lights)
+                for (size_t k = 0; cameras[k]; k++)
+                    append_light(ret, (*(char*)cameras[k] == '{')   ? load_light_as_json(cameras[k])   : load_light(cameras[k]));
+        }
+
+        // Construct and set the skybox
+        {
+            ret->skybox = (*(char*)skybox == '{') ? load_skybox_as_json(skybox) : load_skybox(skybox);
         }
     }
 
@@ -152,20 +227,23 @@ GXScene_t  *load_scene_as_json ( char*      token )
     // Finish up
     free(tokens);
 
-    // Compute and print how long it took to load the scene 
-    {
-        #ifndef NDEBUG
-            c = clock() - c;
-            g_print_log("[G10] Loaded scene \"%s\" in %.0f ms\n", ret->name, 1000 * (float)c / CLOCKS_PER_SEC);
-        #endif
-    }
-    
-
     // Debug mode log
     {
-        // Write the bounding volume heierarchy to standard out
         #ifndef NDEBUG
-            print_bv(stdout, ret->bvh, 0);
+
+            // Write the bounding volume heierarchy to standard out
+            {
+                print_bv(stdout, ret->bvh, 0);
+            }
+
+            // Compute and print how long it took to load the scene 
+            {
+                #ifndef NDEBUG
+                    c = clock() - c;
+                    g_print_log("[G10] Loaded scene \"%s\" in %.0f ms\n", ret->name, 1000 * (float)c / CLOCKS_PER_SEC);
+                #endif
+            }
+
         #endif
     }
 
@@ -173,6 +251,24 @@ GXScene_t  *load_scene_as_json ( char*      token )
 
     // Error handling
     {
+
+        // Debug only errors
+        // JSON type errors
+        {
+
+            name_type_error:
+                
+            entities_type_error:
+                g_print_warning("[G10] [Scene] \"rigid body\" token is of type \"%s\", but needs to be of type \"%s\", in call to function \"%s\". Particle system not constructed\n", token_types[tokens[j].type], token_types[JSONobject], __FUNCSIG__);
+                goto loop;
+            cameras_type_error:
+
+            lights_type_error:
+
+            skybox_type_error:
+
+        }
+
         // Argument errors
         {
             no_token:
@@ -443,22 +539,26 @@ int         draw_scene       ( GXScene_t* scene )
     // Initialized data
     GXEntity_t *i           = scene->entities;
     GXLight_t  *l           = scene->lights;
-    GXShader_t* last_shader = 0;
+    GXShader_t *last_shader = 0;
     
     // Iterate through until en_countering a null entity
     while (i)
     {
+
         // Set up the shader
         {
+
             // Use it
             if (i->shader != last_shader)
             {
                 last_shader = i->shader;
+
                 use_shader(i->shader);
             }
 
             // Set projection and view matrices, camera position
-            set_shader_camera(i->shader, scene->cameras);
+            if(scene->cameras)
+                set_shader_camera(i->shader, scene->cameras);
             
             // Set up image based lighting 
             if(scene->skybox)
@@ -470,8 +570,7 @@ int         draw_scene       ( GXScene_t* scene )
             if(scene->lights)
                 set_shader_lights(i->shader, scene->lights, 4);
         }
-
-
+        
         // Actually draw the entity
         draw_entity(i);
        
@@ -480,6 +579,7 @@ int         draw_scene       ( GXScene_t* scene )
         
     }
     
+
     draw_skybox:
 
     // Lastly, draw the skybox if there is a skybox
@@ -583,15 +683,24 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
     // Commentary
     {
         /*
-         * Computing physics is divided into 4 concurrent steps. The first step is to apply forces
-         * on the object. Forces are summated from array indicies 1-n, where n is forces count. 
-         * The same is done for torque. New displacement and rotation derivatives are calculated 
-         * from net forces. Collision detection takes place in two steps. Broad phase collision
-         * detection happens between aabb's. If a broad phase collision is detected, it is added
-         * to the list of collisions. Narrow phase collision detection is performed on actively colliding
-         * aabb's using theconvex hulls and the Gilbert Johnson Keerthi algorithm. The Expanding Polytope
-         * Algorithm is used to compute collision normals, to calculate torque. A simple moment impulse
-         * solver resolves collisions. 
+         * Computing physics is divided into 4 concurrent steps. 
+         * 
+         * The first step is to apply forces on the object. Forces are summated from array indicies
+         * 1-n, where n is forces count. The same is done for torque. New displacement and rotation 
+         * derivatives are calculated from net forces, and placed in the 0th element of the array. 
+         * 
+         * In the second step, the summated forces are integrated to produce new displacement and 
+         * angular derivatives. 
+         * 
+         * The third step is collision detectrion. Collision detection takes place in two steps.
+         * Broad phase collision detection happens between aabb's. If a broad phase collision is
+         * detected, it is added to the list of collisions. Narrow phase collision detection is
+         * performed on actively colliding aabb's using the convex hulls and the Gilbert Johnson
+         * Keerthi algorithm. The Expanding Polytope Algorithm is used to compute collision normals.
+         * 
+         * In the last step, A simple moment impulse solver resolves collisions, and modify forces.
+         * 
+         * Before the bulk of the calculation, active collisions are checked to ensure they are alive. 
          */
     }
 
@@ -604,8 +713,8 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
     }
 
     // Initialized data
-    GXEntity_t* i = scene->entities;
-
+    GXEntity_t    *i = scene->entities;
+    GXCollision_t *c = 0;
     // Update active collisions
     {
         // Initialized data
@@ -626,7 +735,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
             {
                 // Initialized data
                 GXInstance_t  *instance = g_get_active_instance();
-                GXCollision_t *c        = 0;
+                
 
                 // Set the ending tick
                 active_collisions->end_tick = instance->ticks;
@@ -647,9 +756,9 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                 }
 
                 // Remove and destroy the collision
-                c = remove_collision(scene, active_collisions);
-                destroy_collision(c);
-                
+                c = active_collisions;
+
+                goto destroy_co;
             }
 
             // Is collision over?
@@ -657,11 +766,21 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
 
             // Iterate
             active_collisions = active_collisions->next;
+            continue;
+
+        destroy_co:
+
+            active_collisions = active_collisions->next;
+            printf("COLLISION OVER\n");
+            destroy_collision(remove_collision(scene, c));
+            c = 0;
         }
     }
 
+    // Iterate over entities
     while (i)
     {
+
         // Check the entity 
         {
             if (i->transform == 0)
@@ -672,8 +791,15 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
 
         // Summate forces
         {
-            summate_forces(i->rigidbody->forces, i->rigidbody->forces_count);
-            //summate_forces(i->rigidbody->torque, i->rigidbody->torqueCount);
+            if (i->rigidbody->active == true)
+            {
+
+                i->rigidbody->forces[1].z = -0.098;
+                i->rigidbody->forces_count = 1;
+            
+                summate_forces(i->rigidbody->forces, i->rigidbody->forces_count);
+            }
+            //summate_forces(i->rigidbody->torques, i->rigidbody->torque_count);
         }
 
         // Apply forces
@@ -682,6 +808,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
             // Integrate displacement and rotation from displacement force and torque
             if (i->rigidbody->active == true)
             {
+
                 // Calculate derivatives of displacement
                 integrate_displacement(i, delta_time);
 
@@ -694,8 +821,8 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                 goto noCollider;
 
             // Recompute BV size and BVH tree
-            if (i->collider)
-                if(i->collider->bv)
+            if (i->collider);
+                /*if(i->collider->bv)
                 {
                     vec3 l = normalize( (vec3) { i->transform->scale.x, 0.f, 0.f } ),
                          f = normalize( (vec3) { 0.f, i->transform->scale.y, 0.f } ),
@@ -708,7 +835,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                   i->collider->bv->dimensions->x = fabs(l.x) + fabs(f.x) + fabs(u.x) + 0.001;
                   i->collider->bv->dimensions->y = fabs(l.y) + fabs(f.y) + fabs(u.y) + 0.001;
                   i->collider->bv->dimensions->z = fabs(l.z) + fabs(f.z) + fabs(u.z) + 0.001;
-              }
+              }*/
         }
 
         // Detect collisions
@@ -772,7 +899,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                             if (!checkIntersection(i->collider->bv, possibe_collisions[j]->collider->bv))
                                 possibe_collisions[j] = 0;
 
-                    // Collect entities into a contiguous array
+                    // Collect entities into a contiguous array, to index collisions faster
                     size_t a = 0;
                     for (size_t j = 0; j < possible_collision_count; j++)
                     {
@@ -798,6 +925,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                                 (k->a == i && k->b == possibe_collisions[j]))
                                 goto duplicate_collision;
                         }
+                        printf("COLLISION STARTED\n");
                         append_collision(scene, create_collision_from_entities(possibe_collisions[j], i));
                         duplicate_collision:;
                     }
@@ -809,10 +937,18 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
             // TODO: Narrow phase collision detection between two colliders using GJK or collision primatives
             {
                 GXCollision_t* c = scene->collisions;
+                
                 while(c)
                 {
-                    bool result = GJK(c);
-                    printf("%s\n", (result) ? "GJK TRUE" : "GJK FALSE");
+                    
+                    bool result = false;
+                    if (c->a->collider->type == convexhull && c->b->collider->type == convexhull)
+                        result = GJK(c);
+
+                    if (result == true)
+                    {
+
+                    }
                     c = c->next;
                 }
             }
@@ -1391,7 +1527,7 @@ GXCollision_t *remove_collision ( GXScene_t* scene, GXCollision_t *collision )
 
         scene->collisions = j;
 
-        return 0;
+        return collision;
     }
 
 
@@ -1400,14 +1536,12 @@ GXCollision_t *remove_collision ( GXScene_t* scene, GXCollision_t *collision )
         if (collision == i->next)
         {
 
-            GXCollision_t* j = i->next->next;
-
-
-            destroy_collision(i->next);
+            GXCollision_t* j = i->next->next,
+                         * k = i->next;
 
             // Stitch up the linked list 
             i->next = j;
-            return 0;
+            return k;
         }
         i = i->next;
     }

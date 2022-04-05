@@ -36,12 +36,21 @@ bool GJK(GXCollision_t* collision)
 		/*
 		 * This is an implementation of the Gilbert Johnson Keerthi algorithm for convex 
 		 * hull collision detection. 
+		   
+		    E. G. Gilbert, D. W. Johnson and S. S. Keerthi, "A fast procedure for computing the distance between 
+		    complex objects in three-dimensional space," in IEEE Journal on Robotics and Automation, vol. 4, no.
+		    2, pp. 193-203, April 1988, doi: 10.1109/56.2083.
+		   
 		 */
 	}
 
 	// Argument check
 	{
 		if (collision == (void*)0)
+			return 0;
+		if (collision->a == (void*)0)
+			return 0;
+		if (collision->b == (void*)0)
 			return 0;
 		if (collision->a->collider->convex_hull == (void*)0)
 			return 0;

@@ -486,29 +486,29 @@ GXInput_t   *load_input                ( const char    path[] )
         #endif
     }
 
-    // Return the input
     return ret;
 
     // Error handling
     {
 
-        // Debug only branches
-        #ifndef NDEBUG
-
-            // Argument errors
-            {
-                noPath:
+        // Argument errors
+        {
+            noPath:
+                #ifndef NDEBUG
                     g_print_log("[G10] [Input] No path provided to function \"%s\"\n", __FUNCSIG__);
-                return 0;
-            }
+                #endif
+            return 0;
+        }
 
-            // G10 errors
-            {
-                no_ret:
+        // G10 errors
+        {
+            no_ret:
+                #ifndef NDEBUG
                     g_print_error("[G10] [Input] Failed to parse file \"%s\" in call to function \"%s\"\n", path, __FUNCSIG__);
-                return 0;
-            }
-        #endif
+                #endif
+            return 0;
+        }
+        
     }
 }
 
@@ -529,8 +529,10 @@ GXInput_t   *load_input_as_json        ( char         *token )
 
     // Error checking
     {
-        if ( ret == (void*)0 )
-            goto no_ret;
+        #ifndef NDEBUG
+            if ( ret == (void*)0 )
+                goto no_ret;
+        #endif
     }
 
     return ret;
@@ -578,6 +580,14 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
                  name_len    = 0;
     JSONToken_t *tokens      = calloc(token_count, sizeof(JSONToken_t));
 
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if(tokens == (void*) 0)
+                goto no_mem;
+        #endif
+    }
+
     // JSON results
     char        *name        = 0;
     char       **bind_tokens = 0;
@@ -591,52 +601,58 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
 
         // Parse name
         if (strcmp(tokens[i].key, "name") == 0)
-            name = tokens[i].value.n_where;
+        {
+            if (tokens[i].type == JSONstring)
+                name = tokens[i].value.n_where;
+            else
+                goto name_type_error;
+        }
 
         // Parse binds array
         else if (strcmp(tokens[i].key, "binds") == 0)
-            bind_tokens = tokens[i].value.a_where;
-
+        {
+            if (tokens[i].type == JSONarray)
+                bind_tokens = tokens[i].value.a_where;
+            else
+                goto binds_type_error;
+        }
 
     }
 
-    // Error checking
-    {
-        #ifndef NDEBUG
-            if (name == (void*)0)
-                goto no_name;
-        #endif
-    }
-    
     // Construct Input
     {
 
         // Set name
         {
-            name_len = strlen(name);
-
-            ret->name = calloc(len + 1, sizeof(char));
-
-            // Error checking
+            if(name)
             {
-                #ifndef NDEBUG
-                    if(ret->name == (void*)0)
-                        goto no_name_mem;
-                #endif
-            }
+                name_len = strlen(name);
 
-            strncpy(ret->name, name, len);
-            free(tokens);
+                ret->name = calloc(len + 1, sizeof(char));
+
+                // Error checking
+                {
+                    #ifndef NDEBUG
+                        if(ret->name == (void*)0)
+                            goto no_name_mem;
+                    #endif
+                }
+
+                strncpy(ret->name, name, len);
+            }
+            
         }
 
         // Set binds
         {
+            if (bind_tokens)
+            {
+                // Iterate through JSON array
+                for (size_t j = 0; bind_tokens[j]; j++)
 
-            // Iterate through JSON array
-            for (size_t j = 0; bind_tokens[j]; j++)
-
-                // Parse and append each bind from the array
-                append_bind(ret, load_bind_as_json(bind_tokens[j]));
+                    // Parse and append each bind from the array
+                    append_bind(ret, load_bind_as_json(bind_tokens[j]));
+            }
         }
     }
 
@@ -648,42 +664,41 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
         #endif
     }
 
+    free(tokens);
+
     return ret;
 
     // Error handling
     {
 
-        // Debug only branches
+        // Argument errors
         {
-            #ifndef NDEBUG
-            
-                // Argument errors
-                {
-                    no_token:
-                        g_print_error("[G10] [Input] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
-                        return (void *)0;
-                }
-
-                // Parsing errors
-                {
-                    no_name:
-                        g_print_error("[G10] [Input] No \"name\" token provided in call to function \"%s\"\n", __FUNCSIG__);
-                        return (void *)0;
-                }
-
-                // Standard library errors
-                {
-                    no_name_mem:
-                        g_print_error("[Standard library] Failed to allocate memory for \"name\" in call to function \"%s\"", __FUNCSIG__);
-                        return (void *)0;
-                }
-
-            #endif
+            no_token:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Input] Null pointer provided for \"token\" in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
         }
 
+        // Parsing errors
+        {
+            no_name:
+                #ifndef NDEBUG
+                    g_print_error("[G10] [Input] No \"name\" token provided in call to function \"%s\"\n", __FUNCSIG__);
+                #endif
+                return 0;
+        }
+
+        // Standard library errors
+        {
+            no_name_mem:
+                #ifndef NDEBUG
+                    g_print_error("[Standard library] Failed to allocate memory for \"name\" in call to function \"%s\"", __FUNCSIG__);    
+                #endif
+                return 0;
+        }
 
     }
-
 }
 
 GXBind_t    *load_bind_as_json         ( char         *token )
@@ -695,10 +710,15 @@ GXBind_t    *load_bind_as_json         ( char         *token )
             goto no_token;
     }
 
-    GXBind_t* ret = create_bind();
-    size_t    len = strlen(token),
-              token_count = parse_json(token, len, 0, 0);
-    JSONToken_t * tokens = calloc(token_count, sizeof(JSONToken_t));
+    GXBind_t    *ret         = create_bind();
+    size_t       len         = strlen(token),
+                 token_count = parse_json(token, len, 0, 0);
+    JSONToken_t *tokens      = calloc(token_count, sizeof(JSONToken_t));
+
+    char        *name        = 0,
+               **keys        = 0;
+    size_t       key_count   = 0;
+
     parse_json(token, len, token_count, tokens);
 
     for (size_t i = 0; i < token_count; i++)
@@ -707,33 +727,87 @@ GXBind_t    *load_bind_as_json         ( char         *token )
         // Parse name
         if (strcmp(tokens[i].key, "name")==0)
         {
-            char *name = tokens[i].value.n_where;
-            size_t len = strlen(name);
-            ret->name = calloc(len + 1, sizeof(char));
-            strncpy(ret->name, name, len);
+            if (tokens[i].type == JSONstring)
+                name = tokens[i].value.n_where;
+            else
+                goto name_type_error;
+
+            continue;
         }
         
         // Parse keys
         else if (strcmp(tokens[i].key, "keys")==0)
         {
-            size_t key_count = 0;
-            for (key_count; tokens[i].value.a_where[key_count]; ++key_count);
+            if (tokens[i].type == JSONarray)
+                keys = tokens[i].value.a_where;
+            else
+                goto keys_type_error;
 
+            continue;
+        }
+
+    }
+    
+    // Error checking
+    {
+        #ifndef NDEBUG
+            if (name == (void*)0)
+                goto no_name;
+        #endif
+    }
+
+    // Construct the bind
+    {
+
+        // Copy and set the name
+        {
+            size_t name_len = strlen(name);
+            ret->name = calloc(name_len + 1, sizeof(char));
+
+            strncpy(ret->name, name, name_len);
+        }
+
+        // Set the keys
+        {
+
+            // Count up keys for the bind
+            for (key_count; keys[key_count]; ++key_count);
+
+            // Set key count
             ret->key_count = key_count;
 
+            // Allocate space for keys
             ret->keys = calloc(key_count + 1, sizeof(char*));
 
-            for (size_t j = 0; tokens[i].value.a_where[j]; j++)
+            // Error checking
             {
-                char *key_name = tokens[i].value.a_where[j];
+                #ifndef NDEBUG
+                    if (ret->keys == (void*) 0)
+                        goto no_mem;
+                #endif
+            }
+
+            // Set keys
+            for (size_t j = 0; keys[j]; j++)
+            {
+
+                char* key_name = keys[j];
                 size_t k_len = strlen(key_name);
-                
+
                 ret->keys[j] = calloc(k_len + 1, sizeof(char));
+
+                // Error handling
+                {
+                    #ifndef NDEBUG
+                        if (ret->keys[j] == (void*) 0)
+                            goto no_mem;
+                    #endif
+                }
+
                 strncpy(ret->keys[j], key_name, k_len);
 
             }
         }
-
     }
 
     free(tokens);

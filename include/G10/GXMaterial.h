@@ -25,6 +25,7 @@ GXMaterial_t *create_material       ( void );                                   
 // Constructors
 GXMaterial_t *load_material         ( const char    path[] );                            // ✅ Loads a material from a JSON file
 GXMaterial_t *load_material_as_json ( char         *token );                             // ✅ Loads a material from a JSON object
+GXMaterial_t *duplicate_material    ( GXMaterial_t *material );
 
 // Getters
 GXMaterial_t *get_material          ( GXMaterial_t *materials, const char name[] );      // ✅ Finds a material in a list of materials

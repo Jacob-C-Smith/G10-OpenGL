@@ -98,11 +98,6 @@ GXTexture_t *load_texture                  ( const char   path[] )
 
 }
 
-GXTexture_t* load_texture_as_json(char* token)
-{
-	// TODO
-}
-
 unsigned int bind_texture_to_unit     ( GXTexture_t *image )
 {
 	// Argument checking
@@ -123,7 +118,7 @@ unsigned int bind_texture_to_unit     ( GXTexture_t *image )
 
 	// Find a texture slot
 	// Iterate over all active textures
-	for (size_t i = 0; i < activeTextures->active_texture_count; i++)
+	for (unsigned int i = 0; i < activeTextures->active_texture_count; i++)
 	{
 		// Check if the active texture unit in the block is not allocated
 		if (activeTextures->active_texture_block[i] == 0)

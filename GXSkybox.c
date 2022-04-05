@@ -101,22 +101,34 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         // Name
         if (strcmp("name", tokens[j].key) == 0)
         {
-            size_t len = strlen(tokens[j].key);
-            ret->name  = calloc(len+1, sizeof(u8));
-            
-            strncpy(ret->name, tokens[j].value.n_where, len);
+            if (tokens[j].type == JSONstring)
+                ret->name = tokens[j].value.n_where;
+            else
+                goto name_type_error;
+
+            continue;
         }
 
         // Environment
         if (strcmp("environment", tokens[j].key) == 0)
         {
-            envPath = tokens[j].value.n_where;
+            if (tokens[j].type == JSONstring)
+                envPath = tokens[j].value.n_where;
+            else
+                goto environment_path_error;
+
+            continue;
         }
 
         // Irradiance
         if (strcmp("irradiance", tokens[j].key) == 0)
         {
-            irrPath = tokens[j].value.n_where;
+            if (tokens[j].type == JSONstring)
+                irrPath = tokens[j].value.n_where;
+            else
+                goto irradiance_path_error;
+
+            continue;
         }
 
         // Color
@@ -126,145 +138,165 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         }
     }
 
-    ret->environment_cubemap          = create_texture();
-    ret->irradiance_cubemap           = create_texture();
-    ret->prefilter_cubemap            = create_texture();
-    
-    // Generate perspective and view matrices
-
-    // 90 degree fov, 1:1 aspect ratio
-    ret->projection = perspective(M_PI_2, 1.f, .1f, 10.f);
-
-    ret->views[0] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { -1.f, 0.f, 0.f }, (vec3) { 0.f, 0.f, 1.f });  //  -X 
-    ret->views[1] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { 1.f, 0.f, 0.f }, (vec3) { 0.f,  0.f, 1.f });  //  +X 
-    ret->views[2] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { 0.f, 0.f, -1.f }, (vec3) { 0.f, -1.f, 0.f }); //  -Z
-    ret->views[3] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { 0.f, 0.f,  1.f }, (vec3) { 0.f, 1.f, 0.f });  //  +Z
-    ret->views[4] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { 0.f, -1.f, 0.f }, (vec3) { 0.f, 0.f, 1.f });  //  -Y
-    ret->views[5] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { 0.f, 1.f, 0.f }, (vec3) { 0.f, 0.f, 1.f });   //  +Y
-
-
-    // Load the required shaders
-
-    // Turns an equirectangular image into a cubemap
-    ret->environment = load_shader("G10/shaders/G10 environment.json");
-    ret->irradiance  = load_shader("G10/shaders/G10 irradiance.json");
-    ret->prefilter   = load_shader("G10/shaders/G10 prefilter.json");
-    ret->brdf        = load_shader("G10/shaders/G10 BRDF.json");
-
-    // Draws the skybox
-    ret->background  = load_shader("G10/shaders/G10 background.json");
-
-    // Load the cube part
-    ret->cube        = load_part("G10/cube.json");
-    ret->quad        = load_part("G10/plane.json");
-    ret->lut         = load_hdr("G10/BRDF.hdr");
-
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-    // Generate environment cubemap
+    // Construct the skybox
     {
-        // Generate environment framebuffers
-        glGenFramebuffers(1, &framebuffer);
-        glGenRenderbuffers(1, &renderbuffer);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1024, 1024);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
-
-        // Load the environment maps and the irradiance convolution
-        environmentHDR = load_hdr(envPath);
-
-
-        glGenTextures(1, &ret->environment_cubemap->texture_id);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
-        ret->environment_cubemap->cubemap = true;
-
-        // Generate cubemap textures
-        for (u32 i = 0; i < 6; ++i)
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 1024, 1024, 0, GL_RGB, GL_FLOAT, (void*)0);
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        use_shader(ret->environment);
-        set_shader_texture(ret->environment, "equirectangularMap", environmentHDR);
-        set_shader_mat4(ret->environment, "P", &ret->projection);
-
-        glViewport(0, 0, 1024, 1024);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-        for (u32 i = 0; i < 6; ++i)
+        // Set the name
         {
-            set_shader_mat4(ret->environment, "V", &ret->views[i]);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ret->environment_cubemap->texture_id, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            size_t name_len = strlen(tokens[j].key);
+            ret->name = calloc(name_len + 1, sizeof(u8));
 
-            draw_part(ret->cube);
+            strncpy(ret->name, tokens[j].value.n_where, name_len);
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-    }
-    
-    // Generate the irradiance cubemap
-    {
-        glDeleteFramebuffers(1, &framebuffer);
-        glDeleteRenderbuffers(1, &renderbuffer);
-
-        // Generate environment framebuffers
-        glGenFramebuffers(1, &framebuffer);
-        glGenRenderbuffers(1, &renderbuffer);
-
-        glGenTextures(1, &ret->irradiance_cubemap->texture_id);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, ret->irradiance_cubemap->texture_id);
-        ret->irradiance_cubemap->cubemap = true;
-
-        for(u32 i = 0; i < 6; i++)
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, (void*)0);
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
-
-        use_shader(ret->irradiance);
-        set_shader_texture(ret->irradiance, "environmentMap", ret->environment_cubemap);
-        set_shader_mat4(ret->irradiance, "P", &ret->projection);
-
-        glViewport(0, 0, 32, 32);
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-
-        for (u32 i = 0; i < 6; ++i)
+        // Construct some textures
         {
-            set_shader_mat4(ret->irradiance, "V", &ret->views[i]);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ret->irradiance_cubemap->texture_id, 0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            draw_part(ret->cube);
+            ret->environment_cubemap = create_texture();
+            ret->irradiance_cubemap  = create_texture();
+            ret->prefilter_cubemap   = create_texture();
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
-        glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-    }
-    
-    // Generate the prefilter map
-    {
-           
+        // Generate projection and view matrices
+        {
+
+            // Projection
+            {
+                ret->projection = perspective((float)M_PI_2, 1.f, .1f, 10.f);
+            }
+
+            // View
+            {
+                ret->views[0] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) { -1.f,  0.f,  0.f }, (vec3) { 0.f,  0.f, 1.f }); // -X 
+                ret->views[1] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) {  1.f,  0.f,  0.f }, (vec3) { 0.f,  0.f, 1.f }); // +X 
+                ret->views[2] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) {  0.f,  0.f, -1.f }, (vec3) { 0.f, -1.f, 0.f }); // -Z
+                ret->views[3] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) {  0.f,  0.f,  1.f }, (vec3) { 0.f,  1.f, 0.f }); // +Z
+                ret->views[4] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) {  0.f, -1.f,  0.f }, (vec3) { 0.f,  0.f, 1.f }); // -Y
+                ret->views[5] = look_at((vec3) { 0.f, 0.f, 0.f }, (vec3) {  0.f,  1.f,  0.f }, (vec3) { 0.f,  0.f, 1.f }); // +Y
+            }
+        }
+
+        // Load the required shaders
+        {
+            ret->environment = load_shader("G10/shaders/G10 environment.json");
+            ret->irradiance  = load_shader("G10/shaders/G10 irradiance.json");
+            ret->prefilter   = load_shader("G10/shaders/G10 prefilter.json");
+            ret->brdf        = load_shader("G10/shaders/G10 BRDF.json");
+        }
+        
+        // Draws the skybox
+        ret->background = load_shader("G10/shaders/G10 background.json");
+
+        // Load the cube part
+        ret->cube = load_part("G10/cube.json");
+        ret->quad = load_part("G10/plane.json");
+
+        // OpenGL state instructions
+        {
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(GL_LEQUAL);
+            glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        }
+
+        // Generate environment cubemap
+        {
+            // Generate environment framebuffers
+            glGenFramebuffers(1, &framebuffer);
+            glGenRenderbuffers(1, &renderbuffer);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1024, 1024);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer);
+
+            // Load the environment maps and the irradiance convolution
+            environmentHDR = load_hdr(envPath);
+
+
+            glGenTextures(1, &ret->environment_cubemap->texture_id);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
+            ret->environment_cubemap->cubemap = true;
+
+            // Generate cubemap textures
+            for (u32 i = 0; i < 6; ++i)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 1024, 1024, 0, GL_RGB, GL_FLOAT, (void*)0);
+
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            use_shader(ret->environment);
+            set_shader_texture(ret->environment, "equirectangularMap", environmentHDR);
+            set_shader_mat4(ret->environment, "P", &ret->projection);
+
+            glViewport(0, 0, 1024, 1024);
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+            for (u32 i = 0; i < 6; ++i)
+            {
+                set_shader_mat4(ret->environment, "V", &ret->views[i]);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ret->environment_cubemap->texture_id, 0);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                draw_part(ret->cube);
+            }
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        }
+
+        // Generate the irradiance cubemap
+        {
+            glDeleteFramebuffers(1, &framebuffer);
+            glDeleteRenderbuffers(1, &renderbuffer);
+
+            // Generate environment framebuffers
+            glGenFramebuffers(1, &framebuffer);
+            glGenRenderbuffers(1, &renderbuffer);
+
+            glGenTextures(1, &ret->irradiance_cubemap->texture_id);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, ret->irradiance_cubemap->texture_id);
+            ret->irradiance_cubemap->cubemap = true;
+
+            for (u32 i = 0; i < 6; i++)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, (void*)0);
+
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+            glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
+            use_shader(ret->irradiance);
+            set_shader_texture(ret->irradiance, "environmentMap", ret->environment_cubemap);
+            set_shader_mat4(ret->irradiance, "P", &ret->projection);
+
+            glViewport(0, 0, 32, 32);
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+            for (u32 i = 0; i < 6; ++i)
+            {
+                set_shader_mat4(ret->irradiance, "V", &ret->views[i]);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, ret->irradiance_cubemap->texture_id, 0);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                draw_part(ret->cube);
+            }
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, ret->environment_cubemap->texture_id);
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+        }
+
+        // Load the lookup table
+        ret->lut = load_hdr("G10/BRDF.hdr");
     }
 
     return ret;
