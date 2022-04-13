@@ -164,7 +164,7 @@ GXRig_t  *load_rig_as_json      ( char       *token )
 
         // Set name
         {
-            size_t name_len = strlen(tokens[j].value.n_where);
+            size_t name_len = strlen(name);
 
             ret->name = calloc(name_len + 1, sizeof(char));
 
@@ -187,6 +187,8 @@ GXRig_t  *load_rig_as_json      ( char       *token )
 
             ret->name[bone_len] = 0;
         }
+
+        loop:;
     }
 
     free(tokens);
@@ -200,6 +202,24 @@ GXRig_t  *load_rig_as_json      ( char       *token )
             g_print_error("[G10] [Rig] Null pointer provided in function \"%s\"\n",__FUNCSIG__);
         #endif
         return 0;
+        
+        // JSON type errors
+        {
+            name_type_error:
+            bones_type_error:
+
+            goto loop;
+        }
+
+        // Standard library errors
+        {
+            no_mem:
+                #ifndef NDEBUG
+                    g_print_error("[Standard library] Failed to allocate memory in call to function \"%s\"", __FUNCSIG__);    
+                #endif
+                return 0;
+        }
+
     }
 }
 
@@ -336,6 +356,15 @@ GXBone_t *load_bone_as_json ( char       *token)
 
     // Error handling
     {
+
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
     nullToken:
         return 0;
         // TODO

@@ -5,6 +5,14 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Dynamic Library Debug|Win32">
+      <Configuration>Dynamic Library Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Dynamic Library Debug|x64">
+      <Configuration>Dynamic Library Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -93,6 +101,13 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Dynamic Library Debug|x64'">
+    <PlatformToolset>v143</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Dynamic Library Debug|Win32'">
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -278,6 +293,15 @@
       <AdditionalDependencies>opengl32.lib;JSON.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dynamic Library Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;JSON.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
@@ -297,7 +321,9 @@
     <ClCompile Include="GXCameraController.c" />
     <ClCompile Include="GXCollider.c" />
     <ClCompile Include="GXCollision.c" />
+    <ClCompile Include="GXCommand.c" />
     <ClCompile Include="GXEntity.c" />
+    <ClCompile Include="GXEPA.c" />
     <ClCompile Include="GXFlycam.c" />
     <ClCompile Include="GXGJK.c" />
     <ClCompile Include="GXHDR.c" />
@@ -305,6 +331,7 @@
     <ClCompile Include="GXJPG.c" />
     <ClCompile Include="GXLight.c" />
     <ClCompile Include="GXMaterial.c" />
+    <ClCompile Include="GXOBB.c" />
     <ClCompile Include="GXPart.c" />
     <ClCompile Include="GXNetworking.c" />
     <ClCompile Include="GXParticleSystem.c" />
@@ -334,6 +361,7 @@
     <ClInclude Include="include\G10\GXCameraController.h" />
     <ClInclude Include="include\G10\GXCollider.h" />
     <ClInclude Include="include\G10\GXCollision.h" />
+    <ClInclude Include="include\G10\GXCommand.h" />
     <ClInclude Include="include\G10\GXEntity.h" />
     <ClInclude Include="include\G10\GXEPA.h" />
     <ClInclude Include="include\G10\GXFlycam.h" />

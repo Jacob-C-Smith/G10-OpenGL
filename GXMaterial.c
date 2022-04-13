@@ -95,7 +95,7 @@ GXMaterial_t *load_material_as_json ( char         *token )
         {
             #ifndef NDEBUG
                 if (tokens == (void*)0)
-                    return no_mem;
+                    goto no_mem;
             #endif
         }
 
@@ -124,11 +124,6 @@ GXMaterial_t *load_material_as_json ( char         *token )
             }
 
 
-            size_t nameLen = strlen(tokens[k].value.n_where);
-            ret->name = calloc(nameLen + 1, sizeof(u8));
-            if (ret->name == (void*)0)
-                return 0;
-            strncpy(ret->name, tokens[k].value.n_where, nameLen);
 
             continue;
         }
@@ -189,13 +184,20 @@ GXMaterial_t *load_material_as_json ( char         *token )
 
             continue;
         }
+
+        loop:;
     }
     
     // Construct the material
     {
         // Set the name
         {
-
+            
+            size_t nameLen = strlen(name);
+            ret->name = calloc(nameLen + 1, sizeof(char));
+            if (ret->name == (void*)0)
+                return 0;
+            strncpy(ret->name, name, nameLen);
         }
 
         // Load and set the albedo
@@ -249,6 +251,27 @@ GXMaterial_t *load_material_as_json ( char         *token )
     // Error handling
     {
 
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
+
+        // JSON type errors
+        {
+            albedo_type_error:
+            normal_type_error:
+            metal_type_error:
+            rough_type_error:
+            ao_type_error:
+            height_type_error:
+
+            goto loop;
+        }
+
         // Argument check
         {
             no_token:
@@ -257,6 +280,8 @@ GXMaterial_t *load_material_as_json ( char         *token )
             #endif 
             return 0;
         }
+
+
     }
 }
 

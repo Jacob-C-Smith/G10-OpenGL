@@ -210,7 +210,7 @@ GXCamera_t *load_camera_as_json            ( char        *token )
             continue;
         }
 
-        loop:
+        loop:;
     }
 
     // Construct the camera
@@ -222,7 +222,7 @@ GXCamera_t *load_camera_as_json            ( char        *token )
             if (name)
             {
                 size_t name_len = strlen(name);
-                ret->name       = calloc(name_len + 1, sizeof(u8));
+                ret->name       = calloc(name_len + 1, sizeof(char));
 
                 // Check allocated memory
                 {
@@ -347,6 +347,29 @@ GXCamera_t *load_camera_as_json            ( char        *token )
             #endif
         }
 
+        // JSON type errors
+        {
+            name_type_error:
+            location_type_error:
+            target_type_error:
+            up_type_error:
+            fov_type_error:
+            near_type_error:
+            far_type_error:
+            aspect_ratio_type_error:
+
+            goto loop;
+        }
+
+        // Missing input
+        {
+            no_target:
+            no_location:
+            no_name:
+
+            return 0;
+        }
+        
         // Argument errors
         {
             no_token:

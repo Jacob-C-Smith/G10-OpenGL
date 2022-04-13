@@ -304,7 +304,7 @@ GXEntity_t *load_entity_as_json      ( char       *token )
             size_t name_len = strlen(name_token);
 
             // Allocate memory for the string
-            ret->name = calloc(name_len + 1, sizeof(u8));
+            ret->name = calloc(name_len + 1, sizeof(char));
 
             // Error checking
             {
@@ -400,6 +400,16 @@ GXEntity_t *load_entity_as_json      ( char       *token )
     // Error handling
     {
 
+        
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
+
         // Debug only branches
         {
             #ifndef NDEBUG
@@ -457,6 +467,7 @@ GXEntity_t *load_entity_as_json      ( char       *token )
 
 int         integrate_displacement ( GXEntity_t *entity, float  delta_time)
 {
+    
     // Argument check
     {
         #ifndef NDEBUG

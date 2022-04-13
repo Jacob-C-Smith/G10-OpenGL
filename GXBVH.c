@@ -38,16 +38,26 @@ GXBV_t* create_bv_from_entity(GXEntity_t* entity)
 	// Initialized data
 	GXBV_t *ret   = create_bv();
 
+	// Make a collider if there isn't one
+	if (entity->collider == (void*)0)
+	{
+		entity->collider = create_collider();
+
+		ret->location = &entity->transform->location;
+		ret->dimensions = &entity->transform->scale;
+	}
+
 	// Copy location and scale
-	ret->location = &entity->transform->location;
-	ret->dimensions = &entity->transform->scale;
+	else
+	{
+		ret->location = &entity->transform->location;
+		ret->dimensions = &entity->collider->aabb_dimensions;
+	}
 
 	ret->entity   = entity;
 
-	// Make a collider if there isn't one
-	if (entity->collider == (void*)0)
-		entity->collider     = create_collider();
-
+	no_collider:
+	
 	// Set the collider if there isn't one
 	if (entity->collider->bv == (void*)0)
 		entity->collider->bv = ret;
@@ -96,49 +106,7 @@ GXBV_t* create_bv_from_bvs(GXBV_t* a, GXBV_t* b)
 	
 	// TODO: Refactor with AVX
 	// Compute the scale
-	{
-		vec3 maxA,
-			 maxB,
-			 minA,
-			 minB,
-			 maxBound,
-			 minBound;
-
-		add_vec3(&maxA, *a->location, *a->dimensions);
-		sub_vec3(&minA, *a->location, *a->dimensions);
-		add_vec3(&maxB, *b->location, *b->dimensions);
-		sub_vec3(&minB, *b->location, *b->dimensions);
-
-		if (a->entity)
-		{
-			mul_vec3_vec3(&maxA, maxA, a->entity->transform->scale);
-			mul_vec3_vec3(&minA, minA, a->entity->transform->scale);
-		}
-
-		if (b->entity)
-		{
-			mul_vec3_vec3(&maxB, maxB, b->entity->transform->scale);
-			mul_vec3_vec3(&minB, minB, b->entity->transform->scale);
-		}
-
-		float d = (max(max(maxA.x, minA.x), max(maxB.x, minB.x))),
-		      e = (min(min(maxA.x, minA.x), min(maxB.x, minB.x))),
-			  f = (max(max(maxA.y, minA.y), max(maxB.y, minB.y))),
-			  g = (min(min(maxA.y, minA.y), min(maxB.y, minB.y))),
-			  h = (max(max(maxA.z, minA.z), max(maxB.z, minB.z))),
-			  i = (min(min(maxA.z, minA.z), min(maxB.z, minB.z)));
-
-		maxBound = (vec3){ d, f, h },
-		minBound = (vec3){ e, g, i };
-
-		add_vec3(ret->location, minBound, maxBound );
-		div_vec3_f(ret->location, *ret->location, 2);
-
-		sub_vec3(ret->dimensions, maxBound, minBound);
-		div_vec3_f(ret->dimensions, *ret->dimensions, 2);
-
-
-	}
+	resize_bv(ret);
 
 	return ret;
 
@@ -264,8 +232,6 @@ GXBV_t* create_bvh_from_scene(GXScene_t* scene)
 	// Set the reference back to the head
 	e = scene->entities;
 
-
-
 	// Populate the double pointer list with bounding volumes
 	for (i = 0; i < entitiesInScene; i++)
 	{
@@ -376,20 +342,18 @@ GXBV_t* find_closest_bv ( GXBV_t *bvh, GXBV_t* bv )
 	{
 		if (bvh->left == 0 && bvh->right == 0)
 			return bvh;
-		if (checkIntersection(bvh->left, bv))
+		if (distance(bvh->left, bv) < distance(bv->right, bv))
 		{
 			ret = find_closest_bv(bvh->left, bv);
 			if (ret)
 				return bvh->left;
 		}
-
-		if (checkIntersection(bvh->right, bv))
+		else
 		{
 			ret = find_closest_bv(bvh->right, bv);
 			if (ret)
 				return bvh->right;
 		}
-
 
 	}
 
@@ -438,14 +402,13 @@ GXBV_t* find_parent_bv ( GXBV_t *bvh, GXBV_t *bv )
 		if (bvh->entity)
 			return bvh;
 
-		if (checkIntersection(bvh->left, bv))
+		if (distance(bvh->left, bvh) < distance(bv->right, bvh))
 		{
-			ret = find_parent_bv(bvh->left, bv);
+			ret = find_parent_bv(bvh->left, bvh);
 			if (ret)
 				return ret;
 		}
-		
-		if (checkIntersection(bvh->right, bv))
+		else
 		{
 			ret = find_parent_bv(bvh->right, bv);
 			if (ret)
@@ -465,31 +428,27 @@ int resize_bv(GXBV_t* bv)
 	{
 		if (bv == 0)
 			goto no_bv;
-		if (bv->entity)
-			return 0;//goto no_bv_entity;
+
 	}
 
 	GXBV_t *a = bv->left,
 	       *b = bv->right;
-
+	GXInstance_t *instance = g_get_active_instance();
+	if (bv->entity)
+		goto no_bv_entity;
 	{
-		/*
-		vec3 maxA,
-			 maxB,
-			 minA,
-			 minB,
+		vec3 maxA = *b->dimensions,
+			 maxB = *b->dimensions,
+			 minA = mul_vec3_f(*a->dimensions, -1),
+			 minB = mul_vec3_f(*b->dimensions, -1),
 			 maxBound,
 			 minBound;
 
-		add_vec3(&maxA, *a->location, *a->dimensions);
-		sub_vec3(&minA, *a->location, *a->dimensions);
-		add_vec3(&maxB, *b->location, *b->dimensions);
-		sub_vec3(&minB, *b->location, *b->dimensions);
 
 		if (a->entity)
 		{
-			mul_vec3_vec3(&maxA, a->entity->transform->scale, maxA);
-			mul_vec3_vec3(&minA, a->entity->transform->scale, minA);
+			mul_vec3_vec3(&maxA, a->entity->transform->scale, maxB);
+			mul_vec3_vec3(&minA, a->entity->transform->scale, minB);
 		}
 
 		if (b->entity)
@@ -498,18 +457,27 @@ int resize_bv(GXBV_t* bv)
 			mul_vec3_vec3(&maxB, b->entity->transform->scale, maxB);
 		}
 
-		bv->dimensions->x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x))) - (min(min(maxA.x, minA.x), min(maxB.x, minB.x)))),
-		bv->dimensions->y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y))) - (min(min(maxA.y, minA.y), min(maxB.y, minB.y)))),
-		bv->dimensions->z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))) - (min(min(maxA.z, minA.z), min(maxB.z, minB.z))));
+		add_vec3(&maxA, *a->location, maxA);
+		sub_vec3(&minA, *a->location, minA);
+		add_vec3(&maxB, *b->location, maxB);
+		sub_vec3(&minB, *b->location, minB);
 
-		maxBound      = (vec3){ max(maxA.x, maxB.x), max(maxA.y, maxB.y), max(maxA.z, maxB.z) },
-		minBound      = (vec3){ min(minA.x, minB.x), min(minA.y, minB.y), min(minA.z, minB.z) };
+		maxBound.x = ((max(max(maxA.x, minA.x), max(maxB.x, minB.x)))),
+		maxBound.y = ((max(max(maxA.y, minA.y), max(maxB.y, minB.y)))),
+		maxBound.z = ((max(max(maxA.z, minA.z), max(maxB.z, minB.z))));
 
-		add_vec3(bv->location, minBound, maxBound);
-		bv->location->x = (bv->location->x - maxBound.x),
-		bv->location->y = (bv->location->y - maxBound.y),
-		bv->location->z = (bv->location->z - maxBound.z);
-		*/
+		minBound.x = ((min(min(maxA.x, minA.x), min(maxB.x, minB.x)))),
+		minBound.y = ((min(min(maxA.y, minA.y), min(maxB.y, minB.y)))),
+		minBound.z = ((min(min(maxA.z, minA.z), min(maxB.z, minB.z))));
+
+		bv->location->x = fabsf(maxBound.x - minBound.x) / 2,
+		bv->location->y = fabsf(maxBound.y - minBound.y) / 2,
+		bv->location->z = fabsf(maxBound.z - minBound.z) / 2;
+		
+		bv->dimensions->x = maxBound.x - bv->location->x,
+		bv->dimensions->y = maxBound.y - bv->location->y,
+		bv->dimensions->z = maxBound.z - bv->location->z;
+		no_bv_entity:;
 	}
 	return 0;
 
@@ -518,12 +486,6 @@ int resize_bv(GXBV_t* bv)
 		no_bv:
 		#ifndef NDEBUG
 			g_print_error("[G10] [BVH] Null pointer provided for \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
-		#endif
-		return 0;
-
-		no_bv_entity:
-		#ifndef NDEBUG
-			g_print_error("[G10] [BVH] Null pointer provided for \"entity\" in \"bv\" in call to function \"%s\"\n", __FUNCSIG__);
 		#endif
 		return 0;
 	}
@@ -542,8 +504,7 @@ int draw_scene_bv ( GXScene_t *scene, GXPart_t *cube, GXShader_t *shader, int de
 	}
 
 	// Draw the bounding volumes in wireframe mode
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDisable(GL_CULL_FACE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
 	draw_bv(scene->bvh, cube, shader, scene->cameras, depth);
 	glEnable(GL_CULL_FACE);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -604,24 +565,14 @@ int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera
 	set_shader_camera(shader, camera);
 	if (bv->entity == (void*)0)
 	{
+		mat4 r = model_mat4_from_vec3(*bv->location, euler_angle_from_quaternion((quaternion) { 1.f, 0.f, 0.f, 1.f }), *bv->dimensions);
 		
-		mat4 sca = scale_mat4(*bv->dimensions),
-			 rot = rotation_mat4_from_quaternion((quaternion) { 1.f, 0.f, 0.f, 1.f }),
-			 tra = translation_mat4(*bv->location),
-			 r = mul_mat4_mat4(sca, mul_mat4_mat4(rot, tra));
 		set_shader_mat4(shader, "M", &r);
 
 	}
 	else
 	{
-
-		vec3 s;
-		mul_vec3_vec3(&s, *bv->dimensions, bv->entity->transform->scale);
-
-		mat4 sca = scale_mat4(s),
-			 rot = rotation_mat4_from_quaternion((quaternion) { 1.f, 0.f, 0.f, 1.f }),
-             tra = translation_mat4(*bv->location),
-			 r = mul_mat4_mat4(sca, mul_mat4_mat4(rot, tra));
+		mat4 r = model_mat4_from_vec3(*bv->location, euler_angle_from_quaternion((quaternion) { 1.f, 0.f, 0.f, 1.f }), *bv->dimensions);
 
 		set_shader_mat4(shader, "M", &r);
 	}
@@ -640,8 +591,6 @@ int draw_bv ( GXBV_t *bv, GXPart_t *cube, GXShader_t *shader, GXCamera_t *camera
 	if (bv->right)
 		draw_bv(bv->right, cube, shader, camera, depth - 1);
 
-	
-
 	return 0;
 	// TODO: Error handling
 
@@ -658,7 +607,7 @@ int print_bv ( FILE *f, GXBV_t* bv, size_t d )
 
 	// Base case, print out a header
 	if (d == 0)
-		fprintf(f, "[G10] [BVH] Bounding volume heierarchy\n[ entity name ] - < location > - < scale >\n\n");
+		fprintf(f, "[G10] [BVH] Bounding volume heierarchy\n[ entity name ] - < location > - < dimension >\n\n");
 		
 	// Indent proportional to the deapth of the BVH
 	for (size_t i = 0; i < d * 4; i++)
@@ -667,7 +616,7 @@ int print_bv ( FILE *f, GXBV_t* bv, size_t d )
 	// If the bounding volume is an entity, print the entities name
 	if (bv->entity)
 	{
-		fprintf(f, "\"%s\"", bv->entity->name);
+		fprintf(f, "\"%s\"", bv->entity->name); 
 		fprintf(f, "%s - < %.2f %.2f %.2f > - < %.2f %.2f %.2f >\n", (bv->entity) ? "" : "Volume", bv->location->x, bv->location->y, bv->location->z, bv->dimensions->x * bv->entity->transform->scale.x, bv->dimensions->y * bv->entity->transform->scale.y, bv->dimensions->z * bv->entity->transform->scale.z);
 	}
 	else

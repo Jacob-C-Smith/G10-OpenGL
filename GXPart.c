@@ -82,7 +82,8 @@ GXPart_t *load_part_as_json ( char      *token )
     // Initialized data
     GXPart_t    *ret         = create_part();
     size_t       len         = strlen(token),
-                 token_count = parse_json(token, len, 0, (void*)0);
+                 token_count = parse_json(token, len, 0, (void*)0),
+                 j           = 0;
     JSONToken_t *tokens      = calloc(token_count, sizeof(JSONToken_t));
 
     char        *name        = 0,
@@ -101,7 +102,7 @@ GXPart_t *load_part_as_json ( char      *token )
     parse_json(token, len, token_count, tokens);
 
     // Search through values and pull out relevent information
-    for (size_t j = 0; j < token_count; j++)
+    for (j = 0; j < token_count; j++)
     {
 
         // Handle comments
@@ -136,6 +137,8 @@ GXPart_t *load_part_as_json ( char      *token )
 
             continue;
         }
+
+        loop:;
     }
 
     // Check the cache for the part
@@ -159,7 +162,7 @@ GXPart_t *load_part_as_json ( char      *token )
         {
 
             // Initialized data
-            char*  path    = tokens[j].value.n_where;
+            char*  path    = name;
             size_t pathLen = strlen(path);
 
             // Copy the string
@@ -179,9 +182,12 @@ GXPart_t *load_part_as_json ( char      *token )
 
         // Set and copy the material name
         {
-            size_t material_name_len = strlen(material);
-            ret->material = calloc(1, material_name_len + 1);
-            strncpy(ret->material, material, material_name_len);
+            if (material)
+            {
+                size_t material_name_len = strlen(material);
+                ret->material = calloc(1, material_name_len + 1);
+                strncpy(ret->material, material, material_name_len);
+            }
         }
     }
 
@@ -197,6 +203,24 @@ GXPart_t *load_part_as_json ( char      *token )
 
     // Error handling
     {
+        
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
+
+        // JSON type errors
+        {
+            name_type_error:
+            path_type_error:
+            material_type_error:
+
+            goto loop;
+        }
 
         // Argument errors
         {
@@ -398,6 +422,8 @@ int       draw_part       ( GXPart_t  *part )
 
     // Draw the part
     glBindVertexArray(part->vertex_array);
+    if (part->elements_in_buffer == 0)
+        part->elements_in_buffer = 36;
     glDrawElements(GL_TRIANGLES, part->elements_in_buffer, GL_UNSIGNED_INT, 0);
 
     return 0;

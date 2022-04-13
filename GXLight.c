@@ -79,8 +79,9 @@ GXLight_t *load_light_as_json ( char      *token )
 
     // Initialized data
     GXLight_t    *ret         = create_light();
-    size_t        len         = strlen(token);
-    size_t        token_count = parse_json(token, len, 0, (void*)0);
+    size_t        len         = strlen(token),
+                  token_count = parse_json(token, len, 0, (void*)0),
+                  i           = 0;
     JSONToken_t  *tokens      = calloc(token_count, sizeof(JSONToken_t));
 
     char         *name        = 0,
@@ -99,7 +100,7 @@ GXLight_t *load_light_as_json ( char      *token )
     parse_json(token, len, token_count, tokens);
 
     // Iterate through key / value pairs to find relevent information
-    for (size_t i = 0; i < token_count; i++)
+    for (i = 0; i < token_count; i++)
     {
 
         // Parse out the light name
@@ -140,6 +141,8 @@ GXLight_t *load_light_as_json ( char      *token )
 
             continue;
         }
+
+        loop:;
     }
 
     // Construct the light
@@ -148,7 +151,7 @@ GXLight_t *load_light_as_json ( char      *token )
         // Set and copy the name
         {
             size_t name_len = strlen(name);
-            ret->name = calloc(name_len + 1, sizeof(u8));
+            ret->name = calloc(name_len + 1, sizeof(char));
 
             // Error checking
             {
@@ -189,6 +192,15 @@ GXLight_t *load_light_as_json ( char      *token )
             #endif
             return 0;
 
+        }
+
+        // JSON type errors
+        {
+            name_type_error:
+            color_type_error:
+            location_type_error:
+
+            goto loop;
         }
 
         // Argument errors

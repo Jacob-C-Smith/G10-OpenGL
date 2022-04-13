@@ -67,7 +67,7 @@
     <Filter Include="Header Files\G10\audio">
       <UniqueIdentifier>{0fc9faae-6095-4fe1-85be-3147e912ce36}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\G10\physics\Collision">
+    <Filter Include="Header Files\G10\physics\collision">
       <UniqueIdentifier>{41bd2b64-f43a-4e97-97e8-94ca0af547ab}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -188,6 +188,15 @@
     <ClCompile Include="GXQOI.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GXCommand.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXEPA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GXOBB.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\G10\GXtypedef.h">
@@ -293,10 +302,10 @@
       <Filter>Header Files\G10\audio</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXCollision.h">
-      <Filter>Header Files\G10\physics\Collision</Filter>
+      <Filter>Header Files\G10\physics\collision</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXEPA.h">
-      <Filter>Header Files\G10\physics\Collision</Filter>
+      <Filter>Header Files\G10\physics\collision</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXCollider.h">
       <Filter>Header Files\G10\scene\entity</Filter>
@@ -305,7 +314,10 @@
       <Filter>Header Files\G10\texture</Filter>
     </ClInclude>
     <ClInclude Include="include\G10\GXGJK.h">
-      <Filter>Header Files\G10\physics\Collision</Filter>
+      <Filter>Header Files\G10\physics\collision</Filter>
+    </ClInclude>
+    <ClInclude Include="include\G10\GXCommand.h">
+      <Filter>Header Files\G10\networking</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

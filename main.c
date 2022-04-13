@@ -107,18 +107,13 @@ int main ( int argc, const char *argv[] )
         
     }
 
-    // Particle system programming
-    {
-        GXParticleSystem_t *particle_system = create_particle_system();
-        GXParticle_t       *particle        = create_particle();
-        
-    }
-
     GXPart_t   *c = load_part("G10/cube.json");
     GXShader_t *s = load_shader("G10/shaders/G10 solid color.json");
+
     instance->running = true;
 
     g_window_resize(instance);
+    float m = 0.1f;
 
     // Main game loop
     while (instance->running)
@@ -138,14 +133,19 @@ int main ( int argc, const char *argv[] )
 
         // Clear the screen
         g_clear();
-
         // Compute physics and draw the scene
         if (instance->scenes)
         {
             update_controlee_camera(camera_controller, instance->delta_time);
             compute_physics(scene, instance->delta_time);
-            
+
+            scene->entities->transform->rotation = make_quaternion_from_euler_angle((vec3) { 0.f, 0.f, m });
+            m += 0.2f;
+
+            draw_bv(scene->bvh, c, s, scene->cameras, 2);
+
             draw_scene(instance->scenes);
+
         }
 
         // Swap the window 

@@ -151,7 +151,7 @@ GXCollider_t *load_collider_as_json ( char         *token )
             continue;
         }
 
-        loop:
+        loop:;
     }
 
     // Construct the collider
@@ -184,22 +184,12 @@ GXCollider_t *load_collider_as_json ( char         *token )
         {
             if (dimensions)
             {
-                
-                ret->bv           = create_bv();
-                if(ret->bv->entity)
-                {
-                    if(ret->bv->entity->transform)
-                        ret->bv->dimensions = &ret->bv->entity->transform->scale;
-                }
-                else
-                {
-                    ret->bv->dimensions = calloc(1, sizeof(vec3));
-                }
-        
-                ret->bv->dimensions->x = (float)atof(dimensions[0]) / 2.f,
-                ret->bv->dimensions->y = (float)atof(dimensions[1]) / 2.f,
-                ret->bv->dimensions->z = (float)atof(dimensions[2]) / 2.f;
-            
+                ret->dimensions.x = (float)atof(dimensions[0]),
+                ret->dimensions.y = (float)atof(dimensions[1]),
+                ret->dimensions.z = (float)atof(dimensions[2]);
+
+                ret->aabb_dimensions = ret->dimensions;
+
             }
             else
                 goto no_dimensions;
@@ -219,7 +209,19 @@ GXCollider_t *load_collider_as_json ( char         *token )
 
     // Error handling
     {
-        
+        // JSON type errors
+        {
+            type_type_error:
+            dimensions_type_error:
+            convex_hull_path_type_error:
+
+            goto loop;
+        }
+
+        no_type:
+        no_dimensions:
+            return 0;
+
         // Argument errors
         {
             no_token:

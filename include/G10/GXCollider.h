@@ -23,23 +23,36 @@ typedef enum colliderType_e colliderType_t;
 
 struct GXCollider_s
 {
-    GXBV_t         *bv;
+    // 
     colliderType_t  type;
-    vec3           *convex_hull;
+
+    // Dimensions
     vec3            dimensions;
 
+    // AABB dimensions
+    vec3            aabb_dimensions;
+
+    mat4           *model;
+
+    // List of points on convex hull
+    vec3           *convex_hull;
+    size_t          convex_hull_count;
+
+    // AABB data
     size_t          aabb_start_callback_count,
                     aabb_callback_count,
                     aabb_end_callback_count,
+
                     aabb_start_callback_max,
                     aabb_callback_max,
-                    aabb_end_callback_max,
-                    convex_hull_count;
+                    aabb_end_callback_max;
 
     void          **aabb_start_callbacks,
                   **aabb_callbacks,
                   **aabb_end_callbacks;
 
+    // Pointer to bounding volume in the scene BVH
+    GXBV_t         *bv;
 };
 
 // Allocators

@@ -80,8 +80,10 @@ bool GJK(GXCollision_t* collision)
 		p[1] = s;
 
 		if (next_simplex(p, direction))
-			return true;
+		{
 
+			return true;
+		}
 	}
 
 }

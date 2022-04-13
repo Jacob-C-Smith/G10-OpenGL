@@ -569,6 +569,10 @@ int           g_window_resize       ( GXInstance_t        *instance )
     // Notify OpenGL of the change
     glViewport(0, 0, w, h);
 
+    // Update the window width and height
+    instance->window_width  = w,
+    instance->window_height = h;
+
     return 0;
 
     // Error handling
@@ -612,6 +616,29 @@ int           g_delta               ( GXInstance_t        *instance )
         return 0;
     }
 
+}
+
+float g_time ( GXInstance_t *instance )
+{
+    // Argument checking
+    {
+        if (instance == (void*)0)
+            goto noInstance;
+    }
+
+    // Calculate  time
+    return SDL_GetTicks() / 1000.f;
+    
+    // Error handling
+    {
+
+        // Argument errors
+        noInstance:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer provided for \"instance\" in call to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    }
 }
  
 void          g_toggle_mouse_lock   ( callback_parameter_t state, GXInstance_t *instance )
@@ -657,6 +684,88 @@ GXInstance_t *g_get_active_instance ( void )
     return active_instance;
 }
 
+int g_set_active_scene(GXInstance_t* instance, char *name)
+{
+    // Arguments checking
+    {
+        #ifndef NDEBUG
+            if (instance == 0)
+                goto no_instance;
+            if (name == 0)
+                goto no_name;
+        #endif
+    }
+
+    // Create a pointer to the head of the list 
+    GXScene_t *i = instance->scenes;
+    
+    // Quick sanity check
+    if (i == 0)
+        goto no_scenes;
+
+    // Check the head
+    if (strcmp(name, i->name) == 0)
+        goto noNeed;
+
+    // Find the named scene
+    while (i->next)
+    {
+        if (strcmp(name, i->next->name) == 0)
+        {
+            // Initialized data
+            GXScene_t* j  = i->next;
+            GXScene_t* k  = i->next->next;
+    
+            // Stitch up the linked list 
+            i->next          = k;
+            j->next          = instance->scenes;
+            instance->scenes = j;
+
+            return 0;
+        }
+
+        i = i->next;
+    }
+
+    goto noMatch;
+
+    // Error checking
+    {
+        no_scenes:
+        #ifndef NDEBUG
+            g_print_error("[G10] There are no scenes, therefore no active scene.\n");
+        #endif
+        return 0;
+
+        noNeed:
+        #ifndef NDEBUG
+            g_print_log("[G10] \"%s\" is already the active scene.\n", name);
+        #endif
+        return 0;
+
+        noMatch:
+        #ifndef NDEBUG
+            g_print_error("[G10] There is no scene in \"%s\" named \"%s\".\n", instance->name, name);
+        #endif
+        return 0;
+
+        // The instance parameter was null
+        no_instance:
+        #ifndef NDEBUG
+            g_print_error("[G10] Null pointer provided to \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+    
+        // The name parameter was null
+        no_name:
+        #ifndef NDEBUG
+        g_print_error("[G10] Null pointer provided for \"name\" in call  to function \"%s\"\n", __FUNCSIG__);
+        #endif
+        return 0;
+
+    }
+
+}
 int           g_cache_material      ( GXInstance_t        *instance, GXMaterial_t *material )
 {
     // Argument check

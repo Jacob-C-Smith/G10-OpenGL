@@ -85,8 +85,82 @@ GXCollision_t* create_collision_from_entities(GXEntity_t* a, GXEntity_t* b)
     }
 }
 
+bool test_collision ( GXCollision_t *collision )
+{
+    // Argument check
+    {
+        #ifndef NDEBUG
+            if ( collision == (void *)0 )
+                goto no_collision;
+        #endif
+    }
+
+    // Test AABB
+    if (test_aabb(collision))
+    {
+        collision->has_aabb_collision = true;
+
+        // Test OOB
+        if (test_obb(collision))
+        {
+            collision->has_obb_collision = true;
+
+            // Test convex hull collision
+            //if((collision))
+            {
+
+            }
+
+        }
+    }
+
+    collision->has_collision = collision->has_aabb_collision;
+
+    return collision->has_collision;
+
+
+    no_collision:
+    return false;
+
+    // Error handling
+    {
+
+    }
+}
+
+bool test_aabb(GXCollision_t* collision)
+{
+    // Argument check
+    {
+        #ifndef NDEBUG
+	        if (collision == (void*)0)
+		        goto no_collision;
+    	    if (collision->a == (void*)collision->a)
+	    	    goto no_a;
+        	if (collision->b == (void*)collision->b)
+	        	goto no_b;
+        #endif
+    }
+
+    GXEntity_t *a   = collision->a,
+               *b   = collision->b;
+
+    bool        ret = false;
+
+
+
+    return ret;
+
+    no_collision:
+    no_a:
+    no_b:
+    return false;
+
+}
+
 int update_collision ( GXCollision_t *collision )
 {
+
     // Argument check
     {
         if(collision == (void *)0) 
@@ -97,51 +171,24 @@ int update_collision ( GXCollision_t *collision )
 	GXEntity_t *a        = collision->a,
 		       *b        = collision->b;
     
-    // Is the collision over?
-    if (checkIntersection(a->collider->bv, b->collider->bv) == false)
-        collision->has_aabb_collision = false;
-
-    // AABB callbacks
-    if(collision->has_aabb_collision)
+    // Test collision, do callbacks
+    if(test_collision(collision))
     {
+
+        // A callbacks
         for (size_t i = 0; i < a->collider->aabb_callback_count; i++)
         {
             void (*function)(collision) = a->collider->aabb_callbacks[i];
             function(collision);
         }
 
+        // B callbacks
         for (size_t i = 0; i < b->collider->aabb_callback_count; i++)
         {
             void (*function)(collision) = b->collider->aabb_callbacks[i];
             function(collision);
         }
     }
-
-    /* Impulse momentum
-	// Resolve collision
-    vec3        lastAVel = a->rigidbody->velocity,
-                lastBVel = b->rigidbody->velocity,
-               *aVel     = &a->rigidbody->velocity,
-               *bVel     = &b->rigidbody->velocity;
-
-    float       aMass    = a->rigidbody->mass,
-                bMass    = b->rigidbody->mass;
-
-    float       c        = (aMass - bMass) / (aMass + bMass),
-                d        = (bMass - aMass) / (aMass + bMass),
-                e        = (2 * bMass) / (aMass + bMass),
-                f        = (2 * aMass) / (aMass + bMass);
-    
-    aVel->x              = (lastAVel.x * c) + (lastBVel.x * e);
-    aVel->y              = (lastAVel.y * c) + (lastBVel.y * e);
-    aVel->z              = (lastAVel.z * c) + (lastBVel.z * e);
-    aVel->w              = (lastAVel.w * c) + (lastBVel.w * e);
-
-    bVel->x              = (lastAVel.x * f) + (lastBVel.x * d);
-    bVel->y              = (lastAVel.y * f) + (lastBVel.y * d);
-    bVel->z              = (lastAVel.z * f) + (lastBVel.z * d);
-    bVel->w              = (lastAVel.w * f) + (lastBVel.w * d);
-    */
 
     return 0;
 
@@ -150,7 +197,9 @@ int update_collision ( GXCollision_t *collision )
 
         // Argument errors
         {
-            no_collision:
+        no_collision:
+        no_a:
+        no_b:
             #ifndef NDEBUG
                 g_print_error("[G10] [Collision] Null pointer provided for \"collision\" in call to \"%s\"\n",__FUNCSIG__);
             #endif
@@ -158,6 +207,13 @@ int update_collision ( GXCollision_t *collision )
 
         }
     }
+}
+
+int resolve_collision(GXCollision_t* collision)
+{
+
+
+    return 0;
 }
 
 // Destructors

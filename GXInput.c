@@ -469,7 +469,7 @@ GXInput_t   *load_input                ( const char    path[] )
     // Load up the file
     {
         i    = g_load_file(path, 0, false);
-        data = calloc(i + 1, sizeof(u8));
+        data = calloc(i + 1, sizeof(char));
         g_load_file(path, data, false);
     }
 
@@ -617,6 +617,7 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
                 goto binds_type_error;
         }
 
+        loop:;
     }
 
     // Construct Input
@@ -634,7 +635,7 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
                 {
                     #ifndef NDEBUG
                         if(ret->name == (void*)0)
-                            goto no_name_mem;
+                            goto no_mem;
                     #endif
                 }
 
@@ -680,6 +681,14 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
                 return 0;
         }
 
+        // JSON type errors
+        {
+            name_type_error:
+            binds_type_error:
+
+            goto loop;
+        }
+
         // Parsing errors
         {
             no_name:
@@ -691,9 +700,9 @@ GXInput_t   *load_input_as_json_n      ( char         *token   , size_t len )
 
         // Standard library errors
         {
-            no_name_mem:
+            no_mem:
                 #ifndef NDEBUG
-                    g_print_error("[Standard library] Failed to allocate memory for \"name\" in call to function \"%s\"", __FUNCSIG__);    
+                    g_print_error("[Standard library] Failed to allocate memory in call to function \"%s\"", __FUNCSIG__);    
                 #endif
                 return 0;
         }
@@ -717,11 +726,12 @@ GXBind_t    *load_bind_as_json         ( char         *token )
 
     char        *name        = 0,
                **keys        = 0;
-    size_t       key_count   = 0;
+    size_t       key_count   = 0,
+                 i           = 0;
 
     parse_json(token, len, token_count, tokens);
 
-    for (size_t i = 0; i < token_count; i++)
+    for (i = 0; i < token_count; i++)
     {
 
         // Parse name
@@ -746,6 +756,7 @@ GXBind_t    *load_bind_as_json         ( char         *token )
             continue;
         }
 
+        loop:;
     }
     
     // Error checking
@@ -758,6 +769,8 @@ GXBind_t    *load_bind_as_json         ( char         *token )
 
     // Construct the bind
     {
+
+
 
         // Copy and set the name
         {
@@ -816,6 +829,26 @@ GXBind_t    *load_bind_as_json         ( char         *token )
 
     // Error handling
     {
+        
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
+        // JSON type errors
+        {
+        name_type_error:
+        keys_type_error:
+
+            goto loop;
+        }
+
+        no_name:
+            return 0;
+
 
         // Argument handling
         {
@@ -886,12 +919,14 @@ int          unregister_bind_callback  ( GXBind_t     *bind    , void           
 
 SDL_Scancode find_key                  ( const char   *name )
 {
+
     // Argument check
     {
         if (name == 0)
             goto noName;
     }
 
+    // TODO: Replace with a hash table
     for (size_t i = 0; i < 98; i++)
         if (strcmp(name, keys[i].name) == 0)
             return keys[i].code;

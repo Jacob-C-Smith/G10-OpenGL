@@ -1,6 +1,6 @@
 #include <G10/GXScene.h>
 
-GXScene_t  *create_scene     ( void )
+GXScene_t     *create_scene       ( void )
 {
 
     // Initialized data
@@ -29,7 +29,7 @@ GXScene_t  *create_scene     ( void )
     }
 }
 
-GXScene_t  *load_scene       ( const char path[] )
+GXScene_t     *load_scene         ( const char path[] )
 {
 
     // Argument checking
@@ -70,7 +70,7 @@ GXScene_t  *load_scene       ( const char path[] )
     }
 }
 
-GXScene_t  *load_scene_as_json ( char*      token )
+GXScene_t     *load_scene_as_json ( char*      token )
 {
 
     // Argument check
@@ -87,7 +87,7 @@ GXScene_t  *load_scene_as_json ( char*      token )
     GXScene_t   *ret           = create_scene();
     size_t       l             = strlen(token),
                  j             = 0;
-
+    clock_t      c             = 0;
     char        *name          = 0,
                **entities      = 0,
                **cameras       = 0,
@@ -97,7 +97,7 @@ GXScene_t  *load_scene_as_json ( char*      token )
     // Time the function if in debug mode
     {
         #ifndef NDEBUG
-            clock_t c = clock();
+            c = clock();
         #endif
     }
 
@@ -174,6 +174,8 @@ GXScene_t  *load_scene_as_json ( char*      token )
 
             continue;
         }
+
+        loop:;
     }
 
     // Construct the scene 
@@ -187,7 +189,7 @@ GXScene_t  *load_scene_as_json ( char*      token )
                 size_t len = strlen(name);
 
                 // Allocate memory for the string
-                ret->name = calloc(len + 1, sizeof(u8));
+                ret->name = calloc(len + 1, sizeof(char));
 
                 // Copy name string
                 strncpy(ret->name, name, len);
@@ -211,8 +213,8 @@ GXScene_t  *load_scene_as_json ( char*      token )
         // Construct and set the lights
         {
             if(lights)
-                for (size_t k = 0; cameras[k]; k++)
-                    append_light(ret, (*(char*)cameras[k] == '{')   ? load_light_as_json(cameras[k])   : load_light(cameras[k]));
+                for (size_t k = 0; lights[k]; k++)
+                    append_light(ret, (*(char*)lights[k] == '{')   ? load_light_as_json(lights[k])   : load_light(lights[k]));
         }
 
         // Construct and set the skybox
@@ -251,22 +253,31 @@ GXScene_t  *load_scene_as_json ( char*      token )
 
     // Error handling
     {
+        
+        // Standard library errors
+        {
+            no_mem:
+            #ifndef NDEBUG
+                g_print_error("[Standard Library] Out of memory in call to function \"%s\"\n", __FUNCSIG__);
+                return 0;
+            #endif
+        }
 
         // Debug only errors
         // JSON type errors
         {
 
             name_type_error:
-                
+                goto loop;
             entities_type_error:
                 g_print_warning("[G10] [Scene] \"rigid body\" token is of type \"%s\", but needs to be of type \"%s\", in call to function \"%s\". Particle system not constructed\n", token_types[tokens[j].type], token_types[JSONobject], __FUNCSIG__);
                 goto loop;
             cameras_type_error:
-
+                goto loop;
             lights_type_error:
-
+                goto loop;
             skybox_type_error:
-
+                goto loop;
         }
 
         // Argument errors
@@ -279,8 +290,8 @@ GXScene_t  *load_scene_as_json ( char*      token )
         }
     }
 }
-
-int         append_entity    ( GXScene_t* scene, GXEntity_t* entity )
+   
+int            append_entity      ( GXScene_t* scene, GXEntity_t    *entity )
 {
 
     // Argument checking
@@ -342,7 +353,7 @@ int         append_entity    ( GXScene_t* scene, GXEntity_t* entity )
     }
 }
 
-int         append_camera    ( GXScene_t* scene, GXCamera_t* camera ) 
+int            append_camera      ( GXScene_t* scene, GXCamera_t    *camera )
 {
 
     // Argument checking
@@ -404,7 +415,7 @@ int         append_camera    ( GXScene_t* scene, GXCamera_t* camera )
     }
 }
 
-int         append_light     ( GXScene_t* scene, GXLight_t*  light )
+int            append_light       ( GXScene_t* scene, GXLight_t     *light )
 {
 
     // Argument checking
@@ -464,8 +475,8 @@ int         append_light     ( GXScene_t* scene, GXLight_t*  light )
             return 0;
     }
 }
-
-int         append_collision ( GXScene_t* scene, GXCollision_t* collision )
+   
+int            append_collision   ( GXScene_t* scene, GXCollision_t *collision )
 {
     
     // Argument checking
@@ -525,7 +536,7 @@ int         append_collision ( GXScene_t* scene, GXCollision_t* collision )
     }
 }
 
-int         draw_scene       ( GXScene_t* scene ) 
+int            draw_scene         ( GXScene_t* scene )
 {
 
     // Argument checking 
@@ -571,6 +582,12 @@ int         draw_scene       ( GXScene_t* scene )
                 set_shader_lights(i->shader, scene->lights, 4);
         }
         
+        // Other uniforms
+        {
+            set_shader_time(i->shader);
+            set_shader_resolution(i->shader);
+        }
+
         // Actually draw the entity
         draw_entity(i);
        
@@ -605,7 +622,7 @@ int         draw_scene       ( GXScene_t* scene )
     
 }
 
-int         draw_lights      ( GXScene_t *scene, GXPart_t   *light_part, GXShader_t *shader )
+int            draw_lights        ( GXScene_t *scene, GXPart_t      *light_part, GXShader_t *shader )
 {
     // Argument check
     {
@@ -678,7 +695,7 @@ int         draw_lights      ( GXScene_t *scene, GXPart_t   *light_part, GXShade
     }
 }
 
-int         compute_physics  ( GXScene_t* scene, float       delta_time )
+int            compute_physics    ( GXScene_t* scene, float          delta_time )
 {
     // Commentary
     {
@@ -715,6 +732,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
     // Initialized data
     GXEntity_t    *i = scene->entities;
     GXCollision_t *c = 0;
+
     // Update active collisions
     {
         // Initialized data
@@ -731,23 +749,24 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
             update_collision(active_collisions);
             
             // Is the aabb collision over?
-            if (active_collisions->has_aabb_collision==false)
+            if (active_collisions->has_aabb_collision == false)
             {
                 // Initialized data
                 GXInstance_t  *instance = g_get_active_instance();
                 
-
                 // Set the ending tick
                 active_collisions->end_tick = instance->ticks;
 
                 // End collision callback
                 {
+                    // A end collision callbacks
                     for (size_t i = 0; i < a->collider->aabb_end_callback_count; i++)
                     {
                         void (*function)(collision) = a->collider->aabb_end_callbacks[i];
                         function(active_collisions);
                     }
 
+                    // B end collision callbacks
                     for (size_t i = 0; i < b->collider->aabb_end_callback_count; i++)
                     {
                         void (*function)(collision) = b->collider->aabb_end_callbacks[i];
@@ -787,58 +806,28 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                 goto noTransform;
             if (i->rigidbody == 0)
                 goto noRigidbody;
+            if (i->rigidbody->active == false)
+                goto noRigidbody;
         }
 
-        // Summate forces
+        // 1. Summate forces
         {
-            if (i->rigidbody->active == true)
-            {
-
-                i->rigidbody->forces[1].z = -0.098;
-                i->rigidbody->forces_count = 1;
-            
-                summate_forces(i->rigidbody->forces, i->rigidbody->forces_count);
-            }
+            summate_forces(i->rigidbody->forces, i->rigidbody->forces_count);
             //summate_forces(i->rigidbody->torques, i->rigidbody->torque_count);
         }
 
-        // Apply forces
+        // 2. Apply forces
         {
-
             // Integrate displacement and rotation from displacement force and torque
-            if (i->rigidbody->active == true)
-            {
 
-                // Calculate derivatives of displacement
-                integrate_displacement(i, delta_time);
+            // Calculate derivatives of displacement
+            integrate_displacement(i, delta_time);
 
-                // Caclulate derivatives of rotation
-                //integrateRotation(i, delta_time);            
-            }
-
-            noRigidbody:
-            if (i->collider == 0)
-                goto noCollider;
-
-            // Recompute BV size and BVH tree
-            if (i->collider);
-                /*if(i->collider->bv)
-                {
-                    vec3 l = normalize( (vec3) { i->transform->scale.x, 0.f, 0.f } ),
-                         f = normalize( (vec3) { 0.f, i->transform->scale.y, 0.f } ),
-                         u = normalize( (vec3) { 0.f, 0.f, i->transform->scale.z } );
-                        
-                    rotate_vec3_by_quaternion(&l, l, i->transform->rotation);
-                    rotate_vec3_by_quaternion(&f, f, i->transform->rotation);
-                    rotate_vec3_by_quaternion(&u, u, i->transform->rotation);
-
-                  i->collider->bv->dimensions->x = fabs(l.x) + fabs(f.x) + fabs(u.x) + 0.001;
-                  i->collider->bv->dimensions->y = fabs(l.y) + fabs(f.y) + fabs(u.y) + 0.001;
-                  i->collider->bv->dimensions->z = fabs(l.z) + fabs(f.z) + fabs(u.z) + 0.001;
-              }*/
+            // Caclulate derivatives of rotation
+            //integrateRotation(i, delta_time);            
         }
 
-        // Detect collisions
+        // 3. Detect collisions
         if (i->collider)
         {
             
@@ -848,7 +837,23 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
             GXEntity_t    **possibe_collisions       = 0;
             size_t          possible_collision_count = 0;
 
-            
+            // Recompute aabb size from obb bounds
+            {
+                vec3 l =  (vec3) { 1.f, 0.f, 0.f },
+                     f =  (vec3) { 0.f, 1.f, 0.f },
+                     u =  (vec3) { 0.f, 0.f, 1.f };
+                        
+                rotate_vec3_by_quaternion(&l, l, i->transform->rotation);
+                rotate_vec3_by_quaternion(&f, f, i->transform->rotation);
+                rotate_vec3_by_quaternion(&u, u, i->transform->rotation);
+
+                i->collider->aabb_dimensions.x = i->transform->scale.x * i->collider->dimensions.x * ( fabs(l.x) + fabs(f.x) + fabs(u.x) );
+                i->collider->aabb_dimensions.y = i->transform->scale.y * i->collider->dimensions.y * ( fabs(l.y) + fabs(f.y) + fabs(u.y) );
+                i->collider->aabb_dimensions.z = i->transform->scale.z * i->collider->dimensions.z * ( fabs(l.z) + fabs(f.z) + fabs(u.z) );
+
+                resize_bv(i->collider->bv);
+            }
+
             // Broad phase collision detection with bounding volumes
             {
 
@@ -925,7 +930,8 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
                                 (k->a == i && k->b == possibe_collisions[j]))
                                 goto duplicate_collision;
                         }
-                        printf("COLLISION STARTED\n");
+
+                        // This is where the collision starts
                         append_collision(scene, create_collision_from_entities(possibe_collisions[j], i));
                         duplicate_collision:;
                     }
@@ -958,16 +964,23 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
 
         }
 
-        // Resolve constraints
+        // 4. Resolve constraints
         {
             // TODO
 
         }
 
+        // Callbacks
+        {
+
+        }
+
         noTransform:
         noCollider:
+        noRigidbody:
         i = i->next;
     }
+
 
     return 0;
 
@@ -990,7 +1003,7 @@ int         compute_physics  ( GXScene_t* scene, float       delta_time )
     }
 }
 
-GXEntity_t *get_entity       ( GXScene_t* scene, const char  name[] )
+GXEntity_t    *get_entity         ( GXScene_t* scene, const char     name[] )
 {
 
     // Argument checking
@@ -1053,7 +1066,7 @@ GXEntity_t *get_entity       ( GXScene_t* scene, const char  name[] )
     }
 }
 
-GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
+GXCamera_t    *get_camera         ( GXScene_t* scene, const char     name[] )
 {
     
     // Argument checking
@@ -1116,7 +1129,7 @@ GXCamera_t *get_camera       ( GXScene_t* scene, const char  name[] )
     }
 }
 
-GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
+GXLight_t     *get_light          ( GXScene_t* scene, const char     name[] )
 {
 
     // Argument check
@@ -1176,7 +1189,7 @@ GXLight_t  *get_light        ( GXScene_t* scene, const char  name[] )
     }
 }
 
-int         set_active_camera ( GXScene_t* scene, const char  name[] )
+int            set_active_camera  ( GXScene_t* scene, const char    name[] )
 {
 
     // Arguments checking
@@ -1258,7 +1271,7 @@ int         set_active_camera ( GXScene_t* scene, const char  name[] )
     }
 }
 
-GXEntity_t *remove_entity    ( GXScene_t* scene, const char  name[] )
+GXEntity_t    *remove_entity      ( GXScene_t* scene, const char     name[] )
 {
     // Argument checking
     {
@@ -1339,7 +1352,7 @@ GXEntity_t *remove_entity    ( GXScene_t* scene, const char  name[] )
     }
 }
 
-GXCamera_t *remove_camera    ( GXScene_t* scene, const char  name[] )
+GXCamera_t    *remove_camera      ( GXScene_t* scene, const char     name[] )
 {
     // Argument checking
     {
@@ -1418,7 +1431,7 @@ GXCamera_t *remove_camera    ( GXScene_t* scene, const char  name[] )
     }
 }
     
-GXLight_t  *remove_light     ( GXScene_t* scene, const char  name[] )
+GXLight_t     *remove_light       ( GXScene_t* scene, const char     name[] )
 {
     // Argument checking 
     {
@@ -1502,7 +1515,7 @@ GXLight_t  *remove_light     ( GXScene_t* scene, const char  name[] )
     }
 }
 
-GXCollision_t *remove_collision ( GXScene_t* scene, GXCollision_t *collision )
+GXCollision_t *remove_collision   ( GXScene_t* scene, GXCollision_t *collision )
 {
     // Argument checking 
     {
@@ -1566,7 +1579,7 @@ GXCollision_t *remove_collision ( GXScene_t* scene, GXCollision_t *collision )
     }
 }
 
-int         destroy_scene    ( GXScene_t* scene )
+int            destroy_scene      ( GXScene_t* scene )
 {
     // Argument checking 
     {

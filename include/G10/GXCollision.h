@@ -18,7 +18,9 @@ struct GXCollision_s
 		                  normal;
 	float                 depth;
 	bool                  has_collision,
-		                  has_aabb_collision;
+		                  has_aabb_collision,
+						  has_obb_collision,
+		                  has_convex_hull_collision;
 	struct GXCollision_s *next;
 };
 
@@ -27,6 +29,14 @@ GXCollision_t *create_collision               ( );
 
 // Constructors
 GXCollision_t *create_collision_from_entities ( GXEntity_t *a, GXEntity_t *b );
+
+bool           test_collision                 ( GXCollision_t *collision );
+
+bool           test_aabb                      ( GXCollision_t *collision );
+
+bool           test_obb                       ( GXCollision_t *collision );
+
+bool           test_convex_hull               ( GXCollision_t *collision );
 
 int            update_collision               ( GXCollision_t *collision );
 

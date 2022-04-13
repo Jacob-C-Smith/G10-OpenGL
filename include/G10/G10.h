@@ -50,7 +50,7 @@ struct GXInstance_s
 	GXMaterial_t **cached_materials;
 	GXShader_t   **cached_shaders;
 
-		// Names of cached assets
+	// Names of cached assets
 	char	     **cached_part_names,
 		         **cached_material_names,
 		         **cached_shader_names;
@@ -64,6 +64,10 @@ struct GXInstance_s
 	u32            d, 
 		           lastTime;
 	float          delta_time;
+
+	u32 	       window_width,
+		           window_height;
+
     bool           running;
 
 };
@@ -85,13 +89,17 @@ int           g_swap                ( GXInstance_t        *instance );          
 int           g_window_resize       ( GXInstance_t        *instance );                                          // ✅ Responds to window resizes
 
 int           g_delta               ( GXInstance_t        *instance );                                          // ✅ Calculates delta time
-
+float         g_time                ( GXInstance_t        *instance );                                          // ✅ Calculates time
+ 
 void          g_toggle_mouse_lock   ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Toggle mouse locking
 void          g_toggle_full_screen  ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Toggle full screen
 int           g_exit_game_loop      ( callback_parameter_t state,    GXInstance_t *instance );                  // ✅ Called for exit
 
 // Getters
 GXInstance_t *g_get_active_instance ( void );                                                                   // ✅ Returns a pointer to the active instance
+
+// Setters
+int           g_set_active_scene    ( GXInstance_t        *instance, GXScene_t    *scene );
 
 // Cache operations
 int           g_cache_material      ( GXInstance_t        *instance, GXMaterial_t *material );                  // ✅ Caches a material for later use

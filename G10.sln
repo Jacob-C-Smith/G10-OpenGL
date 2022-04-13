@@ -9,6 +9,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Dynamic Library Debug|x64 = Dynamic Library Debug|x64
+		Dynamic Library Debug|x86 = Dynamic Library Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 		Static library release|x64 = Static library release|x64
@@ -21,6 +23,10 @@ Global
 		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Debug|x64.Build.0 = Debug|x64
 		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Debug|x86.ActiveCfg = Debug|Win32
 		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Debug|x86.Build.0 = Debug|Win32
+		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Dynamic Library Debug|x64.ActiveCfg = Dynamic Library Debug|x64
+		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Dynamic Library Debug|x64.Build.0 = Dynamic Library Debug|x64
+		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Dynamic Library Debug|x86.ActiveCfg = Dynamic Library Debug|Win32
+		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Dynamic Library Debug|x86.Build.0 = Dynamic Library Debug|Win32
 		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Release|x64.ActiveCfg = Release|x64
 		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Release|x64.Build.0 = Release|x64
 		{A8A0CC91-9BA6-4F90-A634-A1DC9C1B1E5D}.Release|x86.ActiveCfg = Release|Win32

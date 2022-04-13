@@ -82,7 +82,8 @@ GXSkybox_t* load_skybox_as_json ( char *token )
     // Initialized data
     GXSkybox_t  *ret        = create_skybox();
     char        *envPath    = 0,
-                *irrPath    = 0;
+                *irrPath    = 0,
+                *name       = 0;
     size_t       len        = strlen(token),
                  token_count = parse_json(token, len, 0, (void*)0);
     JSONToken_t *tokens     = calloc(token_count, sizeof(JSONToken_t));
@@ -102,7 +103,7 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         if (strcmp("name", tokens[j].key) == 0)
         {
             if (tokens[j].type == JSONstring)
-                ret->name = tokens[j].value.n_where;
+                name = tokens[j].value.n_where;
             else
                 goto name_type_error;
 
@@ -136,6 +137,8 @@ GXSkybox_t* load_skybox_as_json ( char *token )
         {
             // TODO: Set clear color to color, if there are no cubemap textures
         }
+
+        loop:;
     }
 
     // Construct the skybox
@@ -143,10 +146,10 @@ GXSkybox_t* load_skybox_as_json ( char *token )
 
         // Set the name
         {
-            size_t name_len = strlen(tokens[j].key);
-            ret->name = calloc(name_len + 1, sizeof(u8));
+            size_t name_len = strlen(name);
+            ret->name = calloc(name_len + 1, sizeof(char));
 
-            strncpy(ret->name, tokens[j].value.n_where, name_len);
+            strncpy(ret->name, name, name_len);
         }
 
         // Construct some textures
@@ -303,6 +306,14 @@ GXSkybox_t* load_skybox_as_json ( char *token )
 
     // Error handling
     {
+        // JSON type errors
+        {
+            name_type_error:
+            environment_path_error:
+            irradiance_path_error:
+            goto loop;
+        }
+
         #ifndef NDEBUG
         no_token:
             g_print_error("[G10] [Skybox] Null pointer provided for \"token\" in call to function \"%s\"",__FUNCSIG__);
