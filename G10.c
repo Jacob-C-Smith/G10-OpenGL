@@ -601,7 +601,10 @@ int           g_delta               ( GXInstance_t        *instance )
     instance->ticks       = SDL_GetTicks();
     instance->d           = instance->ticks - instance->lastTime;
     instance->lastTime    = instance->ticks;
-    instance->delta_time   = (float)1 / instance->d;
+    instance->delta_time  = (float)1 / instance->d;
+
+    if (instance->delta_time == 0.0f)
+        instance->delta_time = 0.001f;
 
     return 0;
     

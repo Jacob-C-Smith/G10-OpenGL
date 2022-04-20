@@ -118,6 +118,7 @@ int main ( int argc, const char *argv[] )
     // Main game loop
     while (instance->running)
     {
+
         // Compute delta time
         g_delta(instance);
 
@@ -137,12 +138,8 @@ int main ( int argc, const char *argv[] )
         if (instance->scenes)
         {
             update_controlee_camera(camera_controller, instance->delta_time);
+
             compute_physics(scene, instance->delta_time);
-
-            scene->entities->transform->rotation = make_quaternion_from_euler_angle((vec3) { 0.f, 0.f, m });
-            m += 0.2f;
-
-            draw_bv(scene->bvh, c, s, scene->cameras, 2);
 
             draw_scene(instance->scenes);
 

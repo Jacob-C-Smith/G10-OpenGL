@@ -839,18 +839,9 @@ int            compute_physics    ( GXScene_t* scene, float          delta_time 
 
             // Recompute aabb size from obb bounds
             {
-                vec3 l =  (vec3) { 1.f, 0.f, 0.f },
-                     f =  (vec3) { 0.f, 1.f, 0.f },
-                     u =  (vec3) { 0.f, 0.f, 1.f };
-                        
-                rotate_vec3_by_quaternion(&l, l, i->transform->rotation);
-                rotate_vec3_by_quaternion(&f, f, i->transform->rotation);
-                rotate_vec3_by_quaternion(&u, u, i->transform->rotation);
-
-                i->collider->aabb_dimensions.x = i->transform->scale.x * i->collider->dimensions.x * ( fabs(l.x) + fabs(f.x) + fabs(u.x) );
-                i->collider->aabb_dimensions.y = i->transform->scale.y * i->collider->dimensions.y * ( fabs(l.y) + fabs(f.y) + fabs(u.y) );
-                i->collider->aabb_dimensions.z = i->transform->scale.z * i->collider->dimensions.z * ( fabs(l.z) + fabs(f.z) + fabs(u.z) );
-
+                i->collider->aabb_dimensions.x = i->collider->dimensions.x * ( fabsf(i->transform->model_matrix.a) + fabsf(i->transform->model_matrix.e) + fabsf(i->transform->model_matrix.i) );
+                i->collider->aabb_dimensions.y = i->collider->dimensions.y * ( fabsf(i->transform->model_matrix.b) + fabsf(i->transform->model_matrix.f) + fabsf(i->transform->model_matrix.j) );
+                i->collider->aabb_dimensions.z = i->collider->dimensions.z * ( fabsf(i->transform->model_matrix.c) + fabsf(i->transform->model_matrix.g) + fabsf(i->transform->model_matrix.k) );                 
                 resize_bv(i->collider->bv);
             }
 

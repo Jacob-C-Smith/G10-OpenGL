@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <JSON/JSON.h>
+
 #include <G10/GXtypedef.h>
 #include <G10/G10.h>
-#include <JSON/JSON.h>
 
 #include <G10/GXLinear.h>
 

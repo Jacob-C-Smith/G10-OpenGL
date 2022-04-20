@@ -447,8 +447,8 @@ int resize_bv(GXBV_t* bv)
 
 		if (a->entity)
 		{
-			mul_vec3_vec3(&maxA, a->entity->transform->scale, maxB);
-			mul_vec3_vec3(&minA, a->entity->transform->scale, minB);
+			mul_vec3_vec3(&maxA, a->entity->transform->scale, maxA);
+			mul_vec3_vec3(&minA, a->entity->transform->scale, minA);
 		}
 
 		if (b->entity)
