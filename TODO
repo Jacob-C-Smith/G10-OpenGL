@@ -70,6 +70,13 @@
  - ❌ Respond to commands
  - ❌ Establish some security mechanisms?
 
+=== Workflow goals ===
+ - ❌ Finding/creating user interface library for engine tools
+ - ❌ Brush implementation, a la primitive BSP geometry
+ - ❌ Easy static mesh to scene pipeline
+ - ❌ Editors/Tools 
+
+
 === General goals ===
  - ✅ Write broader initialization functions for G10. The function should initialize OpenGL, SDL2, and G10 according to an instance json file.
  - ❌ Implement multithreading (maybe use C++ to avoid Win32 API)

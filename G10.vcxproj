@@ -155,6 +155,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <RunCodeAnalysis>false</RunCodeAnalysis>
+    <IncludePath>C:\source\lib\SDL2-2.0.20\include;C:\source\lib\KHR;C:\source\lib\glad;C:\source\lib\JSON-Windows-Release\include\JSON;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\source\lib\SDL2_mixer-2.0.4\lib\x64;C:\source\lib\SDL2_image-2.0.5\lib\x64;C:\source\lib\SDL2_net-2.0.1\lib\x64;C:\source\lib\SDL2-2.0.20\lib\x64;C:\source\lib\SDL2-net;C:\source\lib\JSON-Windows-Release\dynamic library;C:\source\lib\JSON-Windows-Release\static library;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Static library|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -231,7 +233,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;JSON.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;JSON.lib;SDL2.lib;SDL2_image.lib;SDL2_net.lib;SDL2_mixer.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

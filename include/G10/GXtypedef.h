@@ -79,6 +79,18 @@ typedef struct GXScene_s GXScene_t;
 struct GXEntity_s;
 typedef struct GXEntity_s GXEntity_t;
 
+//Sample type
+struct GXSample_s;
+typedef struct GXSample_s GXSample_t;
+
+//Music type
+struct GXMusic_s;
+typedef struct GXMusic_s GXMusic_t;
+
+//Audio source type
+struct GXAudioSource_s;
+typedef struct GXAudioSource_s GXAudioSource_t;
+
 // Camera type
 struct GXCamera_s;
 typedef struct GXCamera_s GXCamera_t;

@@ -145,6 +145,17 @@ GXInstance_t *g_init                ( const char          *path )
         if (SDLNet_Init() == -1)
             goto noSDLNetwork;
 
+        //Initialize the audio (mixer) library
+        //load support for whatever music formats are needed -- right now, MP3 and OGG
+        int flags = MIX_INIT_MP3 | MIX_INIT_OGG;
+        int initted = Mix_Init(flags);
+        if (initted & flags != flags) 
+            goto noSDLMixer;
+
+        //2048 byte sample size works fine for LazyFoo, but he says to experiment
+        if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+            goto noSDLMixer;
+
         // Create the window
         ret->window = SDL_CreateWindow(window_title,
             SDL_WINDOWPOS_CENTERED,
@@ -318,6 +329,12 @@ GXInstance_t *g_init                ( const char          *path )
             noSDLGLContext:
             #ifndef NDEBUG
                 g_print_error("[SDL2] Failed to create an OpenGL Context\nSDL Says: %s", SDL_GetError());
+            #endif
+            return 0;
+            
+            noSDLMixer:
+            #ifndef NDEBUG
+                g_print_error("[SDL2] Failed to initialize SDL Mixer\nSDL Says: %s", Mix_GetError());
             #endif
             return 0;
         }
@@ -1064,6 +1081,10 @@ int           g_exit                ( GXInstance_t        *instance )
         SDL_DestroyWindow(instance->window);
         SDL_GL_DeleteContext(instance->gl_context);
         SDLNet_Quit();
+        Mix_CloseAudio();
+        //Force quit the mixer
+        while (Mix_Init(0))
+            Mix_Quit();
         IMG_Quit();
         SDL_Quit();
     }

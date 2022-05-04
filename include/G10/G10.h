@@ -9,6 +9,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
+#include <SDL2/SDL_mixer.h>
 
 #include <glad/glad.h>
 
@@ -20,6 +21,7 @@
 #include <G10/GXInput.h>
 #include <G10/GXMaterial.h>
 #include <G10/GXTexture.h>
+#include <G10/GXAudio.h>
 
 #undef main
 
