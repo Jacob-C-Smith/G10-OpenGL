@@ -54,38 +54,39 @@ struct GXEntity_s
 ```
 
 ## Demo application
-Below is the source code of one approach to creating a game with G10. 
+Below is source code of a simple game. 
 ```c
 #include <stdbool.h>
-#include <G10/GXScene.h>
+#include <G10/G10.h>
 
 int main(int argc, const char[] argv)
 {
-    // Declare your variables, initialize your data, call g_init, etc 
+	// Declare your variables, initialize your data, call g_init, etc 
 	...
 
 	// Initialized data 
-	bool       running = true;
+
 	GXScene_t *scene   = load_scene("level 1/level 1.json");
 
-    g_init()
-
 	// Game loop 
-	while(running)
+	while(instance->running)
 	{
-		// Process input, clear the screen, check for exit, etc */
+		g_delta();
 		
+		process_input(instance);
+		
+		g_clear();
+
 		draw_scene(scene);
 
-		/* Swap windows if using VSync, etc */
+		g_swap();
 	}
 
 	/* Clean up G10 */
 	destroy_scene(scene);
 	
-	{
-		/* Clean up OpenGL, window manager, allocated memory, etc */
-	}
+	g_exit();
+	
 	return 0;
 }
 ```
